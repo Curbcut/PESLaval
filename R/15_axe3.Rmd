@@ -1,0 +1,17 @@
+---
+title: "Axe 3 - Le soutien aux communautés de proximité"
+author: "Curbcut"
+output: html_document
+---
+
+https://numerique.banq.qc.ca/patrimoine/details/52327/2773091
+
+```{r setup3, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+```
+
+## Les services de proximité et les équipements collectifs 
+
+## La mobilité et le transport
+
+## Les ressources de soutien et la concertation de quartier

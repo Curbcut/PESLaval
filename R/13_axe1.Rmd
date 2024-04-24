@@ -1,0 +1,64 @@
+---
+title: "Axe 1 - Les conditions de vie et les inégalités sociales"
+author: "Curbcut"
+output: html_document
+---
+
+https://numerique.banq.qc.ca/patrimoine/details/52327/2773091
+
+```{r setup1, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+```
+
+## L'immigration et diversité ethnoculturelle
+
+
+## Les langues
+
+
+## La famille lavalloise
+
+
+## Le développement des enfants à la maternelle
+
+
+## La scolarité et le décrochange scolaire
+
+
+## L'emploi et le chômage
+
+
+## L'habitation
+
+
+## L'itinérance
+
+
+## Le revenu
+
+
+## L'insécurité alimentaire
+
+
+## Les habitudes de vie
+
+
+## L'état de santé global et l'espérance de vie
+
+
+## Les maladies chroniques
+
+
+## Les incapacités
+
+
+## Les troubles de santé mentale
+
+
+## Les inégalités sociales de santé
+
+
+## Des écarts socioéconomiques entre les quartiers
+
+
+## Vulnérabilité aux changements climatiques

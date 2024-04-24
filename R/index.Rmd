@@ -1,0 +1,6 @@
+---
+title: "Portrait de l'environnement social de Laval"
+author: "Curbcut"
+output: bookdown::gitbook
+documentclass: book
+---

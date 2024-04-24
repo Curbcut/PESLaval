@@ -1,0 +1,83 @@
+---
+title: "Démographie"
+author: "Curbcut"
+output: html_document
+output:
+  bookdown::html_document2: default
+  bookdown::pdf_document2: default
+---
+
+https://numerique.banq.qc.ca/patrimoine/details/52327/2773091
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE, include = FALSE)
+```
+
+## Population
+
+```{r population}
+
+# To get raw census data, we use the cancensus package. At this link, there is documentation on how to get and save an API key: https://mountainmath.github.io/cancensus/
+
+# We grab census information from Laval. This small call lets us retrieve population counts for the whole city.
+laval_census <- cancensus::get_census(dataset = "CA21", 
+                                      regions = list(CSD = 2465005), 
+                                      level = "CSD")
+  
+# curbcut::convert_unit lets us convert any type and number to 'Pretty' number. This is an example:
+laval_population <- curbcut::convert_unit(x = laval_census$Population)
+
+# Another example is to use its method pct, or dollar
+curbcut:::convert_unit.pct(x = 0.4555, decimal = 1)
+curbcut:::convert_unit.dollar(x = 102512)
+
+# In the text, we always refer to an object previously created using this : `r object_name`
+```
+La population de la Ville de Laval en 2021 était de `r laval_population` selon le recensement canadien de la même année. Selon les projections actuelles de l'Institut de la Statistique du Québec, la population du territoire lavallois est estimée à 454,990 individus pour l'année 2024. (Source: https://statistique.quebec.ca/fr/document/projections-de-population-regions-administratives-et-regions-metropolitaines-rmr).
+
+## Densité
+
+```{r pop_density_prep}
+
+CT <- cancensus::get_census(dataset = "CA21", 
+                            regions = list(CSD = 2465005), 
+                            level = "CT", 
+                            geo_format = "sf")
+
+# Calculate the area, in meters, of every census tract
+CT$area <- cc.buildr::get_area(CT) / 1000000 # Converting square meters to square kilometers
+
+# Get population density
+CT$pop_density <- CT$Population / CT$area
+```
+
+```{r popDensityPlot, include=TRUE, fig.cap="Densité de la population lavalloise selon les secteurs de recensement, 2021", fig.align = 'center'}
+
+# Make a plot of density
+library(ggplot2)
+pop_density_plot <- ggplot(data = CT) +
+  geom_sf(aes(fill = pop_density), color = "white") +
+  scale_fill_viridis_c(
+    option = "viridis", 
+    direction = -1, 
+    name = "Population density\n(per km²)",
+    labels = \(x) curbcut::convert_unit(x = x),
+    guide = guide_colourbar(barwidth = 15),
+    limits = c(1000, 8000),
+    oob = scales::oob_squish
+  ) +
+  theme_void() +
+  theme(legend.position = "bottom")
+
+# Save the plot so it's in a good quality
+ggplot2::ggsave(filename = here::here("output/0_demography/figure_1.png"), plot = pop_density_plot, width = 6, height = 4)
+
+pop_density_plot
+
+```
+
+La figure \@ref(fig:popDensityPlot) informe la densité de la population sur le territoire.
+
+## Changement dans le temps
+
+## Comparaison avec la province

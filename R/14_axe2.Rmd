@@ -1,0 +1,21 @@
+---
+title: "Axe 2 - La participation sociale et le vivre-ensemble "
+author: "Curbcut"
+output: html_document
+---
+
+https://numerique.banq.qc.ca/patrimoine/details/52327/2773091
+
+```{r setup2, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+```
+
+## Le réseau social
+
+## La participation sociale
+
+## Le sentiment d'appartenance
+
+## La mixité sociale
+
+## La criminalité et le sentiment de sécurité

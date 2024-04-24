@@ -1,0 +1,7 @@
+---
+title: "Mise en contexte"
+author: "Curbcut"
+output: html_document
+---
+
+https://numerique.banq.qc.ca/patrimoine/details/52327/2773091
