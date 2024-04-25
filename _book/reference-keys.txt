@@ -1,4 +1,5 @@
 fig:popDensityPlot
+fig:popDensityPlotChange
 population
 densité
 changement-dans-le-temps
