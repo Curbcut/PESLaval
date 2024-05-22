@@ -1,6 +1,7 @@
 ### DEMOGRAPHY - POPULATION AND POPULATION DENSITY #############################
 
 library(ggplot2)
+
 geom_context <- qs::qread("data/geom_context/geom_context.qs")
 
 # Population count --------------------------------------------------------
