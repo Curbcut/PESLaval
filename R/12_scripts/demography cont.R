@@ -179,64 +179,68 @@ pop_gender <- pop_gender |>
 
 # Population Distribution by Age and Gender------------------------------------
 
-install.packages("dplyr") 
-library(dplyr)
+# Get all the age/gender variables for the 2021 census
+pop_dist_vector <- c(
+  "Male 0-4" = "v_CA21_15", "Female 0-4" = "v_CA21_16", 
+  "Male 5-9" = "v_CA21_33", "Female 5-9" = "v_CA21_34", 
+  "Male 10-14" = "v_CA21_51", "Female 10-14" = "v_CA21_52", 
+  "Male 15-19" = "v_CA21_72", "Female 15-19" = "v_CA21_73", 
+  "Male 20-24" = "v_CA21_90", "Female 20-24" = "v_CA21_91", 
+  "Male 25-29" = "v_CA21_108", "Female 25-29" = "v_CA21_109", 
+  "Male 30-34" = "v_CA21_126", "Female 30-34" = "v_CA21_127", 
+  "Male 35-39" = "v_CA21_144", "Female 35-39" = "v_CA21_145", 
+  "Male 40-44" = "v_CA21_162", "Female 40-44" = "v_CA21_163",
+  "Male 45-49" = "v_CA21_180", "Female 45-49" = "v_CA21_181", 
+  "Male 50-54" = "v_CA21_198", "Female 50-54" = "v_CA21_199", 
+  "Male 55-59" = "v_CA21_216", "Female 55-59" = "v_CA21_217", 
+  "Male 60-64" = "v_CA21_234", "Female 60-64" = "v_CA21_235", 
+  "Male 65-69" = "v_CA21_255", "Female 65-69" = "v_CA21_256", 
+  "Male 70-74" = "v_CA21_273", "Female 70-74" = "v_CA21_274", 
+  "Male 75-79" = "v_CA21_291", "Female 75-79" = "v_CA21_292", 
+  "Male 80-84" = "v_CA21_309", "Female 80-84" = "v_CA21_310", 
+  "Male 85 and over" = "v_CA21_327", "Female 85 and over" = "v_CA21_328")
 
+# Vector for sorting
+sort_vec <- c("0-4", "5-9", "10-14", "15-19", "20-24", "25-29", "30-34", 
+              "35-39", "40-44", "45-49", "50-54", "55-59", "60-64", "65-69", 
+              "70-74", "75-79", "80-84", "85 and over")
 
-pop_distribution  <- cancensus::get_census(dataset = "CA21", 
-                                           regions = list(CSD = 2465005), 
-                                           level = "CSD",
-                                           vectors = c("Male 0-4" = "v_CA21_15",
-                                                       "Female 0-4" = "v_CA21_16",
-                                                       "Male 5-9" = "v_CA21_33",
-                                                       "Female 5-9" = "v_CA21_34",
-                                                       "Male 10-14" = "v_CA21_51",
-                                                       "Female 10-14" = "v_CA21_52",
-                                                       "Male 15-19" = "v_CA21_72",
-                                                       "Female 15-19" = "v_CA21_73",
-                                                       "Male 20-24" = "v_CA21_90",
-                                                       "Female 20-24" = "v_CA21_91",
-                                                       "Male 25-29" = "v_CA21_108",
-                                                       "Female 25-29" = "v_CA21_109",
-                                                       "Male 30-34" = "v_CA21_126",
-                                                       "Female 30-34" = "v_CA21_127",
-                                                       "Male 35-39" = "v_CA21_144",
-                                                       "Female 35-39" = "v_CA21_145",
-                                                       "Male 40-44" = "v_CA21_162",
-                                                       "Female 40-44" = "v_CA21_163",
-                                                       "Male 45-49" = "v_CA21_180",
-                                                       "Female 45-49" = "v_CA21_181",
-                                                       "Male 50-54" = "v_CA21_198",
-                                                       "Female 50-54" = "v_CA21_199",
-                                                       "Male 55-59" = "v_CA21_216",
-                                                       "Female 55-59" = "v_CA21_217",
-                                                       "Male 60-64" = "v_CA21_234",
-                                                       "Female 60-64" = "v_CA21_235",
-                                                       "Male 65-69" = "v_CA21_255",
-                                                       "Female 65-69" = "v_CA21_256",
-                                                       "Male 70-74" = "v_CA21_273",
-                                                       "Female 70-74" = "v_CA21_274",
-                                                       "Male 75-79" = "v_CA21_291",
-                                                       "Female 75-79" = "v_CA21_292",
-                                                       "Male 80-84" = "v_CA21_309",
-                                                       "Female 80-84" = "v_CA21_310",
-                                                       "Male 85 and over" = "v_CA21_327",
-                                                       "Female 85 and over" = "v_CA21_328"
-                                                       ))
+# Get these variables for Laval
+pop_dist_laval  <- get_census(dataset = "CA21", 
+                              regions = list(CSD = 2465005), 
+                              level = "CSD",
+                              vectors = pop_dist_vector)
 
-#visualisation pop distribution
+# Get the variables for the province
+pop_dist_qc  <- get_census(dataset = "CA21", 
+                           regions = list(PR = 24), 
+                           level = "PR",
+                           vectors = pop_dist_vector)
 
-pop_distribution %>% 
-  pivot_longer(-c(GeoUID:CMA_UID)) %>% 
-  mutate(gender = str_extract(name, "(Male|Female)"),
-         name = str_remove(name, "(Male |Female )")) %>% 
-  ggplot(aes(name, value, group = gender)) +
+# Merge the two datasets
+pop_dist <-
+  bind_rows(pop_distribution_laval, pop_distribution_qc) |> 
+  mutate(name = c("Laval", "Quebec"), .before = GeoUID) |> 
+  select(-c(GeoUID:CMA_UID, C_UID)) |> 
+  pivot_longer(-name, names_to = "category") |> 
+  # Split gender off into its own variable
+  mutate(gender = str_extract(category, "(Male|Female)"),
+         category = str_remove(category, "(Male |Female )")) |> 
+  group_by(name, gender) |> 
+  mutate(pct = value / sum(value)) |> 
+  ungroup() |> 
+  # Make female values negative to facilitate easier population pyramids
+  mutate(pct = if_else(gender == "Female", pct * -1, pct)) |> 
+  mutate(category = factor(category, levels = sort_vec))
+  
+pop_dist |> 
+  ggplot(aes(x = pct, y = category, fill = gender)) +
   geom_col() +
-  facet_wrap(~gender)+
-  labs(x ="Age", y = "Count") +
-  theme(
-    axis.text.x = element_text(angle = 45, hjust = 1)  # Rotate x-axis labels by 45 degrees
-  )
+  facet_wrap(~name, nrow = 1) +
+  scale_fill_manual(values = c("Female" = "pink", "Male" = "blue")) +
+  scale_x_continuous(breaks = -2:2 * 0.04,
+                     labels = c("8 %", "4 %", "0", "4 %", "8 %")) +
+  theme(legend.position = "bottom")
 
 
 #average and median age--------------------------------------------------------
