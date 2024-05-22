@@ -1,6 +1,6 @@
 ### DEMOGRAPHY - POPULATION AND POPULATION DENSITY #############################
 
-library(ggplot2)
+source("R/01_startup.R")
 
 geom_context <- qs::qread("data/geom_context/geom_context.qs")
 
@@ -11,14 +11,14 @@ geom_context <- qs::qread("data/geom_context/geom_context.qs")
 
 # We grab census information from Laval. This small call lets us retrieve 
 # population counts for the whole city.
-laval_census <- cancensus::get_census(dataset = "CA21", 
+laval_census <- get_census(dataset = "CA21", 
                                       regions = list(CSD = 2465005), 
                                       level = "CSD")
 
 # curbcut::convert_unit lets us convert any type and number to 'Pretty' number. 
 # To use curbcut functions, install the package through `devtools::install_github("Curbcut/curbcut")`
 laval_population <- laval_census$Population
-laval_population_pretty <- curbcut::convert_unit(x = laval_population)
+laval_population_pretty <- convert_unit(x = laval_population)
 
 # Another example is to use its method pct, or dollar
 curbcut:::convert_unit.pct(x = 0.4555, decimal = 1)

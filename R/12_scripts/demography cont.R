@@ -242,6 +242,61 @@ pop_dist |>
                      labels = c("8 %", "4 %", "0", "4 %", "8 %")) +
   theme(legend.position = "bottom")
 
+# Another way to accomplish the same result, to show a different workflow
+# Temporary example to show the other way to get our data
+pop_dist_qc_CSD <- get_census(dataset = "CA21", 
+                              regions = list(PR = 24), 
+                              level = "CSD",
+                              vectors = pop_dist_vector)
+
+pop_dist_qc_CSD <- 
+  pop_dist_qc_CSD |> 
+  # All rows with any NAs have all NAs, so safe to just filter on one column
+  filter(!is.na(`Female 45-49`)) |> 
+  mutate(city = case_when(
+    GeoUID == "2466023" ~ "Montreal",
+    GeoUID == "2465005" ~ "Laval",
+    .default = NA),
+    region = if_else(CMA_UID == "24462", "Montreal", NA),
+    .before = Type) |> 
+  group_by(city, region) |> 
+  summarize(across(c(`Male 0-4`:`Female 85 and over`), sum),
+            .groups = "drop")
+
+pop_dist_qc_CSD_1 <- 
+  pop_dist_qc_CSD |> 
+  filter(!is.na(city)) |> 
+  select(-region)
+
+pop_dist_qc_CSD_2 <- 
+  pop_dist_qc_CSD |> 
+  filter(region == "Montreal") |> 
+  summarize(city = "Montreal CMA", across(c(`Male 0-4`:`Female 85 and over`), sum))
+
+pop_dist_qc_CSD_3 <- 
+  pop_dist_qc_CSD |>
+  summarize(city = "Province", across(c(`Male 0-4`:`Female 85 and over`), sum))
+
+bind_rows(pop_dist_qc_CSD_1, pop_dist_qc_CSD_2, pop_dist_qc_CSD_3) |> 
+  pivot_longer(-city, names_to = "category") |> 
+  rename(name = city) |> 
+  # Split gender off into its own variable
+  mutate(gender = str_extract(category, "(Male|Female)"),
+         category = str_remove(category, "(Male |Female )")) |> 
+  group_by(name, gender) |> 
+  mutate(pct = value / sum(value)) |> 
+  ungroup() |> 
+  # Make female values negative to facilitate easier population pyramids
+  mutate(pct = if_else(gender == "Female", pct * -1, pct)) |> 
+  mutate(category = factor(category, levels = sort_vec)) |> 
+  ggplot(aes(x = pct, y = category, fill = gender)) +
+  geom_col() +
+  facet_wrap(~name, nrow = 2) +
+  scale_fill_manual(values = c("Female" = "pink", "Male" = "blue")) +
+  scale_x_continuous(breaks = -2:2 * 0.04,
+                     labels = c("8 %", "4 %", "0", "4 %", "8 %")) +
+  theme(legend.position = "bottom")
+
 
 #average and median age--------------------------------------------------------
 
