@@ -220,11 +220,7 @@ employment_rate <- lf_combined |>
 ggplot(employment_rate, aes(x = as.factor(Year), y = Value, color = Geography, group = Geography)) +
   geom_line() +
   labs(title = "Employment Rate from 2001 to 2006", x = "Year", y = "Employment Rate (%)", color = "Geography") +
-  theme(
-    legend.position = "bottom",
-    legend.box = "horizontal"
-  ) +
-  guides(color = guide_legend(title = NULL))
+  theme(legend.position = "bottom", legend.box = "horizontal", legend.title = element_blank())
 
 #Creating the unemployment rate table and pivoting it to make it longer
 unemployment_rate <- lf_combined |> 
@@ -237,8 +233,31 @@ unemployment_rate <- lf_combined |>
 ggplot(unemployment_rate, aes(x = as.factor(Year), y = Value, color = Geography, group = Geography)) +
   geom_line() +
   labs(title = "Unemployment Rate from 2001 to 2006", x = "Year", y = "Unemployment Rate (%)", color = "Geography") +
-  theme(
-    legend.position = "bottom",
-    legend.box = "horizontal"
-  ) +
-  guides(color = guide_legend(title = NULL))
+  theme(legend.position = "bottom", legend.box = "horizontal", legend.title = element_blank())
+
+# Workplace category ------------------------------------------------------
+#Grab 2021 workplace category data for Laval, clean it up, and pivot it into a longer format
+workplace_lvl  <- get_census(dataset = "CA21", 
+                             regions = list(CSD = 2465005), 
+                             level = "CSD",
+                             vectors = c("total" = "v_CA21_7602", "home" = "v_CA21_7605", "outside_can" = "v_CA21_7608",
+                                         "no_address" = "v_CA21_7611", "fixed_address" = "v_CA21_7614")) |> 
+  select(all_of(c("home", "outside_can", "no_address", "fixed_address"))) |>
+  select(everything()) |> 
+  pivot_longer(everything(), names_to = "location", values_to = "count")
+
+#Legend Labels
+workplace_labels <- c("home" = "Worked at Home",
+                      "outside_can" = "Worked Outside of Canada",
+                      "no_address" = "No Fixed Workplace Address",
+                      "fixed_address" = "Usual Place of Work")
+
+#Creating the pie chart
+ggplot(workplace_lvl, aes(x = "", y = count, fill = location)) +
+  geom_bar(stat = "identity", width = 1) +
+  coord_polar("y", start = 0) +
+  theme_void() +
+  scale_fill_manual(values = c("#1b9e77", "#d95f02", "#7570b3", "#e7298a"),
+    labels = workplace_labels) +
+  labs(title = "2021 Workplace Category") +
+  theme(legend.position = "right", legend.title = element_blank())
