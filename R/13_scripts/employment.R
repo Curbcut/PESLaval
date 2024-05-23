@@ -368,3 +368,71 @@ ggplot(wref_table_data, aes(x = Status, y = Count, fill = Type)) +
                               "no_work" = "No Work")) +
   theme_minimal() +
   theme(legend.position = "bottom", legend.title = element_blank())
+
+# Category of Worker ------------------------------------------------------
+#Vectors for 2021 work category, for total, n/a, all category of workers,
+#employees, permanent workers, temporary workers, fixed term, seasonal workers,
+#and self-employed
+cat_total <- c("total" = "v_CA21_6534", "na" = "v_CA21_6537", "allworkers" = "v_CA21_6540",
+               "employee" = "v_CA21_6543", "permanent" = "v_CA21_6546", "temp" = "v_CA21_6549",
+               "fixed" = "v_CA21_6552", "seasonal" = "v_CA21_6555", "self" = "v_CA21_6558")
+cat_men <- c("total" = "v_CA21_6535", "na" = "v_CA21_6538", "allworkers" = "v_CA21_6541",
+               "employee" = "v_CA21_6544", "permanent" = "v_CA21_6547", "temp" = "v_CA21_6550",
+               "fixed" = "v_CA21_6553", "seasonal" = "v_CA21_6556", "self" = "v_CA21_6559")
+cat_women <- c("total" = "v_CA21_6536", "na" = "v_CA21_6539", "allworkers" = "v_CA21_6542",
+               "employee" = "v_CA21_6545", "permanent" = "v_CA21_6548", "temp" = "v_CA21_6551",
+               "fixed" = "v_CA21_6554", "seasonal" = "v_CA21_6557", "self" = "v_CA21_6560")
+
+#Vector with the given names for category of worker vectors
+cat_names <- c("total", "na", "allworkers", "employee", "permanent",
+               "temp", "fixed", "seasonal", "self")
+
+#Grabbing Laval-wide category of workers
+cat_lvl_total  <- get_census(dataset = "CA21", 
+                            regions = list(CSD = 2465005), 
+                            level = "CSD",
+                            vectors = cat_total) |> 
+  select(all_of(cat_names)) |> 
+  mutate(Type = "Total") |> 
+  select(Type, everything())
+
+#Grabbing men category of workers
+cat_lvl_men  <- get_census(dataset = "CA21", 
+                             regions = list(CSD = 2465005), 
+                             level = "CSD",
+                             vectors = cat_men) |> 
+  select(all_of(cat_names)) |> 
+  mutate(Type = "Men") |> 
+  select(Type, everything())
+
+#Grabbing women category of workers
+cat_lvl_women  <- get_census(dataset = "CA21", 
+                             regions = list(CSD = 2465005), 
+                             level = "CSD",
+                             vectors = cat_women) |> 
+  select(all_of(cat_names)) |> 
+  mutate(Type = "Women") |> 
+  select(Type, everything())
+
+#Bind the three tables together
+worker_category <- bind_rows(cat_lvl_total, cat_lvl_men, cat_lvl_women)
+
+#Prepping the data to create graphs
+work_cat_table <- worker_category |> 
+  select(-total, -allworkers, -employee, -fixed, -seasonal, -Type) |> 
+  slice(-c(2, 3)) |> 
+  pivot_longer(cols = everything(), names_to = "category", values_to = "count")
+
+#Pie chart for category of workers
+ggplot(work_cat_table, aes(x = "", y = count, fill = category)) +
+  geom_bar(width = 1, stat = "identity") +
+  coord_polar("y", start = 0) +
+  theme_void() +
+  labs(title = "2021 Category of Workers including Permaence of Employment") +
+  scale_fill_discrete(labels = c("na" = "Not Applicable",
+                                 "permanent" = "Permanent",
+                                 "temp" = "Temporary",
+                                 "self" = "Self Employed")) +
+  theme(
+    legend.position = "bottom", legend.title = element_blank()
+  )
