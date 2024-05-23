@@ -257,7 +257,114 @@ ggplot(workplace_lvl, aes(x = "", y = count, fill = location)) +
   geom_bar(stat = "identity", width = 1) +
   coord_polar("y", start = 0) +
   theme_void() +
-  scale_fill_manual(values = c("#1b9e77", "#d95f02", "#7570b3", "#e7298a"),
+  scale_fill_manual(values = c("aquamarine4", "sienna3", "mediumpurple3", "hotpink2"),
     labels = workplace_labels) +
   labs(title = "2021 Workplace Category") +
   theme(legend.position = "right", legend.title = element_blank())
+
+# Activity Situation ------------------------------------------------------
+#Note this section is only for reference. Only a table will be created
+#Vectors for 2021 activity situation (total, in labour force(lf), employed, unemployed, not in lf)
+act_total <- c("total" = "v_CA21_6492", "in_lf" = "v_CA21_6495", "employed" = "v_CA21_6498",
+               "unemployed" = "v_CA21_6501", "not_lf" = "v_CA21_6504")
+act_men <- c("total" = "v_CA21_6493", "in_lf" = "v_CA21_6496", "employed" = "v_CA21_6499",
+             "unemployed" = "v_CA21_6502", "not_lf" = "v_CA21_6505")
+act_women <- c("total" = "v_CA21_6494", "in_lf" = "v_CA21_6497", "employed" = "v_CA21_6500",
+               "unemployed" = "v_CA21_6503", "not_lf" = "v_CA21_6506")
+
+#Vector with the given names for activity vectors above
+act_names <- c("total", "in_lf", "employed", "unemployed", "not_lf")
+
+#Grabbing Laval-wide activity situation data
+act_lvl_total  <- get_census(dataset = "CA21", 
+                             regions = list(CSD = 2465005), 
+                             level = "CSD",
+                             vectors = act_total) |> 
+  select(all_of(act_names)) |> 
+  mutate(Type = "Laval") |> 
+  select(Type, everything())
+
+#Grabbing men-only activity situation data
+act_lvl_men  <- get_census(dataset = "CA21", 
+                             regions = list(CSD = 2465005), 
+                             level = "CSD",
+                             vectors = act_men) |> 
+  select(all_of(act_names)) |> 
+  mutate(Type = "Men") |> 
+  select(Type, everything())
+
+#Grabbing women-only activity situation data
+act_lvl_women  <- get_census(dataset = "CA21", 
+                           regions = list(CSD = 2465005), 
+                           level = "CSD",
+                           vectors = act_women) |> 
+  select(all_of(act_names)) |> 
+  mutate(Type = "Women") |> 
+  select(Type, everything())
+
+#Bind the three tables together
+activity_situation <- bind_rows(act_lvl_total, act_lvl_men, act_lvl_women)
+
+# Working During Reference Year -------------------------------------------
+#Vectors for 2021 working during reference year, for total count, did not work, worked,
+#full time and full year, part time or part year, and average weeks worked
+wref_total <- c("total" = "v_CA21_6516", "no_work" = "v_CA21_6519", "worked" = "v_CA21_6522",
+                "full" = "v_CA21_6525", "part" = "v_CA21_6528", "avg_wks" = "v_CA21_6531")
+wref_men <- c("total" = "v_CA21_6517", "no_work" = "v_CA21_6520", "worked" = "v_CA21_6523",
+              "full" = "v_CA21_6526", "part" = "v_CA21_6529", "avg_wks" = "v_CA21_6532")
+wref_women <- c("total" = "v_CA21_6518", "no_work" = "v_CA21_6521", "worked" = "v_CA21_6524",
+                "full" = "v_CA21_6527", "part" = "v_CA21_6530", "avg_wks" = "v_CA21_6533")
+
+#Vector with the given names for reference year vectors above
+wref_names <- c("total", "no_work", "worked", "full", "part", "avg_wks")
+
+#Grabbing Laval-wide work during reference year data
+wref_lvl_total  <- get_census(dataset = "CA21", 
+                             regions = list(CSD = 2465005), 
+                             level = "CSD",
+                             vectors = wref_total) |> 
+  select(all_of(wref_names)) |> 
+  mutate(Type = "Laval") |> 
+  select(Type, everything())
+
+#Grabbing men work during reference year data
+wref_lvl_men  <- get_census(dataset = "CA21", 
+                              regions = list(CSD = 2465005), 
+                              level = "CSD",
+                              vectors = wref_men) |> 
+  select(all_of(wref_names)) |> 
+  mutate(Type = "Men") |> 
+  select(Type, everything())
+
+#Grabbing women work during reference year data
+wref_lvl_women  <- get_census(dataset = "CA21", 
+                            regions = list(CSD = 2465005), 
+                            level = "CSD",
+                            vectors = wref_women) |> 
+  select(all_of(wref_names)) |> 
+  mutate(Type = "Women") |> 
+  select(Type, everything())
+
+#Bind the three tables together
+work_ref_year <- bind_rows(wref_lvl_total, wref_lvl_men, wref_lvl_women)
+
+#Prepares work_ref_year to be used in creating the graph
+wref_table_data <- work_ref_year |> 
+  select(-total, -worked, -avg_wks) |> 
+  pivot_longer(cols = -Type, names_to = "Status", values_to = "Count") |> 
+  mutate(Status = factor(Status, levels = c("full", "part", "no_work")))
+
+#Graph creation
+ggplot(wref_table_data, aes(x = Status, y = Count, fill = Type)) +
+  geom_bar(stat = "identity", position = "dodge", width = 0.7) +
+  labs(title = "Work Status by Type", x = "", y = "Count") +
+  scale_fill_manual(values = c("Laval" = "royalblue2", 
+                               "Men" = "indianred", 
+                               "Women" = "gold2"),
+                    name = "Status",
+                    ) +
+  scale_x_discrete(labels = c("full" = "Full-Time", 
+                              "part" = "Part-Time", 
+                              "no_work" = "No Work")) +
+  theme_minimal() +
+  theme(legend.position = "bottom", legend.title = element_blank())
