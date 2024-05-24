@@ -1,5 +1,4 @@
 #Loading libraries
-
 source("R/01_startup.R")
 
 #Setting CensusMapper API Key because it won't save
