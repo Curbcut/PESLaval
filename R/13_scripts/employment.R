@@ -1,5 +1,4 @@
 #Loading libraries
-
 source("R/01_startup.R")
 
 #Setting CensusMapper API Key because it won't save
@@ -200,14 +199,6 @@ lf_combined <- lf_combined_01 |>
   full_join(lf_combined_11, by = "Geography") |> 
   full_join(lf_combined_16, by = "Geography") |> 
   full_join(lf_combined_21, by = "Geography")
-
-#Clean-up now unused variables
-rm(lf_combined_01, lf_combined_06, lf_combined_11, lf_combined_16, lf_combined_21,
-   lf_lvl_mtl_01, lf_lvl_mtl_06, lf_lvl_mtl_11, lf_lvl_mtl_16, lf_lvl_mtl_21,
-   lf_mtl_cma_01, lf_mtl_cma_06, lf_mtl_cma_11, lf_mtl_cma_16, lf_mtl_cma_21,
-   lf_qc_01, lf_qc_06, lf_qc_11, lf_qc_16, lf_qc_21,
-   lf_names_01, lf_names_06, lf_names_11, lf_names_16, lf_names_21,
-   lf_vectors_01, lf_vectors_06, lf_vectors_11, lf_vectors_16, lf_vectors_21)
 
 #Creating the employment rate table and pivoting it to make it longer
 employment_rate <- lf_combined |> 
@@ -436,3 +427,257 @@ ggplot(work_cat_table, aes(x = "", y = count, fill = category)) +
   theme(
     legend.position = "bottom", legend.title = element_blank()
   )
+
+# Occupation Major Category -----------------------------------------------
+#Vectors for 2021 NOC categories
+noc_total <- c("total" = "v_CA21_6561", "na" = "v_CA21_6564", "all" = "v_CA21_6567",
+               "0" = "v_CA21_6570", "1" = "v_CA21_6573", "2" = "v_CA21_6576",
+               "3" = "v_CA21_6579", "4" = "v_CA21_6582", "5" = "v_CA21_6585",
+               "6" = "v_CA21_6588", "7" = "v_CA21_6591", "8" = "v_CA21_6594",
+               "9" = "v_CA21_6597")
+noc_men <- c("total" = "v_CA21_6562", "na" = "v_CA21_6565", "all" = "v_CA21_6568",
+               "0" = "v_CA21_6571", "1" = "v_CA21_6574", "2" = "v_CA21_6577",
+               "3" = "v_CA21_6580", "4" = "v_CA21_6583", "5" = "v_CA21_6586",
+               "6" = "v_CA21_6589", "7" = "v_CA21_6592", "8" = "v_CA21_6595",
+               "9" = "v_CA21_6598")
+noc_women <- c("total" = "v_CA21_6563", "na" = "v_CA21_6566", "all" = "v_CA21_6569",
+               "0" = "v_CA21_6572", "1" = "v_CA21_6575", "2" = "v_CA21_6578",
+               "3" = "v_CA21_6582", "4" = "v_CA21_6584", "5" = "v_CA21_6587",
+               "6" = "v_CA21_6590", "7" = "v_CA21_6593", "8" = "v_CA21_6596",
+               "9" = "v_CA21_6599")
+
+#Vector with the given names for the NOC occupations vectors above
+noc_names <- c("total", "na", "all", "0", "1", "2", "3", "4", "5", "6", "7", "8", "9")
+
+#Grabbing Laval-wide NOC occupations
+noc_lvl_total  <- get_census(dataset = "CA21", 
+                             regions = list(CSD = 2465005), 
+                             level = "CSD",
+                             vectors = noc_total) |> 
+  select(all_of(noc_names)) |> 
+  mutate(Type = "Total") |> 
+  select(Type, everything())
+
+#Grabbing men NOC occupations
+noc_lvl_men  <- get_census(dataset = "CA21", 
+                             regions = list(CSD = 2465005), 
+                             level = "CSD",
+                             vectors = noc_men) |> 
+  select(all_of(noc_names)) |> 
+  mutate(Type = "Men") |> 
+  select(Type, everything())
+
+#Grabbing women NOC occupations
+noc_lvl_women  <- get_census(dataset = "CA21", 
+                           regions = list(CSD = 2465005), 
+                           level = "CSD",
+                           vectors = noc_women) |> 
+  select(all_of(noc_names)) |> 
+  mutate(Type = "Women") |> 
+  select(Type, everything())
+
+#Binding the NOC tables together
+noc_occupation <- bind_rows(noc_lvl_total, noc_lvl_men, noc_lvl_women)
+
+#Set up table to create a grouped bar graph
+noc_occupation_table <- noc_occupation |> 
+  select(-total, -all) |> 
+  pivot_longer(cols = -Type, names_to = "category", values_to = "count") |> 
+  mutate(Type = factor(Type, levels = c("Total", "Men", "Women"))) |> 
+  mutate(category = factor(category, levels = c("na", "0", "1", "2", "3", "4", "5", "6", "7", "8", "9")))
+
+#Creating the grouped bar graph
+ggplot(noc_occupation_table, aes(x = category, y = count, fill = Type)) +
+  geom_bar(stat = "identity", position = "dodge", width = 0.7) +
+  labs(title = "National Occupational Classification 2021", x = "", y = "Count") +
+  scale_fill_manual(values = c("Total" = "royalblue2", 
+                               "Men" = "indianred", 
+                               "Women" = "gold2"),
+                    name = "Status",
+  ) +
+  theme_minimal() +
+  theme(legend.position = "bottom", legend.title = element_blank())
+
+#Preparing the table to create a pie graph
+noc_occupation_pie <- noc_occupation |> 
+  select(-Type, -total, -all) |> 
+  slice(c(-2, -3)) |> 
+  pivot_longer(cols = everything(), names_to = "category", values_to = "count")
+
+#Pie chart for NOS
+ggplot(noc_occupation_pie, aes(x = "", y = count, fill = category)) +
+  geom_bar(width = 1, stat = "identity") +
+  coord_polar("y", start = 0) +
+  theme_void() +
+  labs(title = "National Occupational Classification 2021") +
+  scale_fill_discrete(labels = c("na" = "Not Applicable")) +
+  theme(
+    legend.position = "right", legend.title = element_blank()
+  )
+
+# North American Industry Classification System ---------------------------
+#Vectors for 2021 NAICS categories
+naics_total <- c("total" = "v_CA21_6600", "na" = "v_CA21_6603", "all" = "v_CA21_6606",
+                 "11" = "v_CA21_6609", "21" = "v_CA21_6612", "22" = "v_CA21_6615",
+                 "23" = "v_CA21_6618", "31-33" = "v_CA21_6621", "41" = "v_CA21_6624",
+                 "44-45" = "v_CA21_6627", "48-49" = "v_CA21_6630", "51" = "v_CA21_6633",
+                 "52" = "v_CA21_6636", "53" = "v_CA21_6639", "54" = "v_CA21_6642",
+                 "55" = "v_CA21_6645", "56" = "v_CA21_6648", "61" = "v_CA21_6651",
+                 "62" = "v_CA21_6654", "71" = "v_CA21_6657", "72" = "v_CA21_6660",
+                 "81" = "v_CA21_6663", "91" = "v_CA21_6666")
+naics_men <- c("total" = "v_CA21_6601", "na" = "v_CA21_6604", "all" = "v_CA21_6607",
+                 "11" = "v_CA21_6610", "21" = "v_CA21_6613", "22" = "v_CA21_6616",
+                 "23" = "v_CA21_6619", "31-33" = "v_CA21_6622", "41" = "v_CA21_6625",
+                 "44-45" = "v_CA21_6628", "48-49" = "v_CA21_6631", "51" = "v_CA21_6634",
+                 "52" = "v_CA21_6637", "53" = "v_CA21_6640", "54" = "v_CA21_6643",
+                 "55" = "v_CA21_6646", "56" = "v_CA21_6649", "61" = "v_CA21_6652",
+                 "62" = "v_CA21_6655", "71" = "v_CA21_6658", "72" = "v_CA21_6661",
+                 "81" = "v_CA21_6664", "91" = "v_CA21_6667")
+naics_women <- c("total" = "v_CA21_6602", "na" = "v_CA21_6605", "all" = "v_CA21_6608",
+               "11" = "v_CA21_6611", "21" = "v_CA21_6614", "22" = "v_CA21_6617",
+               "23" = "v_CA21_6620", "31-33" = "v_CA21_6623", "41" = "v_CA21_6626",
+               "44-45" = "v_CA21_6629", "48-49" = "v_CA21_6632", "51" = "v_CA21_6635",
+               "52" = "v_CA21_6638", "53" = "v_CA21_6641", "54" = "v_CA21_6644",
+               "55" = "v_CA21_6647", "56" = "v_CA21_6650", "61" = "v_CA21_6653",
+               "62" = "v_CA21_6656", "71" = "v_CA21_6659", "72" = "v_CA21_6662",
+               "81" = "v_CA21_6665", "91" = "v_CA21_6668")
+
+#Grabbing the names of the vectors above
+naics_names <- c("total", "na", "all", "11", "21", "22", "23", "31-33", "41", "44-45",
+                 "48-49", "51", "52", "53", "54", "55", "56", "61", "62", "71", "72",
+                 "81", "91")
+
+#Grabbing 2021 NAICS data for Laval
+naics_lvl_total  <- get_census(dataset = "CA21", 
+                             regions = list(CSD = 2465005), 
+                             level = "CSD",
+                             vectors = naics_total) |> 
+  select(all_of(naics_names)) |> 
+  mutate(Type = "Total") |> 
+  select(Type, everything())
+
+#Grabbing 2021 NAICS data for Laval men
+naics_lvl_men  <- get_census(dataset = "CA21", 
+                               regions = list(CSD = 2465005), 
+                               level = "CSD",
+                               vectors = naics_men) |> 
+  select(all_of(naics_names)) |> 
+  mutate(Type = "Men") |> 
+  select(Type, everything())
+
+#Grabbing 2021 NAICS data for Laval women
+naics_lvl_women  <- get_census(dataset = "CA21", 
+                             regions = list(CSD = 2465005), 
+                             level = "CSD",
+                             vectors = naics_women) |> 
+  select(all_of(naics_names)) |> 
+  mutate(Type = "Women") |> 
+  select(Type, everything())
+
+#Binding the NAICS tables together
+naics_table <- bind_rows(naics_lvl_total, naics_lvl_men, naics_lvl_women)
+
+#Set up table to create a grouped bar graph
+naics_bar <- naics_table |> 
+  select(-total, -all) |> 
+  pivot_longer(cols = -Type, names_to = "category", values_to = "count") |> 
+  mutate(Type = factor(Type, levels = c("Total", "Men", "Women"))) |> 
+  mutate(category = factor(category, levels = c("na", "11", "21", "22", "23", "31-33", "41",
+                                                "44-45", "48-49", "51", "52", "53", "54",
+                                                "55", "56", "61", "62", "71", "72","81", "91")))
+
+#Bar graph
+ggplot(naics_bar, aes(x = category, y = count, fill = Type)) +
+  geom_bar(stat = "identity", position = "dodge", width = 0.7) +
+  labs(title = "North American Industry Classification System 2021", x = "", y = "Count") +
+  scale_fill_manual(values = c("Total" = "royalblue2", 
+                               "Men" = "indianred", 
+                               "Women" = "gold2"),
+                    name = "Status",
+  ) +
+  theme_minimal() +
+  theme(legend.position = "bottom", legend.title = element_blank())
+
+#Table for pie chart
+naics_pie <- naics_table |> 
+  select(-Type, -total, -all) |> 
+  slice(c(-2, -3)) |> 
+  pivot_longer(cols = everything(), names_to = "category", values_to = "count")
+
+#Pie Chart
+ggplot(naics_pie, aes(x = "", y = count, fill = category)) +
+  geom_bar(width = 1, stat = "identity") +
+  coord_polar("y", start = 0) +
+  theme_void() +
+  labs(title = "North American Industry Classification System 2021") +
+  scale_fill_discrete(labels = c("na" = "Not Applicable")) +
+  theme(
+    legend.position = "right", legend.title = element_blank()
+  )
+
+# Commuting Destination ---------------------------------------------------
+#Vectors for commuting destination
+comdes_total <- c("total" = "v_CA21_7617", "same_csd" = "v_CA21_7620", "diff_csd_incd" = "v_CA21_7623",
+                  "diff_csd" = "v_CA21_7626", "diff_prov" = "v_CA21_7629")
+comdes_men <- c("total" = "v_CA21_7618", "same_csd" = "v_CA21_7621", "diff_csd_incd" = "v_CA21_7624",
+                  "diff_csd" = "v_CA21_7627", "diff_prov" = "v_CA21_7630")
+comdes_women <- c("total" = "v_CA21_7619", "same_csd" = "v_CA21_7622", "diff_csd_incd" = "v_CA21_7625",
+                "diff_csd" = "v_CA21_7628", "diff_prov" = "v_CA21_7631")
+
+#Names for the vectors above
+comdes_names <- c("total", "same_csd", "diff_csd_incd", "diff_csd", "diff_prov")
+
+#Commuting Destination for Laval
+comdes_lvl_total  <- get_census(dataset = "CA21", 
+                               regions = list(CSD = 2465005), 
+                               level = "CSD",
+                               vectors = comdes_total) |> 
+  select(all_of(comdes_names)) |> 
+  mutate(Type = "Total") |> 
+  select(Type, everything())
+
+#Commuting Destination for Laval men
+comdes_lvl_men  <- get_census(dataset = "CA21", 
+                                regions = list(CSD = 2465005), 
+                                level = "CSD",
+                                vectors = comdes_men) |> 
+  select(all_of(comdes_names)) |> 
+  mutate(Type = "Men") |> 
+  select(Type, everything())
+
+#Commuting Destination for Laval women
+comdes_lvl_women  <- get_census(dataset = "CA21", 
+                                regions = list(CSD = 2465005), 
+                                level = "CSD",
+                                vectors = comdes_women) |> 
+  select(all_of(comdes_names)) |> 
+  mutate(Type = "Women") |> 
+  select(Type, everything())
+
+#Bind tables together
+comdes_table <- bind_rows(comdes_lvl_total, comdes_lvl_men, comdes_lvl_women)
+
+#Prepare table for grouped bar graph
+comdes_bar <- comdes_table |> 
+  select(-total, -diff_csd_incd) |> 
+  pivot_longer(cols = -Type, names_to = "destination", values_to = "count") |> 
+  mutate(Type = factor(Type, levels = c("Total", "Men", "Women")),
+         destination = factor(destination, levels = c("same_csd", "diff_csd", "diff_prov"))) |> 
+  arrange(Type, destination)
+
+#Grouped bar graph
+ggplot(comdes_bar, aes(x = destination, y = count, fill = Type)) +
+  geom_bar(stat = "identity", position = "dodge", width = 0.7) +
+  labs(title = "2021 Laval Commuting Destination", x = "", y = "Count") +
+  scale_fill_manual(values = c("Total" = "royalblue2", 
+                               "Men" = "indianred", 
+                               "Women" = "gold2"),
+                    name = "Status",
+  ) +
+  scale_x_discrete(labels = c(
+    "same_csd" = "Within Laval",
+    "diff_csd" = "Outside Laval within Quebec",
+    "diff_prov" = "Outside Quebec"
+  )) +
+  theme_minimal() +
+  theme(legend.position = "bottom", legend.title = element_blank())
