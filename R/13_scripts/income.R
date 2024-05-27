@@ -422,3 +422,129 @@ ggplot(at_hh_bar_50, aes(x = Bracket, y = Counts, fill = "")) +
   theme(legend.position = "none",
         axis.text.x = element_text(angle = 45, hjust = 1))+
   coord_flip()
+
+# Household Income in 2020 ------------------------------------------------
+#Pulling vectors for household income in 2020
+hh_inc20_vectors <- c("v_CA21_906","v_CA21_907", "v_CA21_909", "v_CA21_910",
+                      "v_CA21_912", "v_CA21_913") |> 
+  set_names(c("total", "at_total", "one_p", "at_one_p", "two_p", "at_two_p"))
+
+#Creating a function for cancensus so multiple uses aren't needed
+census_grabber <- function(region, geolevel, geoname){
+  regions_list <- list()
+  regions_list[[geolevel]] <- region
+  
+  get_census(dataset = "CA21",
+    regions = regions_list,
+    level = geolevel,
+    vectors = hh_inc20_vectors
+  ) |> 
+    mutate(Geography = geoname) |> 
+    select(Geography, total, at_total, one_p, at_one_p, two_p, at_two_p)
+}
+
+#Fetching census data for each of the geographies for hh_inc20_vectors
+hh_inc20_lvl <- census_grabber("2465005", "CSD", "Laval")
+hh_inc20_mtlcma <- census_grabber("24462", "CMA", "Montreal CMA")
+hh_inc20_qc <- census_grabber("24", "PR", "Quebec")
+
+#Preparing the table for the group stacked bar chart
+hh_inc20_graph <- bind_rows(hh_inc20_lvl, hh_inc20_mtlcma, hh_inc20_qc) |> 
+  mutate(total_diff = total - at_total, one_p_diff = one_p - at_one_p,
+         two_p_diff = two_p - at_two_p) |> 
+  select(Geography, at_total, total_diff, at_one_p, one_p_diff, at_two_p, two_p_diff) |> 
+  pivot_longer(cols = -Geography, names_to = "income_type", values_to = "income") |> 
+  mutate("Household Type" = case_when(
+    income_type %in% c("at_total", "total_diff") ~ "Private",
+    income_type %in% c("at_one_p", "one_p_diff") ~ "One Person",
+    income_type %in% c("at_two_p", "two_p_diff") ~ "Two+ Persons")) |>
+  group_by(`Household Type`) |>
+  mutate(income_type = factor(income_type, levels = c("one_p_diff", "at_one_p",
+                                                      "two_p_diff", "at_two_p",
+                                                      "total_diff", "at_total"))) |>
+  ungroup() |> 
+  mutate(`Household Type` = factor(`Household Type`, levels = c("Private", "One Person", "Two+ Persons")))
+
+#Create a grouped stacked bar graph
+ggplot(hh_inc20_graph, aes(x = Geography, y = income, fill = income_type)) +
+  geom_bar(stat = "identity", position = "stack") +
+  facet_wrap(~`Household Type`, scales = "fixed", nrow = 1) +
+  labs(title = "2020 Private Household Income", x = "Geography", y = "Income") +
+  theme_minimal() +
+  scale_fill_manual(values = c("total_diff" = "#aec7e8", "at_total" = "#1f77b4",
+                               "one_p_diff" = "#ffbb78", "at_one_p" = "#ff7f0e",
+                               "two_p_diff" = "#98df8a", "at_two_p" = "#2ca02c"),
+                    labels = c("total_diff" = "Private Household Total Income",
+                               "at_total" = "Private Household After-Tax Income",
+                               "one_p_diff" = "1 Person Total Income",
+                               "at_one_p" = "1 Person After-Tax Income",
+                               "two_p_diff" = "2+ Person Total Income",
+                               "at_two_p" = "2+ Person After Income")) +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+
+# Economic Household Income -----------------------------------------------
+
+ehh_inc20_vectors <- c("v_CA21_965","v_CA21_966", "v_CA21_969", "v_CA21_970",
+                      "v_CA21_973", "v_CA21_974", "v_CA21_977", "v_CA21_978") |> 
+  set_names(c("total", "at_total", "couple", "at_couple", "couple_c",
+              "at_couple_c", "one_p", "at_one_p"))
+
+#Census grabber for economic household income
+ehh_census_grabber <- function(region, geolevel, geoname){
+  regions_list <- list()
+  regions_list[[geolevel]] <- region
+  
+  get_census(dataset = "CA21",
+             regions = regions_list,
+             level = geolevel,
+             vectors = ehh_inc20_vectors
+  ) |> 
+    mutate(Geography = geoname) |> 
+    select(Geography, total, at_total, couple, at_couple,
+           couple_c, at_couple_c, one_p, at_one_p)
+}
+
+#Grabbing census data for economic household income
+ehh_inc20_lvl <- census_grabber("2465005", "CSD", "Laval")
+ehh_inc20_mtlcma <- census_grabber("24462", "CMA", "Montreal CMA")
+ehh_inc20_qc <- census_grabber("24", "PR", "Quebec")
+
+#Preparing the table for the group stacked bar chart
+ehh_inc20_graph <- bind_rows(ehh_inc20_lvl, ehh_inc20_mtlcma, ehh_inc20_qc) |> 
+  mutate(total_diff = total - at_total, couple_diff = couple - at_couple,
+         couple_c_diff = couple_c - at_couple_c, one_p_diff = one_p - at_one_p) |> 
+  select(Geography, at_total, total_diff, at_one_p, one_p_diff,
+         at_couple, couple_diff, at_couple_c, couple_c_diff) |> 
+  pivot_longer(cols = -Geography, names_to = "income_type", values_to = "income") |> 
+  mutate("Household Type" = case_when(
+    income_type %in% c("at_total", "total_diff") ~ "Economic",
+    income_type %in% c("at_one_p", "one_p_diff") ~ "One Parent",
+    income_type %in% c("at_couple", "couple_diff") ~ "Couple",
+    income_type %in% c("at_couple_c", "couple_c_diff") ~ "Couple with Children")) |>
+  group_by(`Household Type`) |>
+  mutate(income_type = factor(income_type, levels = c("total_diff", "at_total",
+                                                      "one_p_diff", "at_one_p",
+                                                      "couple_diff", "at_couple",
+                                                      "couple_c_diff", "at_couple_c"))) |>
+  ungroup() |> 
+  mutate(`Household Type` = factor(`Household Type`, levels = c("Economic", "One Parent",
+                                                                "Couple", "Couple with Children")))
+
+ggplot(ehh_inc20_graph, aes(x = Geography, y = income, fill = income_type)) +
+  geom_bar(stat = "identity", position = "stack") +
+  facet_wrap(~`Household Type`, scales = "fixed", nrow = 1) +
+  labs(title = "2020 Economic Household Income", x = "Geography", y = "Income") +
+  theme_minimal() +
+  scale_fill_manual(values = c("total_diff" = "#aec7e8", "at_total" = "#1f77b4",
+                               "one_p_diff" = "#ffbb78", "at_one_p" = "#ff7f0e",
+                               "couple_diff" = "#98df8a", "at_couple" = "#2ca02c",
+                               "couple_c_diff" = "#ff9896", "at_couple_c" = "#d62728"),
+                    labels = c("total_diff" = "Economic Household Total Income",
+                               "at_total" = "Economic Household After-Tax Income",
+                               "one_p_diff" = "1 Parent Total Income",
+                               "at_one_p" = "1 Parent After-Tax Income",
+                               "couple_diff" = "Couple Total Income",
+                               "at_couple" = "Couple After-Tax Income",
+                               "couple_c_diff" = "Couple w/ Children Total Income",
+                               "at_couple_c" = "Couple w/ Children After Tax Income")) +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
