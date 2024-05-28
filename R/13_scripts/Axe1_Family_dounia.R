@@ -1058,7 +1058,6 @@ household_size <-  get_census(
   dataset = "CA21",
   regions = list(CSD = 2465005),
   level = "CT",
-  geo_format = "sf",
   vectors = c(
     avg_size = "v_CA21_452",
     total = "v_CA21_443",
@@ -1084,7 +1083,6 @@ laval_household_size21 <-  get_census(
   dataset = "CA21",
   regions = list(CSD = 2465005),
   level = "CSD",
-  geo_format = "sf",
   vectors = c(
     avg_size = "v_CA21_452",
     total = "v_CA21_443",
@@ -1107,7 +1105,6 @@ qc_household_size <-  get_census(
   dataset = "CA21",
   regions = list(PR = 24),
   level = "PR",
-  geo_format = "sf",
   vectors = c(
     avg_size = "v_CA21_452",
     total = "v_CA21_443",
@@ -1191,6 +1188,45 @@ plot_qc <- ggplot(data = qc_household_size_pivot,
 # Combine plots
 grid.arrange(plot_laval, plot_qc, ncol = 2, top = "Household Size Distribution in Laval and Québec")
 
+
+### Persons in households by household size
+
+laval_household_persons21 <- 
+  laval_household_size21 |> 
+  mutate(one = one,
+         two = two * 2,
+         three = three * 3,
+         four_more = four * 4 + five_more * 5) |> 
+  mutate(total = sum(c(one, two, three, four_more))) |> 
+  select(GeoUID, total, one, two, three, four_more)
+
+sort_vect <- 
+  c("one","two" , "three","four_more")
+
+laval_household_persons21_long <- 
+laval_household_persons21 |> 
+  pivot_longer(cols = c(one, two, three, four_more),
+               names_to = "household_persons",
+               values_to = "count") |> 
+  mutate(household_persons = factor(household_persons, levels = sort_vect)) 
+ 
+
+max_y_persons <- 
+  max(max(laval_household_persons21_long$count), max(laval_household_persons96_long$count))
+
+laval_household_persons21_evol |> 
+  ggplot(aes(x = household_persons, y = count))+
+  geom_bar(stat = "identity", fill = "skyblue")+
+  geom_text(aes(label = pct_change), 
+            vjust = -0.5, 
+            color = "black", 
+            size = 4) +
+  ylim(0, max_y_persons) +
+  labs(title = "Household Persons Count with Percentage Change",
+       x = "Household Persons",
+       y = "Count")
+
+
 #comparison over time
 
 
@@ -1267,7 +1303,6 @@ laval_household_size96 <-  get_census(
   dataset = "CA1996",
   regions = list(CSD = 2465005),
   level = "CSD",
-  geo_format = "sf",
   vectors = c(
     total = "v_CA1996_116",
     one = "v_CA1996_117",
@@ -1339,6 +1374,82 @@ ggplot(long_data, aes(x = year, y = percentage, color = household_size, group = 
   theme_minimal()
 
 
+
+#evolution of household persons over time
+
+laval_household_persons96 <- 
+  laval_household_size96 |> 
+  mutate(one = one,
+         two = two * 2,
+         three = three * 3,
+         four_more = four_five * 4.5 + six_more * 6) |> 
+  mutate(total = sum(c(one, two, three, four_more))) |> 
+  select(GeoUID, total, one, two, three, four_more)
+
+sort_vect <- 
+  c("one","two" , "three","four_more")
+
+laval_household_persons96_long <- 
+  laval_household_persons96 |> 
+  pivot_longer(cols = c(one, two, three, four_more),
+               names_to = "household_persons",
+               values_to = "count") |> 
+  mutate(household_persons = factor(household_persons, levels = sort_vect)) 
+
+
+laval_household_persons96_long |> 
+  ggplot(aes(x = household_persons, y = count))+
+  geom_bar(stat = "identity", fill = "skyblue")+
+  ylim(0, max_y_persons)
+
+laval_household_persons_evol <- bind_rows(
+  laval_household_persons21 |>  mutate(year = 2021),
+  laval_household_persons96 |>  mutate(year = 1996)) |> 
+  select(GeoUID, year, everything())
+
+laval_household_persons_evol_long <- 
+  laval_household_persons_evol |> 
+  pivot_longer(cols = c(one, two, three, four_more),
+               names_to = "household_persons",
+               values_to = "count") |> 
+  mutate(household_persons = factor(household_persons, levels = sort_vect)) 
+
+laval_household_persons_evol_pct <- 
+laval_household_persons21 |> 
+  mutate(one_evol = ((laval_household_persons21$one - 
+                        laval_household_persons96$one)/
+                       laval_household_persons96$one)*100,
+         two_evol = ((laval_household_persons21$two - 
+                        laval_household_persons96$two)/
+                       laval_household_persons96$two)*100,
+         three_evol = ((laval_household_persons21$three - 
+                          laval_household_persons96$three)/
+                         laval_household_persons96$three)*100,
+         four_more_evol = ((laval_household_persons21$four_more - 
+                              laval_household_persons96$four_more)/
+                             laval_household_persons96$four_more)*100) |> 
+  mutate(one_evol = ifelse(one_evol >= 0, 
+                           paste0("+", round(one_evol, 1), "%"), 
+                           paste0(round(one_evol, 1), "%")),
+         two_evol = ifelse(two_evol >= 0, 
+                           paste0("+", round(two_evol, 1), "%"), 
+                           paste0(round(two_evol, 1), "%")),
+         three_evol = ifelse(three_evol >= 0, 
+                             paste0("+", round(three_evol, 1), "%"), 
+                             paste0(round(three_evol, 1), "%")),
+         four_more_evol = ifelse(four_more_evol >= 0, 
+                                 paste0("+", round(four_more_evol, 1), "%"), 
+                                 paste0(round(four_more_evol, 1), "%"))) |> 
+  pivot_longer(cols = c(one_evol, two_evol, three_evol, four_more_evol),
+                names_to = "household_persons_change",
+                values_to = "percentage")
+         
+
+laval_household_persons21_evol <- 
+  bind_cols(laval_household_persons21_long,pct_change = laval_household_persons_evol_pct$percentage)
+  
+
+# TK
 
 # Number of people in private households ----------------------------------
 #- Nombre de personnes dans les ménages privés
