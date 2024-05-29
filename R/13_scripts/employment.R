@@ -4,6 +4,9 @@ source("R/01_startup.R")
 #Setting CensusMapper API Key because it won't save
 set_cancensus_api_key("CensusMapper_4308d496f011429cf814385050f083dc")
 
+#Caching census data to reduce amount of calls and speed up process.
+#Personal use only, change the folder to your own folder if you want to use it
+set_cancensus_cache_path("D:/McGill/can_cache", install = TRUE, overwrite = TRUE)
 # Employment Data 2021 ---------------------------------------------------------
 #Vectors for 2021 total population 15+ by labour force (lf) status, employed, and unemployed (25% sample data)
 lf_vectors_21 <- c("lf_pop" = "v_CA21_6492", "tot_empl" = "v_CA21_6498", "tot_unempl" = "v_CA21_6501")

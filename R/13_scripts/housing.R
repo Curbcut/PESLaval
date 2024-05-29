@@ -5,6 +5,11 @@ library(cmhc)
 #Setting CensusMapper API Key because it won't save
 set_cancensus_api_key("CensusMapper_4308d496f011429cf814385050f083dc")
 
+#Caching census/CMHC data to reduce amount of calls and speed up process.
+#Personal use only, change the folder to your own folder if you want to use it
+set_cancensus_cache_path("D:/McGill/can_cache", install = TRUE, overwrite = TRUE)
+set_cmhc_cache_path("D:/McGill/can_cache", install = TRUE, overwrite = TRUE)
+
 #See values of CMHC
 cmhc_breakdown <- list_cmhc_breakdowns()
 
@@ -19,20 +24,20 @@ laval_ct <- cancensus::get_census(dataset = "CA21",
 years <- 2010:2023
 
 #Pulling average rent data
-avg_rent_cmhc <- function(breakdown_type, geoid, years, geoname) {
+avg_rent_cmhc <- function(geoid, years, geoname) {
   map_dfr(years, function(cyear) {
     get_cmhc(survey = "Rms", series = "Average Rent", dimension = "Bedroom Type",
-             breakdown = breakdown_type, geo_uid = geoid, year = cyear) |> 
-      mutate(Geography = geoname) #|> 
-      #filter(str_detect(`Bedroom Type`, "Total")) |> 
-      #select(Geography, Year, Value)
+             breakdown = "census Subdivision", geo_uid = geoid, year = cyear) |> 
+      mutate(Geography = geoname) |> 
+      filter(str_detect(`Bedroom Type`, "Total")) |> 
+      select(Geography, Year, Value)
   })
 }
 
 #Grabbing annual average rent data from 2010 to 2023
-avg_rent_lvl <- avg_rent_cmhc("Census Subdivision", 2465005, years, "Laval")
-avg_rent_mtl <- avg_rent_cmhc("Census Subdivision", 2466023, years, "Montreal")
-#Manually inputting the province of Quebec's  data as it's unavailable using the CMHC package
+avg_rent_lvl <- avg_rent_cmhc(2465005, years, "Laval")
+avg_rent_mtl <- avg_rent_cmhc(2466023, years, "Montreal")
+#Manually inputting the province of Quebec's data as it's unavailable using the CMHC package
 #src = https://www.cmhc-schl.gc.ca/professionals/housing-markets-data-and-research/housing-data/data-tables/rental-market/rental-market-report-data-tables
 avg_rent_qc <- data.frame(
   Geography = "Quebec",
@@ -40,6 +45,24 @@ avg_rent_qc <- data.frame(
            2020, 2021, 2022, 2023),
   Value = c(648, 666, 693, 679, 691, 712, 727, 736, 761, 800, 845, 874, 952, 1022)
 )
+
+#Grab data of average rent for the entire Montreal CMA in 2010
+cma_comparison_10 <- get_cmhc( survey = "Rms", series = "Average Rent", dimension = "Bedroom Type",
+                            breakdown = "Census Subdivision", geo_uid = 24462, year = 2010) |> 
+  filter(str_detect(`Bedroom Type`, "Total")) |> 
+  rename("Rent_10" = Value) |> 
+  select(`Census Subdivision`, `Rent_10`) |> 
+  na.omit()
+
+#Grab 2023 data, joins with 2010, and calculates growth rate
+cma_comparison <- get_cmhc( survey = "Rms", series = "Average Rent", dimension = "Bedroom Type",
+                               breakdown = "Census Subdivision", geo_uid = 24462, year = 2023) |> 
+  filter(str_detect(`Bedroom Type`, "Total")) |> 
+  rename("Rent_23" = Value) |> 
+  select(`Census Subdivision`, `Rent_23`) |> 
+  left_join(cma_comparison_10, by = "Census Subdivision") |> 
+  na.omit() |> 
+  mutate(Growth = round((Rent_23 * 100 / Rent_10) - 100, 1))
 
 #Preparing the table for the line graph
 avg_rent_annual <- bind_rows(avg_rent_lvl, avg_rent_mtl, avg_rent_qc) |> 
