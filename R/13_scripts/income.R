@@ -1,5 +1,6 @@
 #Loading libraries
 source("R/01_startup.R")
+library(sf)
 
 #Setting CensusMapper API Key because it won't save
 set_cancensus_api_key("CensusMapper_4308d496f011429cf814385050f083dc")
@@ -7,6 +8,11 @@ set_cancensus_api_key("CensusMapper_4308d496f011429cf814385050f083dc")
 #Grabbing all cancensus vector
 can21 <- list_census_vectors(dataset = "CA21")
 
+#Grabbing Laval's shapefile by census tract
+laval_ct <- cancensus::get_census(dataset = "CA21", 
+                                  regions = list(CSD = 2465005), 
+                                  level = "CT", 
+                                  geo_format = "sf")
 # Personal Income Brackets ---------------------------------------------------------
 #Pulling all vectors for total individual income
 indtotinc_vectors <- can21$vector[which(can21$vector == "v_CA21_665"):which(can21$vector == "v_CA21_712")]
@@ -697,3 +703,38 @@ ggplot(mhh_graph, aes(x = Year, y = Income, color = Geography, group = Geography
        x = "Year",
        y = "Income ($)") +
   theme_minimal()
+
+# Maps --------------------------------------------------------------------
+laval_medinc <- get_census(dataset = "CA21", 
+                         regions = list(CSD = 2465005), 
+                         vectors = c("med_inc" = "v_CA21_560"),
+                         level = "CT",
+                         geo_format = "sf")
+
+ggplot(data = laval_medinc) +
+  geom_sf(aes(fill = med_inc)) +
+  labs(title = "Median Income in Laval") +
+  scale_fill_viridis_c() +
+  theme_minimal() +
+  theme(axis.line = element_blank(),
+        axis.text = element_blank(),
+        axis.title = element_blank(),
+        axis.ticks = element_blank(),
+        panel.grid = element_blank())
+
+laval_hhmedinc <- get_census(dataset = "CA21", 
+                           regions = list(CSD = 2465005), 
+                           vectors = c("med_inc" = "v_CA21_906"),
+                           level = "CT",
+                           geo_format = "sf")
+
+ggplot(data = laval_hhmedinc) +
+  geom_sf(aes(fill = med_inc)) +
+  labs(title = "Median Household Income in Laval") +
+  scale_fill_viridis_c() +
+  theme_minimal() +
+  theme(axis.line = element_blank(),
+        axis.text = element_blank(),
+        axis.title = element_blank(),
+        axis.ticks = element_blank(),
+        panel.grid = element_blank())
