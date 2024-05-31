@@ -1,8 +1,7 @@
 ### DEMOGRAPHY - POPULATION AND POPULATION DENSITY #############################
 
-source("R/01_startup.R")
-
-geom_context <- qs::qread("data/geom_context/geom_context.qs")
+library(ggplot2)
+#geom_context <- qs::qread("data/geom_context/geom_context.qs")
 
 # Population count --------------------------------------------------------
 
@@ -11,14 +10,14 @@ geom_context <- qs::qread("data/geom_context/geom_context.qs")
 
 # We grab census information from Laval. This small call lets us retrieve 
 # population counts for the whole city.
-laval_census <- get_census(dataset = "CA21", 
+laval_census <- cancensus::get_census(dataset = "CA21", 
                                       regions = list(CSD = 2465005), 
                                       level = "CSD")
 
 # curbcut::convert_unit lets us convert any type and number to 'Pretty' number. 
 # To use curbcut functions, install the package through `devtools::install_github("Curbcut/curbcut")`
 laval_population <- laval_census$Population
-laval_population_pretty <- convert_unit(x = laval_population)
+laval_population_pretty <- curbcut::convert_unit(x = laval_population)
 
 # Another example is to use its method pct, or dollar
 curbcut:::convert_unit.pct(x = 0.4555, decimal = 1)
@@ -48,6 +47,7 @@ pop_density_fun <- function(x, col_name = "pop_density") {
 # Get population density
 CT <- pop_density_fun(CT)
 
+
 # Make a plot of density
 pop_density_plot <- 
   ggplot(data = CT) +
@@ -61,7 +61,9 @@ pop_density_plot <-
     limits = c(1000, 6000),
     oob = scales::oob_squish
   ) +
-  geom_context(sf_focus = CT) +
+  theme(legend.position = "bottom")
+
+  #geom_context(sf_focus = CT) +
   theme(legend.position = "bottom")
 
 # Save the plot so it's in a good quality
@@ -142,7 +144,8 @@ pop_density_change_plot <-
     drop = FALSE,
     guide = guide_legend(title.position = "top", title.hjust = 0.5)
   ) +
-  geom_context(sf_focus = CT) +
+  theme(legend.position = "right")
+  #geom_context(sf_focus = CT) +
   theme(legend.position = "right")
 
 # Save the plot so it's in a good quality

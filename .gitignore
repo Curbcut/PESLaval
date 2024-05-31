@@ -50,3 +50,6 @@ rsconnect/
 
 # Exclude the data folder
 data/
+bridget data/
+cache/
+.DS_Store
