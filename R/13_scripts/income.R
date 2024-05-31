@@ -601,15 +601,15 @@ mii_inc00_lvl <- mii_census_grabber("CA01", "2465005", "CSD", "v_CA01_1449", (1:
 mii_lvl_graph <- bind_cols(mii_inc20_lvl, mii_inc15_lvl, mii_inc10_lvl, mii_inc05_lvl, mii_inc00_lvl)
 
 #Grabbing median individual income for Montreal CMA for years 2000-2020
-mii_inc20_mtlcma <- mii_census_grabber_20("24462", "CMA", "Montreal CMA", (1:9)) |> 
+mii_inc20_mtl <- mii_census_grabber_20("2466023", "CSD", "Montreal", (1:10)) |> 
   rename("2020" := last_col())
-mii_inc15_mtlcma <- mii_census_grabber("CA16", "24462", "CMA", "v_CA16_2207", (1:9), "2015")
-mii_inc10_mtlcma <- mii_census_grabber("CA11", "24462", "CMA", "v_CA11N_2341", (1:9), "2010") |> 
+mii_inc15_mtl <- mii_census_grabber("CA16", "2466023", "CSD", "v_CA16_2207", (1:10), "2015")
+mii_inc10_mtl <- mii_census_grabber("CA11", "2466023", "CSD", "v_CA11N_2341", (1:10), "2010") |> 
   select(-1)
-mii_inc05_mtlcma <- mii_census_grabber("CA06", "24462", "CMA", "v_CA06_1583", (1:9), "2005")
-mii_inc00_mtlcma <- mii_census_grabber("CA01", "24462", "CMA", "v_CA01_1449", (1:9), "2000")
+mii_inc05_mtl <- mii_census_grabber("CA06", "2466023", "CSD", "v_CA06_1583", (1:10), "2005")
+mii_inc00_mtl <- mii_census_grabber("CA01", "2466025", "CSD", "v_CA01_1449", (1:10), "2000")
 #Bind the tables together
-mii_mtlcma_graph <- bind_cols(mii_inc20_mtlcma, mii_inc15_mtlcma, mii_inc10_mtlcma, mii_inc05_mtlcma, mii_inc00_mtlcma)
+mii_mtl_graph <- bind_cols(mii_inc20_mtl, mii_inc15_mtl, mii_inc10_mtl, mii_inc05_mtl, mii_inc00_mtl)
 
 #Grabbing median individual income for Quebec for years 2000-2020
 mii_inc20_qc <- mii_census_grabber_20("24", "PR", "Quebec", (1:8)) |> 
@@ -623,7 +623,7 @@ mii_inc00_qc <- mii_census_grabber("CA01", "24", "PR", "v_CA01_1449", (1:8), "20
 mii_qc_graph <- bind_cols(mii_inc20_qc, mii_inc15_qc, mii_inc10_qc, mii_inc05_qc, mii_inc00_qc)
 
 #Bind all geography tables together to make the line graph
-mii_graph <- bind_rows(mii_lvl_graph, mii_mtlcma_graph, mii_qc_graph) |> 
+mii_graph <- bind_rows(mii_lvl_graph, mii_mtl_graph, mii_qc_graph) |> 
   pivot_longer(cols = -Geography, names_to = "Year", values_to = "Income")
 
 #Creating the line graph for median individual income
@@ -631,8 +631,10 @@ ggplot(mii_graph, aes(x = Year, y = Income, color = Geography, group = Geography
   geom_line() +
   labs(title = "Individual Median Income 2000-2020",
        x = "Year",
-       y = "Income ($)") +
-  theme_minimal()
+       y = "Individual Median Income ($)") +
+  theme_minimal() +
+  theme(legend.position = "bottom", legend.box = "horizontal",
+        legend.title = element_blank(), plot.title = element_text(hjust = 0.5))
 
 # Evolution of Household Income ------------------------------------------
 #Census grabber for median household income for 2020 to start up the graph table
@@ -675,15 +677,15 @@ mhh_inc00_lvl <- mhh_census_grabber("CA01", "2465005", "CSD", "v_CA01_1634", (1:
 mhh_lvl_graph <- bind_cols(mhh_inc20_lvl, mhh_inc15_lvl, mhh_inc10_lvl, mhh_inc05_lvl, mhh_inc00_lvl)
 
 #Grabbing median individual income for Montreal CMA for years 2000-2020
-mhh_inc20_mtlcma <- mhh_census_grabber_20("24462", "CMA", "Montreal CMA", (1:9)) |> 
+mhh_inc20_mtl <- mhh_census_grabber_20("2466023", "CSD", "Montreal", (1:10)) |> 
   rename("2020" := last_col())
-mhh_inc15_mtlcma <- mhh_census_grabber("CA16", "24462", "CMA", "v_CA16_2397", (1:9), "2015")
-mhh_inc10_mtlcma <- mhh_census_grabber("CA11", "24462", "CMA", "v_CA11N_2562", (1:9), "2010") |> 
+mhh_inc15_mtl <- mhh_census_grabber("CA16", "2466023", "CSD", "v_CA16_2397", (1:10), "2015")
+mhh_inc10_mtl <- mhh_census_grabber("CA11", "2466023", "CSD", "v_CA11N_2562", (1:10), "2010") |> 
   select(-1)
-mhh_inc05_mtlcma <- mhh_census_grabber("CA06", "24462", "CMA", "v_CA06_2000", (1:9), "2005")
-mhh_inc00_mtlcma <- mhh_census_grabber("CA01", "24462", "CMA", "v_CA01_1634", (1:9), "2000")
+mhh_inc05_mtl <- mhh_census_grabber("CA06", "2466023", "CSD", "v_CA06_2000", (1:10), "2005")
+mhh_inc00_mtl <- mhh_census_grabber("CA01", "2466025", "CSD", "v_CA01_1634", (1:10), "2000")
 #Bind the tables together
-mhh_mtlcma_graph <- bind_cols(mhh_inc20_mtlcma, mhh_inc15_mtlcma, mhh_inc10_mtlcma, mhh_inc05_mtlcma, mhh_inc00_mtlcma)
+mhh_mtl_graph <- bind_cols(mhh_inc20_mtl, mhh_inc15_mtl, mhh_inc10_mtl, mhh_inc05_mtl, mhh_inc00_mtl)
 
 #Grabbing median individual income for Quebec for years 2000-2020
 mhh_inc20_qc <- mhh_census_grabber_20("24", "PR", "Quebec", (1:8)) |> 
@@ -697,7 +699,7 @@ mhh_inc00_qc <- mhh_census_grabber("CA01", "24", "PR", "v_CA01_1634", (1:8), "20
 mhh_qc_graph <- bind_cols(mhh_inc20_qc, mhh_inc15_qc, mhh_inc10_qc, mhh_inc05_qc, mhh_inc00_qc)
 
 #Bind all geography graphs together
-mhh_graph <- bind_rows(mhh_lvl_graph, mhh_mtlcma_graph, mhh_qc_graph) |> 
+mhh_graph <- bind_rows(mhh_lvl_graph, mhh_mtl_graph, mhh_qc_graph) |> 
   pivot_longer(cols = -Geography, names_to = "Year", values_to = "Income")
 
 #Creating the line graph for median household income
@@ -705,8 +707,10 @@ ggplot(mhh_graph, aes(x = Year, y = Income, color = Geography, group = Geography
   geom_line() +
   labs(title = "Median Household Income 2000-2020",
        x = "Year",
-       y = "Income ($)") +
-  theme_minimal()
+       y = "Median Household Income ($)") +
+  theme_minimal() +
+  theme(legend.position = "bottom", legend.box = "horizontal",
+        legend.title = element_blank(), plot.title = element_text(hjust = 0.5))
 
 # Maps --------------------------------------------------------------------
 laval_medinc <- get_census(dataset = "CA21", 

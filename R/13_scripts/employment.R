@@ -1,5 +1,6 @@
 #Loading libraries
 source("R/01_startup.R")
+library(scales)
 
 #Setting CensusMapper API Key because it won't save
 set_cancensus_api_key("CensusMapper_4308d496f011429cf814385050f083dc")
@@ -42,7 +43,7 @@ lf_qc_21  <- get_census(dataset = "CA21",
   select(Geography, everything())
 
 #Combines the data and calculates (un)employment rate, and then cleans up the table
-lf_combined_21 <- bind_rows(lf_lvl_mtl_21, lf_mtl_cma_21, lf_qc_21) |> 
+lf_combined_21 <- bind_rows(lf_lvl_mtl_21, lf_qc_21) |> 
   mutate(empl_rate_21 = round(tot_empl * 100 / lf_pop, 1),
          unempl_rate_21 = round(tot_unempl*100 / lf_pop, 1)) |> 
   select(Geography, empl_rate_21, unempl_rate_21)
@@ -82,7 +83,7 @@ lf_qc_16  <- get_census(dataset = "CA16",
   select(Geography, everything())
 
 #Combine 2016 data into one table
-lf_combined_16 <- bind_rows(lf_lvl_mtl_16, lf_mtl_cma_16, lf_qc_16)
+lf_combined_16 <- bind_rows(lf_lvl_mtl_16, lf_qc_16)
 
 # Employment data 2011 --------------------------------------------------
 #Vectors for 2011 employment and unemployment rate
@@ -119,7 +120,7 @@ lf_qc_11  <- get_census(dataset = "CA11",
   select(Geography, everything())
 
 #Combine 2011 data into one table
-lf_combined_11 <- bind_rows(lf_lvl_mtl_11, lf_mtl_cma_11, lf_qc_11)
+lf_combined_11 <- bind_rows(lf_lvl_mtl_11, lf_qc_11)
 
 # Employment data 2006 --------------------------------------------------
 #Vectors for 2006 employment and unemployment rate
@@ -156,7 +157,7 @@ lf_qc_06  <- get_census(dataset = "CA06",
   select(Geography, everything())
 
 #Combine 2006 data into one table
-lf_combined_06 <- bind_rows(lf_lvl_mtl_06, lf_mtl_cma_06, lf_qc_06)
+lf_combined_06 <- bind_rows(lf_lvl_mtl_06, lf_qc_06)
 
 # Employment data 2001 --------------------------------------------------
 #Vectors for 2001 employment and unemployment rate
@@ -193,7 +194,7 @@ lf_qc_01  <- get_census(dataset = "CA01",
   select(Geography, everything())
 
 #Combine 2001 data into one table
-lf_combined_01 <- bind_rows(lf_lvl_mtl_01, lf_mtl_cma_01, lf_qc_01)
+lf_combined_01 <- bind_rows(lf_lvl_mtl_01, lf_qc_01)
 
 # Employment Table and Graphs ---------------------------------------------
 #Combines 2001-2021 employment data into one table
@@ -212,9 +213,12 @@ employment_rate <- lf_combined |>
 
 #Creating the line graph for employment rate
 ggplot(employment_rate, aes(x = as.factor(Year), y = Value, color = Geography, group = Geography)) +
-  geom_line() +
-  labs(title = "Employment Rate from 2001 to 2006", x = "Year", y = "Employment Rate (%)", color = "Geography") +
-  theme(legend.position = "bottom", legend.box = "horizontal", legend.title = element_blank())
+  geom_line(size = 1.5) +
+  labs(title = "Employment Rate from 2001 to 2021", x = "Year",
+       y = "Employment Rate (%)", color = "Geography") +
+  theme_minimal() +
+  theme(legend.position = "bottom", legend.box = "horizontal",
+        legend.title = element_blank(), plot.title = element_text(hjust = 0.5))
 
 #Creating the unemployment rate table and pivoting it to make it longer
 unemployment_rate <- lf_combined |> 
@@ -225,9 +229,12 @@ unemployment_rate <- lf_combined |>
 
 #Creating the line graph for employment rate
 ggplot(unemployment_rate, aes(x = as.factor(Year), y = Value, color = Geography, group = Geography)) +
-  geom_line() +
-  labs(title = "Unemployment Rate from 2001 to 2006", x = "Year", y = "Unemployment Rate (%)", color = "Geography") +
-  theme(legend.position = "bottom", legend.box = "horizontal", legend.title = element_blank())
+  geom_line(size = 1.5) +
+  labs(title = "Unemployment Rate from 2001 to 2021", x = "Year",
+       y = "Unemployment Rate (%)", color = "Geography") +
+  theme_minimal() +
+  theme(legend.position = "bottom", legend.box = "horizontal",
+        legend.title = element_blank(), plot.title = element_text(hjust = 0.5))
 
 # Workplace category ------------------------------------------------------
 #Grab 2021 workplace category data for Laval, clean it up, and pivot it into a longer format
@@ -492,6 +499,13 @@ noc_occupation_table <- noc_occupation |>
 #Creating the grouped bar graph
 ggplot(noc_occupation_table, aes(x = category, y = count, fill = Type)) +
   geom_bar(stat = "identity", position = "dodge", width = 0.7) +
+  scale_x_discrete(labels = c("Not Applicable", "Legislative and Senior Management",
+                              "Business, Finance and Administration", "Natural and Applied Sciences",
+                              "Healthcare", "Education, Law and Social,\n Community and Government",
+                              "Art, Culture, Recreation and Sport", "Sales and Service",
+                              "Trades, Transport and Equipment Operators",
+                              "Natural Resources, Agriculture and\n Related Production",
+                              "Manufacturing and Utilities")) +
   labs(title = "National Occupational Classification 2021", x = "", y = "Count") +
   scale_fill_manual(values = c("Total" = "royalblue2", 
                                "Men" = "indianred", 
@@ -499,7 +513,9 @@ ggplot(noc_occupation_table, aes(x = category, y = count, fill = Type)) +
                     name = "Status",
   ) +
   theme_minimal() +
-  theme(legend.position = "bottom", legend.title = element_blank())
+  theme(legend.position = "bottom", legend.title = element_blank(),
+        axis.text.x = element_text(angle = 45, hjust = 1),
+        plot.title = element_text(hjust = 0.5))
 
 #Preparing the table to create a pie graph
 noc_occupation_pie <- noc_occupation |> 
@@ -684,3 +700,166 @@ ggplot(comdes_bar, aes(x = destination, y = count, fill = Type)) +
   )) +
   theme_minimal() +
   theme(legend.position = "bottom", legend.title = element_blank())
+
+# Commute Destination v2 -----------------------------------------------------
+#Grabbing the vectors for the commuting destinations in 2016 and 2021
+commute21v <- c("total" = "v_CA21_7617", "same_csd" = "v_CA21_7620",
+               "diff_csd" = "v_CA21_7626", "diff_prov" = "v_CA21_7629")
+commute16v <- c("total" = "v_CA16_5777", "same_csd" = "v_CA16_5780",
+                "diff_csd" = "v_CA16_5786", "diff_prov" = "v_CA16_5789")
+
+#Creating a function to grab data for commute destination and to calculate new vectors to be used
+commute_grabber <- function(dyear, cvector, cyear){
+  get_census(dataset = dyear, 
+             regions = list(CSD = 2465005), 
+             level = "CSD",
+             vectors = cvector) |>
+    mutate(Year = cyear, "Within Laval" = round(same_csd * 100 / total, 1),
+           "Outside Laval within Quebec" = round(diff_csd * 100 / total, 1),
+           "Outside Quebec" = round(diff_prov * 100 / total, 1)) |> 
+    select(Year, "Within Laval", "Outside Laval within Quebec", "Outside Quebec")
+}
+
+#Grabbing the data for years 2016 and 2021
+commute21 <- commute_grabber("CA21", commute21v, "2021")
+commute16 <- commute_grabber("CA16", commute16v, "2016")
+
+#Prepping the data to create the graph
+commute_dest <- bind_rows(commute21, commute16) |> 
+  pivot_longer(cols = -Year, names_to = "destination", values_to = "percentage") |> 
+  mutate(destination = factor(destination, levels = c("Within Laval",
+                                                      "Outside Laval within Quebec",
+                                                      "Outside Quebec")))
+
+#Creating the bar graph for commute destination
+ggplot(commute_dest, aes(x = destination, y = percentage, fill = factor(Year))) +
+  geom_bar(stat = "identity", position = "dodge") +
+  labs(title = "2016 versus 2021 Commute Destinations in Laval",
+       x = "Commuting Destination",
+       y = "Proportion of Commuters (%)",
+       fill = "Year") +
+  theme_minimal() +
+  theme(legend.position = "bottom", legend.title = element_blank(),
+        plot.title = element_text(hjust = 0.5))
+
+# Place of Work -----------------------------------------------------------
+#Grabbing the vectors for place of work in 2016 and 2011
+place21v <- c("total" = "v_CA21_7602", "wfh" = "v_CA21_7605", "outside_ca" = "v_CA21_7608",
+              "no_fix" = "v_CA21_7611", "usual" = "v_CA21_7614")
+place16v <- c("total" = "v_CA16_5762", "wfh" = "v_CA16_5765", "outside_ca" = "v_CA16_5768",
+              "no_fix" = "v_CA16_5771", "usual" = "v_CA16_5774")
+
+#Function to grab the data from the census and to calculate new vectors to be used
+place_grabber <- function(dyear, cvector, cyear){
+  get_census(dataset = dyear, 
+             regions = list(CSD = 2465005), 
+             level = "CSD",
+             vectors = cvector) |>
+    mutate(Year = cyear, "Work from Home" = round(wfh * 100 / total, 1),
+           "Outside Canada" = round(outside_ca * 100 / total, 1),
+           "No Fixed Address" = round(no_fix * 100 / total, 1),
+           "Usual Place of Work" = round(no_fix * 100 / total, 1)) |> 
+    select(Year, "Usual Place of Work", "Work from Home",
+           "No Fixed Address", "Outside Canada")
+}
+
+#grabbing the census data
+place21 <- place_grabber("CA21", place21v, "2021")
+place16 <- place_grabber("CA16", place16v, "2016")
+
+#Prepping the data to be made into a graph
+place <- bind_rows(place21, place16) |> 
+  pivot_longer(cols = -Year, names_to = "destination", values_to = "percentage") |> 
+  mutate(destination = factor(destination, levels = c("Usual Place of Work", "Work from Home",
+                                                      "No Fixed Address", "Outside Canada")))
+
+#Creating the bar graph for place of work
+ggplot(place, aes(x = destination, y = percentage, fill = factor(Year))) +
+  geom_bar(stat = "identity", position = "dodge") +
+  labs(title = "2016 versus 2021 Place of Work in Laval",
+       x = "Place of Work",
+       y = "Proportion of Employed Residents (%)",
+       fill = "Year") +
+  theme_minimal() +
+  theme(legend.position = "bottom", legend.title = element_blank(),
+        plot.title = element_text(hjust = 0.5))
+
+# Activity Situation Historical -------------------------------------------
+#Grabbing vectors for activity situation
+act21v <- c("total" = "v_CA21_6492", "in_lf" = "v_CA21_6495", "not_lf" = "v_CA21_6504")
+act16v <- c("total" = "v_CA16_5597", "in_lf" = "v_CA16_5600", "not_lf" = "v_CA16_5609")
+act11v <- c("total" = "v_CA11N_1987", "in_lf" = "v_CA11N_1990", "not_lf" = "v_CA11N_1999")
+act06v <- c("total" = "v_CA06_575", "in_lf" = "v_CA06_576", "not_lf" = "v_CA06_579")
+act01v <- c("total" = "v_CA01_735", "in_lf" = "v_CA01_736", "not_lf" = "v_CA01_739")
+
+#Function to grab activity situation data from census
+activity_grabber <- function(dyear, cvector, cyear){
+  get_census(dataset = dyear, 
+             regions = list(CSD = 2465005), 
+             level = "CSD",
+             vectors = cvector) |> 
+    mutate(Year = cyear)
+}
+
+#Grabbing the data for each census year
+act21 <- activity_grabber("CA21", act21v, "2021")
+act16 <- activity_grabber("CA16", act16v, "2016")
+act11 <- activity_grabber("CA11", act11v, "2011")
+act06 <- activity_grabber("CA06", act06v, "2006")
+act01 <- activity_grabber("CA01", act01v, "2001")
+
+#Preparing the raw number data for the line graph
+act_raw <- bind_rows(act21, act16, act11, act06, act01) |> 
+  select(Year, total, in_lf, not_lf) |> 
+  rename("Total" = total, "In Labour Force" = in_lf, "Not in Labour Force" = not_lf) |> 
+  pivot_longer(cols = -Year, values_to = "count", names_to = "type") |> 
+  mutate(type = factor(type, levels = c("Total", "In Labour Force",
+                                        "Not in Labour Force")))
+
+#Preparing the proportionate data for the line graph
+act_prop <- bind_rows(act21, act16, act11, act06, act01) |> 
+  mutate(lf_prop = round(in_lf * 100 / total, 1),
+         nlf_prop = round(not_lf * 100 / total, 1)) |> 
+  select(Year, lf_prop, nlf_prop) |> 
+  pivot_longer(cols = -Year, values_to = "percentage", names_to = "type")
+
+#Line graph for raw numbers
+ggplot(act_raw, aes(x = as.factor(Year), y = count, color = type, group = type)) +
+  geom_line(size = 1.5) +
+  labs(title = "Labour Force Population in Laval 2001-2021", x = "Year",
+       y = "Count (Persons)", color = "Geography") +
+  scale_y_continuous(labels = comma_format()) +
+  theme_minimal() +
+  theme(legend.position = "bottom", legend.box = "horizontal",
+        legend.title = element_blank(), plot.title = element_text(hjust = 0.5))
+
+#Line graph for proportion
+ggplot(act_prop, aes(x = as.factor(Year), y = percentage, color = type, group = type)) +
+  geom_line(size = 1.5) +
+  labs(title = "Activity Situation* in Laval 2001-2021", x = "Year",
+       y = "Count (Persons)", color = "Geography") +
+  scale_y_continuous(labels = comma_format()) +
+  theme_minimal() +
+  theme(legend.position = "bottom", legend.box = "horizontal",
+        legend.title = element_blank(), plot.title = element_text(hjust = 0.5))
+
+# Work During Reference Year v2 -------------------------------------------
+#Pulling vectors for work during reference year
+wref21v <- c("total" = "v_CA21_6516", "no_work" = "v_CA21_6519",
+                   "full" = "v_CA21_6525", "part" = "v_CA21_6528")
+wref16v <- c("total" = "v_CA16_5621", "no_work" = "v_CA16_5624",
+             "full" = "v_CA16_5630", "part" = "v_CA16_5633")
+
+#Function to pull data from the census
+wref_grabber <- function(dyear, cvector, cyear){
+  get_census(dataset = dyear, 
+             regions = list(CSD = 2465005), 
+             level = "CSD",
+             vectors = cvector) |> 
+    mutate(Year = cyear)
+}
+
+#Grabbing the data and then binding them together for easier comparison
+wref21 <- wref_grabber("CA21", wref21v, "2021")
+wref16 <- wref_grabber("CA16", wref16v, "2016")
+wref <- bind_rows(wref21, wref16)
