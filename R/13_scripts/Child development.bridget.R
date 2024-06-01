@@ -66,6 +66,7 @@ children_secondgen <- cancensus::get_census(dataset = "CA21",
 language_children <- read_csv("/Users/bridgetbuglioni/Documents/GitHub/PESLaval/data/children mother tongue.csv", skip = 10) |> 
   tibble::as_tibble() 
 
+
 str(language_children)
 
 #convert characters to numbers
@@ -75,15 +76,44 @@ language_children$Total <- as.numeric(gsub(",", "", language_children$Total))
 language_children_total <- language_children |> 
   slice(2)
 
-language_children_total_long <- language_children_total |> 
+
+
+# combine some categories
+language_children_total_grouped <- language_children_total |> 
+  mutate(`French and Other` = perFrench + perFrench_andother, 
+         `Both Official and other` = perBoth + per_EnglishFrench_andother, 
+         `English and Other` = perEnglish + perEng_andother, 
+         `Non-Official` = perNon_official + perMultipleOther)
+
+
+language_children_total_grouped_long <- language_children_total_grouped |> 
   pivot_longer(-c(Age)) |> 
   mutate(Geography = "Laval")
 
-language_children_total_long_sliced <- language_children_total_long |> 
-  slice(3,5,7,9, 11, 13, 15, 17)
 
-ggplot(data = language_children_total_long_sliced, aes(x = name, y = value)) +
+language_children_total_grouped_long_sliced <- language_children_total_grouped_long |> 
+  slice(18:21)
+# so columns are in the correct order
+
+language_children_total_grouped_long_sliced$name <- 
+  factor(language_children_total_grouped_long_sliced$name, levels = unique(language_children_total_grouped_long_sliced$name))
+
+
+
+
+ggplot(data = language_children_total_grouped_long_sliced, aes(x = name, y = value)) +
   geom_col()
+
+
+
+
+
+
+# stacked 
+ggplot(data = language_children_total_grouped_long_sliced, aes(x = Geography, y = value, fill = name)) +
+  geom_col()
+
+
 
 
 # compare to quebec
@@ -99,19 +129,34 @@ language_children_queb$Total <- as.numeric(gsub(",", "", language_children_queb$
 language_children_queb_total <- language_children_queb |> 
   slice(2)
 
-language_children_queb_total_long <- language_children_queb_total |> 
+
+# combine some categories
+language_children_queb_total_grouped <- language_children_queb_total |> 
+  mutate(`French and Other` = perFrench + perFrench_andother, 
+         `Both Official and other` = perBoth + per_EnglishFrench_andother, 
+         `English and Other` = perEnglish + perEng_andother, 
+         `Non-Official` = perNon_official + perMultipleOther)
+
+language_children_queb_total_grouped_long <- language_children_queb_total_grouped |> 
   pivot_longer(-c(Age)) |> 
   mutate(Geography = "Quebec")
 
-language_children_queb_total_long_sliced <- language_children_queb_total_long |> 
-  slice(3,5,7,9, 11, 13, 15, 17) 
 
-ggplot(data = language_children_queb_total_long_sliced, aes(x = name, y = value)) +
+
+language_children_queb_total_grouped_long_sliced <- language_children_queb_total_grouped_long  |> 
+  slice(18:21) 
+
+# so columns are in the correct order
+
+language_children_queb_total_grouped_long_sliced$name <- 
+  factor(language_children_queb_total_grouped_long_sliced$name, levels = unique(language_children_queb_total_grouped_long_sliced$name))
+
+ggplot(data = language_children_queb_total_grouped_long_sliced, aes(x = name, y = value)) +
   geom_col()
 
 # combine queb and laval
 
-combined_language <- bind_rows(language_children_queb_total_long_sliced,language_children_total_long_sliced)
+combined_language <- bind_rows(language_children_total_grouped_long_sliced,language_children_queb_total_grouped_long_sliced)
 
 
 # Check the class of combined_language
@@ -128,12 +173,18 @@ ggplot(data = combined_language, aes(x = name, y = value, fill = Geography)) +
 
 
 
+
 ## stack bars together 
-ggplot(data = combined_language, aes(x = name, y = value, fill = value)) +
+ggplot(data = combined_language, aes(x = Geography, y = value, fill = name)) +
   geom_bar(stat = "identity") +
-  labs(title = "Children 0 to 19 Mother Tongue", y = "Percent", x = "Response") +
-  geom_text(aes(label = round(value, 2)), position = position_dodge(width = 0.9), vjust = -0.5)
+  labs(title = "Children 0 to 19 Mother Tongue", y = "Percent", x = "Response")
   
+ 
+
+
+
+
+ 
 # Age and Gender ---------------------------------------------------------------
 
 # Get all the age/gender variables for the 2021 census
@@ -401,7 +452,11 @@ combined_child_vulnerability <- bind_rows(children_vulnerability, children_vulne
 ggplot(data = combined_child_vulnerability, aes(x = name, y = value, fill = Region))+
   geom_bar(stat = "identity", position = "dodge") +
   theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
-  labs(title = "Vulnerability in Kindergarten Age Children", x = "Area", y = "Percent")
+  labs(title = "Vulnerability in Kindergarten Age Children", x = "Area", y = "Percent") + 
+  geom_text(aes(label = paste0(value, "%")), 
+            position = position_dodge(width = 0.9), 
+            vjust = -0.5)
+
 
 
 # Vulnerability over the years 
@@ -426,5 +481,6 @@ combined_child_vulnerability_change <- bind_rows(male_change_vulnerability, fema
 
 ggplot(data = combined_child_vulnerability_change, aes(x = name, y = value, fill = Gender))+
   geom_bar(stat = "identity", position = "dodge") +
+  scale_fill_manual(values = c("Female" = "pink", "Male" = "blue")) +
   theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
-  labs(title = "Vulnerability in Kindergarten Age Children", x = "Area", y = "Percent")
+  labs(title = "Vulnerability in Kindergarten Age Children", x = "Year", y = "Percent")
