@@ -23,8 +23,8 @@ indtotinc_vectors <- can21$vector[which(can21$vector == "v_CA21_665"):which(can2
 
 #Naming the rows for the vectors
 indtotinc_names <- c("total_count", "wo_total_income", "w_total_income", "under_10",
-                    "10_20", "20_30", "30_40", "40_50", "50_60", "60_70", "70_80",
-                    "80_90", "90_100", "over_100", "100_150", "over_150")
+                     "10_20", "20_30", "30_40", "40_50", "50_60", "60_70", "70_80",
+                     "80_90", "90_100", "over_100", "100_150", "over_150")
 
 #Filter for vectors for Total
 inc21_vectors_total <- can21 |> 
@@ -46,27 +46,27 @@ inc21_vectors_women <- can21 |>
 
 #Pull individual total income brackets for Laval
 indtotinc_lvl_total  <- get_census(dataset = "CA21", 
-                             regions = list(CSD = 2465005), 
-                             level = "CSD",
-                             vectors = inc21_vectors_total) |> 
+                                   regions = list(CSD = 2465005), 
+                                   level = "CSD",
+                                   vectors = inc21_vectors_total) |> 
   select(all_of(indtotinc_names)) |> 
   mutate(Geography = c("Laval")) |> 
   select(Geography, everything())
 
 #Pull individual total income brackets for men
 indtotinc_lvl_men  <- get_census(dataset = "CA21", 
-                                   regions = list(CSD = 2465005), 
-                                   level = "CSD",
-                                   vectors = inc21_vectors_men) |> 
+                                 regions = list(CSD = 2465005), 
+                                 level = "CSD",
+                                 vectors = inc21_vectors_men) |> 
   select(all_of(indtotinc_names)) |> 
   mutate(Geography = c("Men")) |> 
   select(Geography, everything())
 
 #Pull individual total income brackets for women
 indtotinc_lvl_women  <- get_census(dataset = "CA21", 
-                                 regions = list(CSD = 2465005), 
-                                 level = "CSD",
-                                 vectors = inc21_vectors_women) |> 
+                                   regions = list(CSD = 2465005), 
+                                   level = "CSD",
+                                   vectors = inc21_vectors_women) |> 
   select(all_of(indtotinc_names)) |> 
   mutate(Geography = c("Women")) |> 
   select(Geography, everything())
@@ -135,8 +135,8 @@ indatinc_vectors <- can21$vector[which(can21$vector == "v_CA21_713"):which(can21
 
 #Naming the rows for the vectors
 indatinc_names <- c("total_count", "wo_at_income", "w_at_income", "under_10",
-                      "10_20", "20_30", "30_40", "40_50", "50_60", "60_70", "70_80",
-                      "80_90", "90_100", "over_100", "100_125", "over_125")
+                    "10_20", "20_30", "30_40", "40_50", "50_60", "60_70", "70_80",
+                    "80_90", "90_100", "over_100", "100_125", "over_125")
 
 #Filter for vectors for Total
 indat21_vectors_total <- can21 |> 
@@ -158,27 +158,27 @@ indat21_vectors_women <- can21 |>
 
 #Pull individual AT income brackets for Laval
 indat21_lvl_total  <- get_census(dataset = "CA21", 
-                                   regions = list(CSD = 2465005), 
-                                   level = "CSD",
-                                   vectors = indat21_vectors_total) |> 
+                                 regions = list(CSD = 2465005), 
+                                 level = "CSD",
+                                 vectors = indat21_vectors_total) |> 
   select(all_of(indatinc_names)) |> 
   mutate(Geography = c("Laval")) |> 
   select(Geography, everything())
 
 #Pull individual AT income brackets for men
 indat21_lvl_men  <- get_census(dataset = "CA21", 
-                                 regions = list(CSD = 2465005), 
-                                 level = "CSD",
-                                 vectors = indat21_vectors_men) |> 
+                               regions = list(CSD = 2465005), 
+                               level = "CSD",
+                               vectors = indat21_vectors_men) |> 
   select(all_of(indatinc_names)) |> 
   mutate(Geography = c("Men")) |> 
   select(Geography, everything())
 
 #Pull individual AT income brackets for women
 indat21_lvl_women  <- get_census(dataset = "CA21", 
-                                   regions = list(CSD = 2465005), 
-                                   level = "CSD",
-                                   vectors = indat21_vectors_women) |> 
+                                 regions = list(CSD = 2465005), 
+                                 level = "CSD",
+                                 vectors = indat21_vectors_women) |> 
   select(all_of(indatinc_names)) |> 
   mutate(Geography = c("Women")) |> 
   select(Geography, everything())
@@ -243,27 +243,27 @@ indeminc_vectors_women <- can21 |>
 
 #Pull individual employment income brackets for Laval
 indeminc_lvl_total  <- get_census(dataset = "CA21", 
-                                 regions = list(CSD = 2465005), 
-                                 level = "CSD",
-                                 vectors = indeminc_vectors_total) |> 
+                                  regions = list(CSD = 2465005), 
+                                  level = "CSD",
+                                  vectors = indeminc_vectors_total) |> 
   select(all_of(indeminc_names)) |> 
   mutate(Geography = c("Laval")) |> 
   select(Geography, everything())
 
 #Pull individual employment income brackets for men
 indeminc_lvl_men  <- get_census(dataset = "CA21", 
-                               regions = list(CSD = 2465005), 
-                               level = "CSD",
-                               vectors = indeminc_vectors_men) |> 
+                                regions = list(CSD = 2465005), 
+                                level = "CSD",
+                                vectors = indeminc_vectors_men) |> 
   select(all_of(indeminc_names)) |> 
   mutate(Geography = c("Men")) |> 
   select(Geography, everything())
 
 #Pull individual employment income brackets for women
 indeminc_lvl_women  <- get_census(dataset = "CA21", 
-                                 regions = list(CSD = 2465005), 
-                                 level = "CSD",
-                                 vectors = indeminc_vectors_women) |> 
+                                  regions = list(CSD = 2465005), 
+                                  level = "CSD",
+                                  vectors = indeminc_vectors_women) |> 
   select(all_of(indeminc_names)) |> 
   mutate(Geography = c("Women")) |> 
   select(Geography, everything())
@@ -316,9 +316,9 @@ tot_hh_vectors <- can21$vector[which(can21$vector == "v_CA21_923"):which(can21$v
 
 #Grabbing total household income
 tot_hh_lvl  <- get_census(dataset = "CA21", 
-                                  regions = list(CSD = 2465005), 
-                                  level = "CSD",
-                                  vectors = tot_hh_vectors) |> 
+                          regions = list(CSD = 2465005), 
+                          level = "CSD",
+                          vectors = tot_hh_vectors) |> 
   select(all_of(tot_hh_names)) |> 
   select(everything())
 
@@ -345,7 +345,7 @@ ggplot(tot_hh_bar, aes(x = Bracket, y = Counts, fill = "")) +
   labs(title = "2020 Total Household Income", x = "Total Household Income", y = "Count") +
   theme_minimal() +
   theme(legend.position = "none",
-    axis.text.x = element_text(angle = 45, hjust = 1))+
+        axis.text.x = element_text(angle = 45, hjust = 1))+
   coord_flip()
 
 #Preparing the bar graph table for $50k intervals
@@ -371,9 +371,9 @@ ggplot(tot_hh_bar_50, aes(x = Bracket, y = Counts, fill = "")) +
 # After-Tax Household Income ----------------------------------------------
 #Setting the names for the vectors
 at_hh_names <- c("Total", "< $5,000", "$5-9,999", "$10-14,999", "$15-19,999",
-                  "$20-24,999", "$25-29,999", "$30-34,999", "$35-39,999", "$40-44,999",
-                  "$45-49,999", "$50-59,999", "$60-69,999", "$70-79,999", "$80-89,999",
-                  "$90-99,999", "=> $100,000", "$100-124,999", "$125-149,999", "=> $150,000")
+                 "$20-24,999", "$25-29,999", "$30-34,999", "$35-39,999", "$40-44,999",
+                 "$45-49,999", "$50-59,999", "$60-69,999", "$70-79,999", "$80-89,999",
+                 "$90-99,999", "=> $100,000", "$100-124,999", "$125-149,999", "=> $150,000")
 
 #Grabbing vectors for AT household income and renaming them with at_hh_names
 at_hh_vectors <- can21$vector[which(can21$vector == "v_CA21_944"):which(can21$vector == "v_CA21_963")] |> 
@@ -381,9 +381,9 @@ at_hh_vectors <- can21$vector[which(can21$vector == "v_CA21_944"):which(can21$ve
 
 #Grabbing AT household income
 at_hh_lvl  <- get_census(dataset = "CA21", 
-                          regions = list(CSD = 2465005), 
-                          level = "CSD",
-                          vectors = at_hh_vectors) |> 
+                         regions = list(CSD = 2465005), 
+                         level = "CSD",
+                         vectors = at_hh_vectors) |> 
   select(all_of(at_hh_names)) |> 
   select(everything())
 
@@ -445,9 +445,9 @@ census_grabber <- function(region, geolevel, geoname){
   regions_list[[geolevel]] <- region
   
   get_census(dataset = "CA21",
-    regions = regions_list,
-    level = geolevel,
-    vectors = hh_inc20_vectors
+             regions = regions_list,
+             level = geolevel,
+             vectors = hh_inc20_vectors
   ) |> 
     mutate(Geography = geoname) |> 
     select(Geography, total, at_total, one_p, at_one_p, two_p, at_two_p)
@@ -495,7 +495,7 @@ ggplot(hh_inc20_graph, aes(x = Geography, y = income, fill = income_type)) +
 # Economic Household Income -----------------------------------------------
 
 ehh_inc20_vectors <- c("v_CA21_965","v_CA21_966", "v_CA21_969", "v_CA21_970",
-                      "v_CA21_973", "v_CA21_974", "v_CA21_977", "v_CA21_978") |> 
+                       "v_CA21_973", "v_CA21_974", "v_CA21_977", "v_CA21_978") |> 
   set_names(c("total", "at_total", "couple", "at_couple", "couple_c",
               "at_couple_c", "one_p", "at_one_p"))
 
@@ -619,12 +619,51 @@ mii_inc10_qc <- mii_census_grabber("CA11", "24", "PR", "v_CA11N_2341", (1:8), "2
   select(-1)
 mii_inc05_qc <- mii_census_grabber("CA06", "24", "PR", "v_CA06_1583", (1:8), "2005")
 mii_inc00_qc <- mii_census_grabber("CA01", "24", "PR", "v_CA01_1449", (1:8), "2000")
+
 #Bind the tables together
 mii_qc_graph <- bind_cols(mii_inc20_qc, mii_inc15_qc, mii_inc10_qc, mii_inc05_qc, mii_inc00_qc)
 
 #Bind all geography tables together to make the line graph
 mii_graph <- bind_rows(mii_lvl_graph, mii_mtl_graph, mii_qc_graph) |> 
   pivot_longer(cols = -Geography, names_to = "Year", values_to = "Income")
+
+#Year over year growth table
+mii_yoygraph <- bind_rows(mii_lvl_graph, mii_mtl_graph, mii_qc_graph) |> 
+  mutate("2020" = round(100 * `2020` / `2015` - 100, 2),
+         "2015" = round(100 * `2015` / `2010` - 100, 2),
+         "2010" = round(100 * `2010` / `2005` - 100, 2),
+         "2005" = round(100 * `2005` / `2000` - 100, 2)) |> 
+  select(Geography, "2005", "2010", "2015", "2020") |> 
+  pivot_longer(cols = -Geography, names_to = "Year", values_to = "Growth")
+
+#Creating a table with CPI index values from 2000 to 2020
+cpi <- data.frame(
+  Geography = "CPI",
+  Year = c("2000", "2001", "2002", "2003", "2004", "2005", "2006", "2007", "2008",
+           "2009", "2010", "2011", "2012", "2013", "2014", "2015", "2016", "2017",
+           "2018", "2019", "2020"),
+  Index = c(100, 102.3, 104.346, 106.95465, 109.093743, 111.6028991,
+            113.5001484, 115.3161507, 117.7377899, 118.4442167, 119.8655473,
+            123.4615137, 126.0542055, 126.9365849, 128.7136971, 130.1295478,
+            131.0404546, 132.3508591, 134.6008237, 137.427441, 138.5268606)
+)
+
+#Creating and binding yoy growth with CPI
+mii_yoygraph_cpi <- bind_rows(mii_lvl_graph, mii_mtl_graph, mii_qc_graph) |> 
+  mutate("2020y" = `2020` / `2015`,
+         "2015y" = `2015` / `2010`,
+         "2010y" = `2010` / `2005`,
+         "2005y" = `2005` / `2000`) |> 
+  mutate("2000yoy" = 100,
+         "2005yoy" = 100 * `2005y`,
+         "2010yoy" = 100 * `2005y` * `2010y`,
+         "2015yoy" = 100 * `2005y` * `2010y` * `2015y`,
+         "2020yoy" = 100 * `2005y` * `2010y` * `2015y` * `2020y`) |> 
+  select(Geography, "2000yoy", "2005yoy", "2010yoy", "2015yoy", "2020yoy") |> 
+  rename("2000" = "2000yoy", "2005" = "2005yoy", "2010" = "2010yoy",
+         "2015" = "2015yoy", "2020" = "2020yoy") |> 
+  pivot_longer(cols = -Geography, names_to = "Year", values_to = "Index") |> 
+  bind_rows(cpi)
 
 #Creating the line graph for median individual income
 ggplot(mii_graph, aes(x = Year, y = Income, color = Geography, group = Geography)) +
@@ -635,6 +674,42 @@ ggplot(mii_graph, aes(x = Year, y = Income, color = Geography, group = Geography
   theme_minimal() +
   theme(legend.position = "bottom", legend.box = "horizontal",
         legend.title = element_blank(), plot.title = element_text(hjust = 0.5))
+
+#Line graph for mii yoy growth
+ggplot(mii_yoygraph, aes(x = Year, y = Growth, color = Geography, group = Geography)) +
+  geom_line() +
+  scale_color_manual(values = c("CPI" = "grey", "Laval" = "royalblue2",
+                                "Montreal" = "indianred3", "Quebec" = "gold2")) +
+  labs(title = "Individual Median Income Growth 2005-2020",
+       x = "Year",
+       y = "Income Growth (%)") +
+  theme_minimal() +
+  theme(legend.position = "bottom", legend.title = element_blank(),
+        axis.text.x = element_text(angle = 45, hjust = 1),
+        plot.title = element_text(hjust = 0.5))
+
+#Plot for year over year growth
+ggplot(mii_yoygraph, aes(x = Year, y = Growth, fill = Geography)) +
+  geom_bar(stat = "identity", position = "dodge", width = 0.7) +
+  labs(title = "Individual Median Income Growth 2005-2020",
+       x = "Year", y = "Income Growth (%)") +
+  theme_minimal() +
+  theme(legend.position = "bottom",
+        legend.title = element_blank(),
+        axis.text.x = element_text(angle = 45, hjust = 1))
+
+#Line graph for CPI and mii index
+ggplot(mii_yoygraph_cpi, aes(x = Year, y = Index, color = Geography, group = Geography)) +
+  geom_line() +
+  scale_color_manual(values = c("CPI" = "grey", "Laval" = "royalblue2",
+                                "Montreal" = "indianred3", "Quebec" = "gold2")) +
+  labs(title = "Individual Median Income versus CPI 2000-2020",
+       x = "Year",
+       y = "Normalized Individual Median Income") +
+  theme_minimal() +
+  theme(legend.position = "bottom", legend.title = element_blank(),
+        axis.text.x = element_text(angle = 45, hjust = 1),
+        plot.title = element_text(hjust = 0.5))
 
 # Evolution of Household Income ------------------------------------------
 #Census grabber for median household income for 2020 to start up the graph table
@@ -712,30 +787,65 @@ ggplot(mhh_graph, aes(x = Year, y = Income, color = Geography, group = Geography
   theme(legend.position = "bottom", legend.box = "horizontal",
         legend.title = element_blank(), plot.title = element_text(hjust = 0.5))
 
-# Maps --------------------------------------------------------------------
-laval_medinc <- get_census(dataset = "CA21", 
-                         regions = list(CSD = 2465005), 
-                         vectors = c("med_inc" = "v_CA21_560"),
-                         level = "CT",
-                         geo_format = "sf")
+#Creating the table for yoy growth vs cpi
+mhh_yoygraph_cpi <- bind_rows(mhh_lvl_graph, mhh_mtl_graph, mhh_qc_graph) |> 
+  mutate("2020y" = `2020` / `2015`,
+         "2015y" = `2015` / `2010`,
+         "2010y" = `2010` / `2005`,
+         "2005y" = `2005` / `2000`) |> 
+  mutate("2000yoy" = 100,
+         "2005yoy" = 100 * `2005y`,
+         "2010yoy" = 100 * `2005y` * `2010y`,
+         "2015yoy" = 100 * `2005y` * `2010y` * `2015y`,
+         "2020yoy" = 100 * `2005y` * `2010y` * `2015y` * `2020y`) |> 
+  select(Geography, "2000yoy", "2005yoy", "2010yoy", "2015yoy", "2020yoy") |> 
+  rename("2000" = "2000yoy", "2005" = "2005yoy", "2010" = "2010yoy",
+         "2015" = "2015yoy", "2020" = "2020yoy") |> 
+  pivot_longer(cols = -Geography, names_to = "Year", values_to = "Index") |> 
+  bind_rows(cpi)
 
+#Line graph for CPI and mhh index
+ggplot(mhh_yoygraph_cpi, aes(x = Year, y = Index, color = Geography, group = Geography)) +
+  geom_line() +
+  scale_color_manual(values = c("CPI" = "grey", "Laval" = "royalblue2",
+                                "Montreal" = "indianred3", "Quebec" = "gold2")) +
+  labs(title = "Median Household Income versus CPI 2000-2020",
+       x = "Year",
+       y = "Normalized Median Household Income") +
+  theme_minimal() +
+  theme(legend.position = "bottom", legend.title = element_blank(),
+        axis.text.x = element_text(angle = 45, hjust = 1),
+        plot.title = element_text(hjust = 0.5))
+
+# Maps --------------------------------------------------------------------
+#Grabbing the data for median income in shapefile format
+laval_medinc <- get_census(dataset = "CA21", 
+                           regions = list(CSD = 2465005), 
+                           vectors = c("med_inc" = "v_CA21_560"),
+                           level = "CT",
+                           geo_format = "sf")
+
+#Mapping median income
 ggplot(data = laval_medinc) +
   geom_sf(aes(fill = med_inc)) +
-  labs(title = "Median Income in Laval") +
+  labs(title = "Median Income in Laval", color = "Dollars $") +
   scale_fill_viridis_c() +
   theme_minimal() +
   theme(axis.line = element_blank(),
         axis.text = element_blank(),
         axis.title = element_blank(),
         axis.ticks = element_blank(),
-        panel.grid = element_blank())
+        panel.grid = element_blank()) +
+  theme(legend.title = element_blank(), plot.title = element_text(hjust = 0.5))
 
+#Grabbing the data for hh median income in shapefile format
 laval_hhmedinc <- get_census(dataset = "CA21", 
-                           regions = list(CSD = 2465005), 
-                           vectors = c("med_inc" = "v_CA21_906"),
-                           level = "CT",
-                           geo_format = "sf")
+                             regions = list(CSD = 2465005), 
+                             vectors = c("med_inc" = "v_CA21_906"),
+                             level = "CT",
+                             geo_format = "sf")
 
+#Mapping household median income
 ggplot(data = laval_hhmedinc) +
   geom_sf(aes(fill = med_inc)) +
   labs(title = "Median Household Income in Laval") +

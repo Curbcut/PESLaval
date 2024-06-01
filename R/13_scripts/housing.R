@@ -15,9 +15,9 @@ cmhc_breakdown <- list_cmhc_breakdowns()
 
 #Grabbing Laval's shapefile by census tract
 laval_ct <- cancensus::get_census(dataset = "CA21", 
-                            regions = list(CSD = 2465005), 
-                            level = "CT", 
-                            geo_format = "sf")
+                                  regions = list(CSD = 2465005), 
+                                  level = "CT", 
+                                  geo_format = "sf")
 
 # Annual Monthly Tenant Cost (Laval, Montreal, Quebec) ----------------------------
 #Setting the years to pull data from
@@ -27,7 +27,7 @@ years <- 2010:2023
 avg_rent_cmhc <- function(geoid, years, geoname) {
   map_dfr(years, function(cyear) {
     get_cmhc(survey = "Rms", series = "Average Rent", dimension = "Bedroom Type",
-             breakdown = "census Subdivision", geo_uid = geoid, year = cyear) |> 
+             breakdown = "Census Subdivision", geo_uid = geoid, year = cyear) |> 
       mutate(Geography = geoname) |> 
       filter(str_detect(`Bedroom Type`, "Total")) |> 
       select(Geography, Year, Value)
@@ -46,24 +46,6 @@ avg_rent_qc <- data.frame(
   Value = c(648, 666, 693, 679, 691, 712, 727, 736, 761, 800, 845, 874, 952, 1022)
 )
 
-#Grab data of average rent for the entire Montreal CMA in 2010
-cma_comparison_10 <- get_cmhc( survey = "Rms", series = "Average Rent", dimension = "Bedroom Type",
-                            breakdown = "Census Subdivision", geo_uid = 24462, year = 2010) |> 
-  filter(str_detect(`Bedroom Type`, "Total")) |> 
-  rename("Rent_10" = Value) |> 
-  select(`Census Subdivision`, `Rent_10`) |> 
-  na.omit()
-
-#Grab 2023 data, joins with 2010, and calculates growth rate
-cma_comparison <- get_cmhc( survey = "Rms", series = "Average Rent", dimension = "Bedroom Type",
-                               breakdown = "Census Subdivision", geo_uid = 24462, year = 2023) |> 
-  filter(str_detect(`Bedroom Type`, "Total")) |> 
-  rename("Rent_23" = Value) |> 
-  select(`Census Subdivision`, `Rent_23`) |> 
-  left_join(cma_comparison_10, by = "Census Subdivision") |> 
-  na.omit() |> 
-  mutate(Growth = round((Rent_23 * 100 / Rent_10) - 100, 1))
-
 #Preparing the table for the line graph
 avg_rent_annual <- bind_rows(avg_rent_lvl, avg_rent_mtl, avg_rent_qc) |> 
   mutate(Geography = factor(Geography, levels = c("Laval", "Montreal", "Quebec")))
@@ -80,6 +62,51 @@ ggplot(avg_rent_annual, aes(x = Year, y = `Value`, group = Geography, color = Ge
   theme_minimal() +
   theme(
     legend.position = "bottom", legend.box = "horizontal"
+  )
+
+# Median Rent -------------------------------------------------------------
+#Choosing years to pull data from
+years <- 2010:2023
+
+#Pulling median rent data
+med_rent_cmhc <- function(geoid, years, geoname) {
+  map_dfr(years, function(cyear) {
+    get_cmhc(survey = "Rms", series = "Median Rent", dimension = "Bedroom Type",
+             breakdown = "Census Subdivision", geo_uid = geoid, year = cyear) |> 
+      mutate(Geography = geoname) |> 
+      filter(str_detect(`Bedroom Type`, "Total")) |> 
+      select(Geography, Year, Value)
+  })
+}
+
+#Grabbing annual average rent data from 2010 to 2023
+med_rent_lvl <- med_rent_cmhc(2465005, years, "Laval")
+med_rent_mtl <- med_rent_cmhc(2466023, years, "Montreal")
+#Manually inputting the province of Quebec's data as it's unavailable using the CMHC package
+#src = https://www.cmhc-schl.gc.ca/professionals/housing-markets-data-and-research/housing-data/data-tables/rental-market/rental-market-report-data-tables
+med_rent_qc <- data.frame(
+  Geography = "Quebec",
+  Year = c(2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018, 2019,
+           2020, 2021, 2022, 2023),
+  Value = c(610, 629, 625, 645, 650, 665, 675, 693, 705, 745, 773, 800, 860, 939)
+)
+
+#Preparing the table for the line graph
+med_rent_annual <- bind_rows(med_rent_lvl, med_rent_mtl, med_rent_qc) |> 
+  mutate(Geography = factor(Geography, levels = c("Laval", "Montreal", "Quebec")))
+
+ggplot(med_rent_annual, aes(x = Year, y = `Value`, group = Geography, color = Geography)) +
+  geom_line(size = 0.75) +
+  labs(title = "Median Monthly Rent 2010-2023",
+       x = "Year",
+       y = "Median Monthly Rent ($)") +
+  scale_color_manual(values = c("Laval" = "royalblue2", "Montreal" = "indianred2",
+                                "Quebec" = "gold3"),
+                     labels = c("Laval", "Montreal", "Quebec")) +
+  theme_minimal() +
+  theme(
+    legend.position = "bottom", legend.box = "horizontal",
+    legend.title = element_blank(), plot.title = element_text(hjust = 0.5)
   )
 
 # Monthly Tenant Cost by Laval Zone -----------------------------------------------------
@@ -124,11 +151,11 @@ avg_rent[avg_rent$`Bedroom Type` == "Total", ] |>
 #Census Monthly Shelter Cost ----------------------------------------------
 #Grabbing monthly owner shelter cost vectors for 2006-2021
 osc_21v <- c("med_owner" = "v_CA21_4309", "avg_owner" = "v_CA21_4310",
-            "med_tenant" = "v_CA21_4317", "avg_tenant" = "v_CA21_4318")
+             "med_tenant" = "v_CA21_4317", "avg_tenant" = "v_CA21_4318")
 osc_16v <- c("med_owner" = "v_CA16_4893", "avg_owner" = "v_CA16_4894",
-            "med_tenant" = "v_CA16_4900", "avg_tenant" = "v_CA16_4901")
+             "med_tenant" = "v_CA16_4900", "avg_tenant" = "v_CA16_4901")
 osc_11v <- c("med_owner" = "v_CA11N_2284", "avg_owner" = "v_CA11N_2285",
-            "med_tenant" = "v_CA11N_2291", "avg_tenant" = "v_CA11N_2292")
+             "med_tenant" = "v_CA11N_2291", "avg_tenant" = "v_CA11N_2292")
 
 #Function to grab data for the above vectors for 2011-2021
 osc_census <- function(region, geolevel, geoname, datayear, osc_year, cyear){
@@ -253,10 +280,10 @@ aff_11 <- aff_census_1121("CA11", aff_11v, "2011")
 
 #Grabbing data and cleans it up for 2006
 aff_06 <- get_census(dataset = "CA06",
-           regions = list(CSD = 2465005),
-           level = "CSD",
-           vectors = c("total" = "v_CA06_2048", "owner" = "v_CA06_2053", "owner_p30" = "v_CA06_2056",
-                       "tenant" = "v_CA06_2049", "tenant_p30" = "v_CA06_2051")) |> 
+                     regions = list(CSD = 2465005),
+                     level = "CSD",
+                     vectors = c("total" = "v_CA06_2048", "owner" = "v_CA06_2053", "owner_p30" = "v_CA06_2056",
+                                 "tenant" = "v_CA06_2049", "tenant_p30" = "v_CA06_2051")) |> 
   mutate(Year = "2006",
          laval_30 = round((tenant_p30 + owner_p30) * 100 / total, 1),
          owner_30 = round(owner_p30 * 100 / owner, 1),
@@ -296,9 +323,9 @@ ggplot(aff_graph, aes(x = Year, y = proportion, group = hh_type, color = hh_type
 # Core Housing Need --------------------------------------------
 #Grab core housing need percentage for Laval in 2021
 chn_lvl_21year <- get_census(dataset = "CA21", 
-                                   regions = list(CSD = 2465005), 
-                                   level = "CSD",
-                                   vectors = c("Total" = "v_CA21_4302", "Core" = "v_CA21_4303")) |> 
+                             regions = list(CSD = 2465005), 
+                             level = "CSD",
+                             vectors = c("Total" = "v_CA21_4302", "Core" = "v_CA21_4303")) |> 
   select(all_of(c("Total", "Core"))) |> 
   mutate(`% Core Need` = round((Core*100) / Total, 1),
          "Year" = "2021") |> 
@@ -307,8 +334,8 @@ chn_lvl_21year <- get_census(dataset = "CA21",
 #Grab core housing need for Laval from 2006-2016 and filter out the data and then
 #binding it with chn_lvl_21year
 chn_lvl <- get_cmhc("Core Housing Need", "Housing Standards",
-  "% of Households in Core Housing Need", "Historical Time Periods",
-  geoFilter = "Default", geo_uid = "2465005") |> 
+                    "% of Households in Core Housing Need", "Historical Time Periods",
+                    geoFilter = "Default", geo_uid = "2465005") |> 
   filter(`% of Households in Core Housing Need` == "Total") |> 
   select(DateString, Value) |> 
   rename("Year" = "DateString",
@@ -417,6 +444,6 @@ ggplot(pto_graph, aes(x = Year, y = Households, fill = Type)) +
        y = "Number of Households",
        fill = "Type of Household") +
   scale_fill_manual(values = c("total" = "royalblue2", "owner" = "indianred2",
-                                "tenant" = "gold3"),
-                     labels = c("Total", "Owner", "Tenant")) +
+                               "tenant" = "gold3"),
+                    labels = c("Total", "Owner", "Tenant")) +
   theme_minimal()
