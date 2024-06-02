@@ -447,3 +447,46 @@ ggplot(pto_graph, aes(x = Year, y = Households, fill = Type)) +
                                "tenant" = "gold3"),
                     labels = c("Total", "Owner", "Tenant")) +
   theme_minimal()
+
+# Housing Starts ----------------------------------------------------------
+
+starts_lvl <- get_cmhc(survey = "Scss", series = "Starts", dimension = "Intended Market",
+         breakdown = "Historical Time Periods", geo_uid = 2465005, year = 2009) |> 
+  mutate(Date = dmy(paste0("01 ", DateString)), Year = as.factor(year(Date))) |> 
+  select(Year, `Intended Market`, Value) |> 
+  group_by(Year, `Intended Market`) |> 
+  summarize(Units = sum(Value), .groups = "drop") |> 
+  filter(`Intended Market` != "Unknown", `Intended Market` != "Co-Op",
+         Year != "2024", Year != "2009") |> 
+  mutate(`Intended Market` = factor(`Intended Market`, levels = c("All", "Homeowner", "Rental",
+                                                                  "Condo")))
+
+ggplot(starts_lvl, aes(x = Year, y = Units, fill = `Intended Market`)) +
+  geom_bar(stat = "identity", position = position_dodge()) +
+  labs(title = "Unit Starts in Laval 2010-2023",
+       x = "Year",
+       y = "Number of Starts") +
+  theme_minimal() +
+  theme(
+    plot.title = element_text(hjust = 0.5),
+    axis.text.x = element_text(angle = 45, hjust = 1),
+    legend.title = element_blank()
+  )
+
+startsp_lvl <- starts_lvl |> 
+  pivot_wider(names_from = `Intended Market`, values_from = Units) |> 
+  mutate(Rental_p = Rental * 100 / All,
+         Owner_p = (Homeowner + Condo) * 100 / All) |> 
+  select(-All, -Condo, -Homeowner, -Rental) |> 
+  pivot_longer(cols = -Year, names_to = "Type", values_to = "Count")
+
+ggplot(startsp_lvl, aes(x = Year, y = `Count`, group = Type, color = Type)) +
+  geom_line() +
+  labs(title = "Proportion of Housing Start Type 2010-2023",
+       x = "Year",
+       y = "Proportion of Housing Start Type (%)") +
+  theme_minimal() +
+  theme(
+    legend.position = "bottom", legend.box = "horizontal", legend.title = element_blank(),
+    plot.title = element_text(hjust = 0.5), axis.text.x = element_text(angle = 45, hjust = 1)
+  )
