@@ -80,10 +80,10 @@ language_children_total <- language_children |>
 
 # combine some categories
 language_children_total_grouped <- language_children_total |> 
-  mutate(`French and Other` = perFrench + perFrench_andother, 
-         `Both Official and other` = perBoth + per_EnglishFrench_andother, 
-         `English and Other` = perEnglish + perEng_andother, 
-         `Non-Official` = perNon_official + perMultipleOther)
+  mutate(`Non-Official` = perNon_official + perMultipleOther,
+         `English and Other` = perEnglish + perEng_andother,
+         `Both Official and other` = perBoth + per_EnglishFrench_andother,
+         `French and Other` = perFrench + perFrench_andother)
 
 
 language_children_total_grouped_long <- language_children_total_grouped |> 
@@ -132,10 +132,12 @@ language_children_queb_total <- language_children_queb |>
 
 # combine some categories
 language_children_queb_total_grouped <- language_children_queb_total |> 
-  mutate(`French and Other` = perFrench + perFrench_andother, 
+  mutate(`Non-Official` = perNon_official + perMultipleOther,
+         `English and Other` = perEnglish + perEng_andother,
          `Both Official and other` = perBoth + per_EnglishFrench_andother, 
-         `English and Other` = perEnglish + perEng_andother, 
-         `Non-Official` = perNon_official + perMultipleOther)
+         `French and Other` = perFrench + perFrench_andother)
+    
+    
 
 language_children_queb_total_grouped_long <- language_children_queb_total_grouped |> 
   pivot_longer(-c(Age)) |> 
@@ -177,7 +179,8 @@ ggplot(data = combined_language, aes(x = name, y = value, fill = Geography)) +
 ## stack bars together 
 ggplot(data = combined_language, aes(x = Geography, y = value, fill = name)) +
   geom_bar(stat = "identity") +
-  labs(title = "Children 0 to 19 Mother Tongue", y = "Percent", x = "Response")
+  labs(title = "Children 0 to 19 Mother Tongue", y = "Percent", x = "Response") +
+  geom_text(aes(label = paste0(value, "%")), position = position_stack(vjust = 0.5), color = "white")
   
  
 
