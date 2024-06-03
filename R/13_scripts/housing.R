@@ -148,6 +148,59 @@ avg_rent[avg_rent$`Bedroom Type` == "Total", ] |>
   ggplot2::ggplot() +
   ggplot2::geom_sf(ggplot2::aes(fill = avg_rent_2023))
 
+# YoY Growth for Rent -----------------------------------------------------
+#Run this only after you run average and median rent above
+
+#Calculating YoY change
+avg_yoy <- avg_rent_annual |> 
+  group_by(Geography) |> 
+  arrange(Geography, Year) |> 
+  mutate(PercentChange = (Value / lag(Value) - 1) * 100) |> 
+  filter(Year != 2010) |> 
+  select(-Value)
+
+#Graphing YoY change for average monthly rent
+ggplot(avg_yoy, aes(x = Year, y = `PercentChange`, group = Geography, color = Geography)) +
+  geom_hline(yintercept = 0, size = 0.5, color = "black") +
+  geom_line(size = 1.25) +
+  labs(title = "Change in Average Monthly Rent 2011-2023",
+       x = "Year",
+       y = "Change in Average Rent (%)") +
+  scale_color_manual(values = c("Laval" = "royalblue2", "Montreal" = "indianred2",
+                                "Quebec" = "gold3"),
+                     labels = c("Laval", "Montreal", "Quebec")) +
+  scale_x_continuous(breaks = 2011:2023) +
+  theme_minimal() +
+  theme(
+    legend.position = "bottom", legend.box = "horizontal",
+    legend.title = element_blank(), plot.title = element_text(hjust = 0.5)
+  )
+
+#Calculating YoY change for median rent
+med_yoy <- med_rent_annual |> 
+  group_by(Geography) |> 
+  arrange(Geography, Year) |> 
+  mutate(PercentChange = (Value / lag(Value) - 1) * 100) |> 
+  filter(Year != 2010) |> 
+  select(-Value)
+
+#Graphing median rent YoY Change
+ggplot(med_yoy, aes(x = Year, y = `PercentChange`, group = Geography, color = Geography)) +
+  geom_hline(yintercept = 0, size = 0.5, color = "black") +
+  geom_line(size = 1.25) +
+  labs(title = "Change in Median Monthly Rent 2011-2023",
+       x = "Year",
+       y = "Change in Median Rent (%)") +
+  scale_color_manual(values = c("Laval" = "royalblue2", "Montreal" = "indianred2",
+                                "Quebec" = "gold3"),
+                     labels = c("Laval", "Montreal", "Quebec")) +
+  scale_x_continuous(breaks = 2011:2023) +
+  theme_minimal() +
+  theme(
+    legend.position = "bottom", legend.box = "horizontal",
+    legend.title = element_blank(), plot.title = element_text(hjust = 0.5)
+  )
+
 #Census Monthly Shelter Cost ----------------------------------------------
 #Grabbing monthly owner shelter cost vectors for 2006-2021
 osc_21v <- c("med_owner" = "v_CA21_4309", "avg_owner" = "v_CA21_4310",
@@ -348,9 +401,10 @@ ggplot(chn_lvl, aes(x = Year, y = `% Core Need`, group = "")) +
   labs(title = "Percentage of Households with Core Housing Need 2006-2021",
        x = "Year",
        y = "% of Households with Core Housing Need") +
-  scale_y_continuous(limits = c(0, 50),
-                     breaks = seq(0, 50, by = 10)) +
-  theme_minimal()
+  scale_y_continuous(limits = c(0, 30),
+                     breaks = seq(0, 30, by = 10)) +
+  theme_minimal() +
+  theme(plot.title = element_text(hjust = 0.5))
 
 #Function to grab census data for core housing need
 chn_census_grabber <- function(cyear, region, geolevel, filter_v, geography){
@@ -375,37 +429,40 @@ chn_lvl21 <- chn_census_grabber("CA21","2465005", "CSD", (1:10), "Laval") |>
   setNames(bar_graph_names) |> 
   mutate("Geography" = "Laval",
          "No Core Need" = no_chn / total,
-         "Owner Core Need" = (owner_total * owner_chn / 100) / total,
-         "Tenant Core Need" = (tenant_total * tenant_chn / 100) / total) |> 
+         "Owner Core Need" = (owner_total * owner_chn) / total,
+         "Tenant Core Need" = (tenant_total * tenant_chn) / total) |> 
   select("Geography", "No Core Need", "Owner Core Need", "Tenant Core Need")
-chn_mtlcma21 <- chn_census_grabber("CA21","24462", "CMA", (1:9), "Montreal CMA") |> 
+chn_mtl21 <- chn_census_grabber("CA21","2466023", "CSD", (1:10), "Montreal CMA") |> 
   setNames(bar_graph_names) |> 
-  mutate("Geography" = "Montreal CMA",
+  mutate("Geography" = "Montreal",
          "No Core Need" = no_chn / total,
-         "Owner Core Need" = (owner_total * owner_chn / 100) / total,
-         "Tenant Core Need" = (tenant_total * tenant_chn / 100) / total) |> 
+         "Owner Core Need" = (owner_total * owner_chn) / total,
+         "Tenant Core Need" = (tenant_total * tenant_chn) / total) |> 
   select("Geography", "No Core Need", "Owner Core Need", "Tenant Core Need")
 chn_qc21 <- chn_census_grabber("CA21","24", "PR", (1:8), "Quebec") |> 
   setNames(bar_graph_names) |> 
   mutate("Geography" = "Quebec",
          "No Core Need" = no_chn / total,
-         "Owner Core Need" = (owner_total * owner_chn / 100) / total,
-         "Tenant Core Need" = (tenant_total * tenant_chn / 100) / total) |> 
+         "Owner Core Need" = (owner_total * owner_chn) / total,
+         "Tenant Core Need" = (tenant_total * tenant_chn) / total) |> 
   select("Geography", "No Core Need", "Owner Core Need", "Tenant Core Need")
 
 #Preparing the data to create a grouped bar graph
-chn <- bind_rows(chn_lvl21, chn_mtlcma21, chn_qc21) |> 
+chn <- bind_rows(chn_lvl21, chn_mtl21, chn_qc21) |> 
   pivot_longer(cols = -Geography, names_to = "Need", values_to = "Percentage") |> 
-  mutate(Need = factor(Need, levels = c("Owner Core Need", "Tenant Core Need", "No Core Need")))
+  filter(Need != "No Core Need") |> 
+  mutate(Need = factor(Need, levels = c("Owner Core Need", "Tenant Core Need")))
 
 #Creating the grouped bar graph
 ggplot(chn, aes(x = Geography, y = Percentage, fill = Need)) +
   geom_bar(stat = "identity") +
   labs(title = "Core Housing Need 2021",
        x = "Geography",
-       y = "Proportion") +
+       y = "Households in Core Need (%)") +
   scale_fill_manual(values = c("gold2", "indianred3", "dodgerblue3")) +
-  theme_minimal()
+  theme_minimal() +
+  theme(plot.title = element_text(hjust = 0.5),
+        legend.position = "bottom", legend.title = element_blank())
 
 # Proportion of Tenants and Owners ---------------------------------------------
 pto_21v <- c("total" = "v_CA21_4288", "owner" = "v_CA21_4305", "tenant" = "v_CA21_4313")
@@ -414,6 +471,7 @@ pto_11v <- c("total" = "v_CA11N_2277", "owner" = "v_CA11N_2281", "tenant" = "v_C
 pto_06v <- c("total" = "v_CA06_2048", "owner" = "v_CA06_2053", "tenant" = "v_CA06_2049")
 pto_01v <- c("owner" = "v_CA01_1670", "tenant" = "v_CA01_1666")
 
+#Census Grabbing Function
 pto_census <- function(datayear, pto_year, cyear){
   get_census(dataset = datayear,
              regions = list(CSD = 2465005),
@@ -425,6 +483,7 @@ pto_census <- function(datayear, pto_year, cyear){
            -Dwellings, -Households, -CD_UID, -PR_UID, -CMA_UID)
 }
 
+#Grabbing data for 2001-2021
 pto_21 <- pto_census("CA21", pto_21v, "2021")
 pto_16 <- pto_census("CA16", pto_16v, "2016")
 pto_11 <- pto_census("CA11", pto_11v, "2011") |> 
@@ -433,10 +492,12 @@ pto_06 <- pto_census("CA06", pto_06v, "2006")
 pto_01 <- pto_census("CA01", pto_01v, "2001") |> 
   mutate(total = owner + tenant)
 
+#Making the data usable to graph
 pto_graph <- bind_rows(pto_21, pto_16, pto_11, pto_06, pto_01) |> 
   pivot_longer(cols = -Year, names_to = "Type", values_to = "Households") |> 
   mutate(Type = factor(Type, levels = c("total", "owner", "tenant")))
 
+#Graphing the data out
 ggplot(pto_graph, aes(x = Year, y = Households, fill = Type)) +
   geom_bar(stat = "identity", position = position_dodge()) +
   labs(title = "Total, Owner and Tenant Households",
@@ -450,6 +511,7 @@ ggplot(pto_graph, aes(x = Year, y = Households, fill = Type)) +
 
 # Housing Starts ----------------------------------------------------------
 
+#Grabbing and manipulating the data to be easier to use and graph
 starts_lvl <- get_cmhc(survey = "Scss", series = "Starts", dimension = "Intended Market",
          breakdown = "Historical Time Periods", geo_uid = 2465005, year = 2009) |> 
   mutate(Date = dmy(paste0("01 ", DateString)), Year = as.factor(year(Date))) |> 
@@ -461,6 +523,7 @@ starts_lvl <- get_cmhc(survey = "Scss", series = "Starts", dimension = "Intended
   mutate(`Intended Market` = factor(`Intended Market`, levels = c("All", "Homeowner", "Rental",
                                                                   "Condo")))
 
+#Graphing the data
 ggplot(starts_lvl, aes(x = Year, y = Units, fill = `Intended Market`)) +
   geom_bar(stat = "identity", position = position_dodge()) +
   labs(title = "Unit Starts in Laval 2010-2023",
@@ -473,20 +536,57 @@ ggplot(starts_lvl, aes(x = Year, y = Units, fill = `Intended Market`)) +
     legend.title = element_blank()
   )
 
+#Calculating the proportion of housing starts
 startsp_lvl <- starts_lvl |> 
   pivot_wider(names_from = `Intended Market`, values_from = Units) |> 
-  mutate(Rental_p = Rental * 100 / All,
-         Owner_p = (Homeowner + Condo) * 100 / All) |> 
+  mutate(`Rental Starts` = Rental * 100 / All,
+         `Owner Starts` = (Homeowner + Condo) * 100 / All) |> 
   select(-All, -Condo, -Homeowner, -Rental) |> 
   pivot_longer(cols = -Year, names_to = "Type", values_to = "Count")
 
+#Graphing the proportion of housing starts
 ggplot(startsp_lvl, aes(x = Year, y = `Count`, group = Type, color = Type)) +
-  geom_line() +
-  labs(title = "Proportion of Housing Start Type 2010-2023",
+  geom_line(size = 1.25) +
+  labs(title = "Proportion of Housing Starts 2010-2023",
        x = "Year",
-       y = "Proportion of Housing Start Type (%)") +
+       y = "Proportion of Start Type (%)") +
   theme_minimal() +
   theme(
     legend.position = "bottom", legend.box = "horizontal", legend.title = element_blank(),
     plot.title = element_text(hjust = 0.5), axis.text.x = element_text(angle = 45, hjust = 1)
   )
+
+# Maps for rent change ----------------------------------------------------
+avg_change18 <- get_cmhc(survey = "Rms", series = "Average Rent", dimension = "Bedroom Type", breakdown = "Census Tracts", geo_uid = "24462", year = "2018") |> 
+  filter(`Bedroom Type` == "Total") |> 
+  drop_na()
+
+avg_change23 <- get_cmhc(survey = "Rms", series = "Average Rent", dimension = "Bedroom Type", breakdown = "Census Tracts", geo_uid = "24462", year = "2023") |> 
+  filter(`Bedroom Type` == "Total") |> 
+  drop_na()
+
+avg_change_map5 <- full_join(avg_change18, avg_change23, join_by(GeoUID)) |> 
+  drop_na() |> 
+  mutate(Change = (Value.y / Value.x * 100) - 100) |> 
+  select(GeoUID, Change) |> 
+  right_join(laval_ct, join_by(GeoUID))
+
+laval_test <- cancensus::get_census(dataset = "CA21", 
+                                    regions = list(CSD = 2465005), 
+                                    level = "CT", 
+                                    geo_format = "sf") |> 
+  left_join(avg_change_map5, join_by(GeoUID))
+
+laval_test$Change <- as.numeric(laval_test$Change)
+
+ggplot(data = laval_test) +
+  geom_sf(aes(fill = Change)) +
+  labs(title = "Median Income in Laval", color = "Dollars $") +
+  scale_fill_viridis_c() +
+  theme_minimal() +
+  theme(axis.line = element_blank(),
+        axis.text = element_blank(),
+        axis.title = element_blank(),
+        axis.ticks = element_blank(),
+        panel.grid = element_blank()) +
+  theme(legend.title = element_blank(), plot.title = element_text(hjust = 0.5))

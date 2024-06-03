@@ -787,6 +787,15 @@ ggplot(mhh_graph, aes(x = Year, y = Income, color = Geography, group = Geography
   theme(legend.position = "bottom", legend.box = "horizontal",
         legend.title = element_blank(), plot.title = element_text(hjust = 0.5))
 
+#Creating the data for income growth
+mhh_yoygraph <- bind_rows(mhh_lvl_graph, mhh_mtl_graph, mhh_qc_graph) |> 
+  mutate("2020" = round(100 * `2020` / `2015` - 100, 2),
+         "2015" = round(100 * `2015` / `2010` - 100, 2),
+         "2010" = round(100 * `2010` / `2005` - 100, 2),
+         "2005" = round(100 * `2005` / `2000` - 100, 2)) |> 
+  select(Geography, "2005", "2010", "2015", "2020") |> 
+  pivot_longer(cols = -Geography, names_to = "Year", values_to = "Growth")
+
 #Creating the table for yoy growth vs cpi
 mhh_yoygraph_cpi <- bind_rows(mhh_lvl_graph, mhh_mtl_graph, mhh_qc_graph) |> 
   mutate("2020y" = `2020` / `2015`,
@@ -817,6 +826,15 @@ ggplot(mhh_yoygraph_cpi, aes(x = Year, y = Index, color = Geography, group = Geo
         axis.text.x = element_text(angle = 45, hjust = 1),
         plot.title = element_text(hjust = 0.5))
 
+#Bar graph for median household income growth
+ggplot(mhh_yoygraph, aes(x = Year, y = Growth, fill = Geography)) +
+  geom_bar(stat = "identity", position = "dodge", width = 0.7) +
+  labs(title = "Median Household Income Growth 2005-2020",
+       x = "Year", y = "Income Growth (%)") +
+  theme_minimal() +
+  theme(legend.position = "bottom",
+        legend.title = element_blank(),
+        plot.title = element_text(hjust = 0.5))
 # Maps --------------------------------------------------------------------
 #Grabbing the data for median income in shapefile format
 laval_medinc <- get_census(dataset = "CA21", 
