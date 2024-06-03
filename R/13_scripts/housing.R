@@ -464,6 +464,31 @@ ggplot(chn, aes(x = Geography, y = Percentage, fill = Need)) +
   theme(plot.title = element_text(hjust = 0.5),
         legend.position = "bottom", legend.title = element_blank())
 
+# Core Housing Need using the Municipality QoL Dashboard ------------------
+#Manually inputting data from Statistics Canada Municipality Quality of Life
+#Dashboard
+#src = https://www150.statcan.gc.ca/n1/pub/71-607-x/71-607-x2023025-eng.htm
+chn_qol <- data.frame(
+  Geography = c("Laval", "Montreal", "Quebec"),
+  Overall = as.numeric(c("6.4", "10.5", "6.0")),
+  Owner = as.numeric(c("2.2", "3.5", "2.1")),
+  Tenant = as.numeric(c("14.8", "14.6", "11.9")),
+  Subsidized = as.numeric(c("21.5", "18.5", "15.9"))
+) |> 
+  pivot_longer(cols = -Geography, names_to = "Type", values_to = "Proportion") |> 
+  mutate(Type = factor(Type, levels = c("Overall", "Owner", "Tenant", "Subsidized")))
+
+#Creating the plot showing proportions of core housing need
+ggplot(chn_qol, aes(x = Geography, y = Proportion, fill = Type)) +
+  geom_bar(stat = "identity", position = position_dodge()) +
+  labs(title = "Core Housing Need by Type of Household 2021",
+       x = "Geography",
+       y = "Proportion of Households (%)",
+       fill = "Type of Household") +
+  theme_minimal() +
+  theme(legend.position = "bottom", legend.title = element_blank(),
+        plot.title = element_text(hjust = 0.5))
+
 # Proportion of Tenants and Owners ---------------------------------------------
 pto_21v <- c("total" = "v_CA21_4288", "owner" = "v_CA21_4305", "tenant" = "v_CA21_4313")
 pto_16v <- c("total" = "v_CA16_4886", "owner" = "v_CA16_4890", "tenant" = "v_CA16_4897")
@@ -590,3 +615,7 @@ ggplot(data = laval_test) +
         axis.ticks = element_blank(),
         panel.grid = element_blank()) +
   theme(legend.title = element_blank(), plot.title = element_text(hjust = 0.5))
+
+# 30, 50, and 80% of income -----------------------------------------------
+data30 <- read_csv("https://laval.curbcut.ca/session/b3f7b5d559567bd84b182bb9c41255b1/download/afford-afford-download_csv?w=")
+data50 <- read_csv("https://laval.curbcut.ca/session/b3f7b5d559567bd84b182bb9c41255b1/download/afford-afford-download_csv?w=")

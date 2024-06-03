@@ -1,6 +1,7 @@
 #Loading libraries
 source("R/01_startup.R")
 library(scales)
+library(readxl)
 
 #Setting CensusMapper API Key because it won't save
 set_cancensus_api_key("CensusMapper_4308d496f011429cf814385050f083dc")
@@ -863,3 +864,38 @@ wref_grabber <- function(dyear, cvector, cyear){
 wref21 <- wref_grabber("CA21", wref21v, "2021")
 wref16 <- wref_grabber("CA16", wref16v, "2016")
 wref <- bind_rows(wref21, wref16)
+
+# social assistance rate --------------------------------------------------
+#Pulling a modified version of assistance_sociale_QC_et_Laval.xlsx for social assistance
+#in Quebec and modifying it to be easier to work with
+social_assist_qc <- read_excel("/Users/justin/Documents/assistance_sociale_QC_et_Laval.xlsx", sheet = 1) |> 
+  rename(Year = 1) |> 
+  select(Year, Change, `Social Rate`) |> 
+  mutate(across(c(Change, `Social Rate`), ~ . * 100),
+         Geography = "Quebec")
+
+#Pulling a modified version of assistance_sociale_QC_et_Laval.xlsx for social assistance
+#in Laval and modifying it to be easier to work with
+social_assist_lvl <- read_excel("/Users/justin/Documents/assistance_sociale_QC_et_Laval.xlsx", sheet = 2) |> 
+  rename(Year = 1) |> 
+  select(Year, Change, `Social Rate`) |> 
+  filter(!is.na(Year)) |> 
+  mutate(
+    Change = as.numeric(Change),
+    `Social Rate` = as.numeric(`Social Rate`)
+  ) |> 
+  mutate(across(c(Change, `Social Rate`), ~ . * 100),
+         Geography = "Laval")
+
+#Binding the data together
+social_assist_rate <- bind_rows(social_assist_qc, social_assist_lvl) |> 
+  select(-Change)
+
+#Graphing the social assistance rate
+ggplot(social_assist_rate, aes(x = Year, y = `Social Rate`, color = Geography, group = Geography)) +
+  geom_line(linewidth = 1.5) +
+  labs(title = "Social Assistance Rate from 1993 to 2023", x = "Year",
+       y = "Annual Average Social Assistance Rate (%)", color = "Geography") +
+  theme_minimal() +
+  theme(legend.position = "bottom", legend.box = "horizontal",
+        legend.title = element_blank(), plot.title = element_text(hjust = 0.5))
