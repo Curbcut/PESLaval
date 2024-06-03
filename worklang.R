@@ -110,3 +110,117 @@ worklang01vector <- c(
   "French" = "v_CA01_228",
   "Non-official" = "v_CA01_229")
 
+# want to look at the top 10 languages used at work in Laval
+# This is the parent vector for language spoken most often at home in Laval in 2016
+worklang_parent21 <- find_census_vectors("Single Responses", "CA21") %>% 
+  filter(vector == "v_CA21_6717") 
+
+#Select all leaf nodes of this vector. The parameter TRUE returns only the finite leaves among child nodes. 
+
+language_children21 <- worklang_parent21 %>%
+  child_census_vectors(TRUE)
+
+# Store the vector list for later
+language_vectors21 <- language_children21 %>% pull(vector)
+View(language_vectors21)
+
+# now I will try to calculate the top 10 languages spoken at work in Laval
+# grab census data for laval 2021
+laval10_21 <- get_census(dataset = "CA21",
+                           regions = list(CSD= 2465005),
+                           level = "CSD",
+                           vectors = c(language_vectors21), 
+                           geo_format = "sf", 
+                           labels = "short")
+
+# now i need to figure out the top 10 languages
+worklaval10_ca21 <- laval10_21 |> 
+  tidyr::gather(key = language, value = lang_count, v_CA21_6867:v_CA21_7341) |> 
+  top_n(10, lang_count) |> 
+  inner_join(list_census_vectors(dataset = "CA21"), by =c("language" = "vector")) |> 
+  select(language, label, lang_count) |> 
+  arrange(desc(lang_count))
+
+#variables
+
+#	v_CA21_6705 - total single responses 
+# v_CA21_6717 - total non-official languages 
+
+
+# Language used most often at work ----------------------------------------
+
+
+# v_CA21_6702 -Total - Language used most often at work for the population aged 15 years and over who worked since January 1, 2020, in private households, 2021 Census
+# v_CA21_6705 - total of single responses
+
+worklangvector_21 <- c(
+  "total" = "v_CA21_6705",
+  "official" = "v_CA21_6708",
+  "english" = "v_CA21_6711", 
+  "french" = "v_CA21_6714",
+  "non_off" = "v_CA21_6717")
+  
+# get data for laval and quebec: first laval
+
+#get the data for Laval in 2021 (language used most at work)
+worklanglav_21 <- 
+  get_census(dataset = "CA21",
+             regions = list(CSD = 2465005),
+             level = "CSD",
+             vectors = worklangvector_21)
+
+# get the data for QC in 2021 (all languages used at work)
+
+worklangqc_21 <- 
+  get_census(dataset = "CA21",
+             regions = list(PR = 24),
+             level = "PR",
+             vectors = worklangvector_21)
+
+# merge the laval and quebec data into one dataset
+
+worklang21 <- 
+  bind_rows(
+    worklanglav_21,
+    worklangqc_21) |> 
+  mutate(region = c("laval", "quebec"))
+
+# convert to percentages so they can be compared
+# now we need to convert the totals to percentages
+Perworklang21 <- worklang21|> 
+  group_by(region) |> 
+  mutate(across(c(english, french, non_off), ~./ total*100))
+
+# tidy the dataframes of the percentages by doing pivot_longer 
+
+tidyworklang21 <- 
+  pivot_longer(Perworklang21, cols = c(english:non_off),
+               names_to = "language", values_to = "percentage")
+
+# test print 
+ggplot(tidyworklang21, aes(x = region, y = percentage, fill = language))+
+geom_bar(stat = "identity", position = "stack")
+
+install.packages("treemap")
+library(treemap)
+
+#want to try to plot as tree map
+
+treemap(tidyworklang21, 
+        index = "language",
+        vSize = "percentage",
+        type = "index")
+
+
+# I want to reorder to show french, english, non offical in the stacked bar graph 
+# need to load forcats
+library(forcats)
+
+retidyworklang21 <- tidyworklang21 |> 
+  mutate(language = fct_relevel(language, 
+                                "non_off","english","french")) 
+# try plotting again
+ggplot(retidyworklang21, aes(x = region, y = percentage, fill = language)) +
+  geom_bar(stat = "identity", position = "stack")
+
+#
