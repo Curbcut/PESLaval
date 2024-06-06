@@ -279,7 +279,8 @@ gender_distribution <- data.frame(Age_Group = children_sort_vec,
                                   Percentage_Female = percentage_female)
 
 
-# very young children distribution 0-4 yrs
+
+# see the distribution of children by age group -- results not interesting 
 
 children_dist <- cancensus::get_census(dataset = "CA21", 
                                               regions = list(CSD = 2465005),
