@@ -232,4 +232,5 @@ drug_use_qc_plot <-
   facet_wrap(~ Gender) +
   ylim(0, 23)
 
+#visualise plots
 grid.arrange(drug_use_Laval_plot, drug_use_qc_plot, ncol = 2)           
