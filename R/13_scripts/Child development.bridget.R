@@ -48,18 +48,6 @@ percent_immigrant_children <- percent_immigrant_children |>
   mutate(PercentImmigrant = Immigrant.Children/Total.Children*100)
 
 
-### No census data to know children born to an immigrant parent (2nd gen immigrants)---------------------
-# only data for entire population generations 
-children_secondgen <- cancensus::get_census(dataset = "CA21", 
-                                              regions = list(CSD = 2465005), 
-                                              level = "CSD",
-                                              vectors = c("First Generation" = "v_CA21_4821",
-                                                          "Second Generation" = "v_CA21_4824",
-
-
-
-
-
 
 # Language -------------------------------------------------------------
   
@@ -90,33 +78,22 @@ language_children_total_grouped_long <- language_children_total_grouped |>
   pivot_longer(-c(Age)) |> 
   mutate(Geography = "Laval")
 
-
+#select data
 language_children_total_grouped_long_sliced <- language_children_total_grouped_long |> 
   slice(18:21)
-# so columns are in the correct order
 
+# so columns are in the correct order
 language_children_total_grouped_long_sliced$name <- 
   factor(language_children_total_grouped_long_sliced$name, levels = unique(language_children_total_grouped_long_sliced$name))
 
 
-
-
-ggplot(data = language_children_total_grouped_long_sliced, aes(x = name, y = value)) +
-  geom_col()
-
-
-
-
-
-
-# stacked 
+# stacked visualisation
 ggplot(data = language_children_total_grouped_long_sliced, aes(x = Geography, y = value, fill = name)) +
   geom_col()
 
 
 
-
-# compare to quebec
+### compare to quebec
 # download and insert data file for province
 
 language_children_queb <- read_csv("/Users/bridgetbuglioni/Documents/GitHub/PESLaval/data/children mother tongue quebec.csv", skip = 10) |> 
@@ -144,7 +121,7 @@ language_children_queb_total_grouped_long <- language_children_queb_total_groupe
   mutate(Geography = "Quebec")
 
 
-
+#select data
 language_children_queb_total_grouped_long_sliced <- language_children_queb_total_grouped_long  |> 
   slice(18:21) 
 
@@ -153,6 +130,7 @@ language_children_queb_total_grouped_long_sliced <- language_children_queb_total
 language_children_queb_total_grouped_long_sliced$name <- 
   factor(language_children_queb_total_grouped_long_sliced$name, levels = unique(language_children_queb_total_grouped_long_sliced$name))
 
+#check what data looks like
 ggplot(data = language_children_queb_total_grouped_long_sliced, aes(x = name, y = value)) +
   geom_col()
 
@@ -168,23 +146,13 @@ print(class(combined_language))
 print(str(combined_language))
 
 
-ggplot(data = combined_language, aes(x = name, y = value, fill = Geography)) +
-  geom_col(position = "dodge") +
-  labs(title = "Children 0 to 19 Mother Tongue", y = "Percent", x = "Response") +
-  geom_text(aes(label = round(value, 2)), position = position_dodge(width = 0.9), vjust = -0.5)
-
-
-
-
-## stack bars together 
+## plot with bars stacked vertically 
 ggplot(data = combined_language, aes(x = Geography, y = value, fill = name)) +
   geom_bar(stat = "identity") +
   labs(title = "Children 0 to 19 Mother Tongue", y = "Percent", x = "Response") +
   geom_text(aes(label = paste0(value, "%")), position = position_stack(vjust = 0.5), color = "white")
   
  
-
-
 
 
  
