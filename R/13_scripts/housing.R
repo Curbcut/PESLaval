@@ -19,6 +19,9 @@ laval_ct <- cancensus::get_census(dataset = "CA21",
                                   level = "CT", 
                                   geo_format = "sf")
 
+#Using curbcut colors
+curbcut_scale <- c("#C4CDE1", "#98A8CB", "#6C83B5", "#4C5C7F", "#2B3448")
+
 # Annual Monthly Tenant Cost (Laval, Montreal, Quebec) ----------------------------
 #Setting the years to pull data from
 years <- 2010:2023
@@ -61,7 +64,8 @@ ggplot(avg_rent_annual, aes(x = Year, y = `Value`, group = Geography, color = Ge
                      labels = c("Laval", "Montreal", "Quebec")) +
   theme_minimal() +
   theme(
-    legend.position = "bottom", legend.box = "horizontal"
+    legend.position = "bottom", legend.box = "horizontal",
+    legend.title = element_blank(), plot.title = element_text(hjust = 0.5)
   )
 
 # Median Rent -------------------------------------------------------------
@@ -140,13 +144,43 @@ avg_rent <- mapply(\(year, table) {
 }, years, avg_rent, SIMPLIFY = FALSE)
 avg_rent <- Reduce(merge, avg_rent)
 
+#Calculating change in rent from 2018 to 2023
+avg_rent5 <- avg_rent |> 
+  filter(`Bedroom Type` == "Total") |> 
+  mutate(year5 = (avg_rent_2023 / avg_rent_2018 - 1) * 100) |> 
+  select(`Survey Zones`, `year5`) |> 
+  rename("avg_rent_2023" = year5)
 
 #Mapping the average rent by zone onto Laval
 avg_rent[avg_rent$`Bedroom Type` == "Total", ] |> 
   merge(laval_zones[c("ZONE_NAME_EN")], by.x = "Survey Zones", by.y = "ZONE_NAME_EN") |> 
   sf::st_as_sf() |> 
   ggplot2::ggplot() +
-  ggplot2::geom_sf(ggplot2::aes(fill = avg_rent_2023))
+  ggplot2::labs(title = "Average Rent in Laval 2023",
+                fill = "Average Rent") +
+  ggplot2::geom_sf(ggplot2::aes(fill = avg_rent_2023)) +
+  ggplot2::theme_minimal() +
+  ggplot2::scale_fill_gradientn(colors = curbcut_scale) +
+  ggplot2::theme(axis.line = element_blank(), axis.text = element_blank(),
+                       axis.title = element_blank(), axis.ticks = element_blank(),
+                       panel.grid = element_blank(), legend.position = "bottom",
+                       plot.title = element_text(hjust = 0.5))
+
+#Plotting change in rent
+avg_rent5 |> 
+  merge(laval_zones[c("ZONE_NAME_EN")], by.x = "Survey Zones", by.y = "ZONE_NAME_EN") |> 
+  sf::st_as_sf() |> 
+  ggplot2::ggplot() +
+  ggplot2::labs(title = "Average Monthly Rent Change in Laval (2018-2023)",
+                fill = "Change in Rent (%)") +
+  ggplot2::geom_sf(ggplot2::aes(fill = avg_rent_2023)) +
+  ggplot2::theme_minimal() +
+  ggplot2::scale_fill_gradientn(colors = curbcut_scale) +
+  ggplot2::theme(axis.line = ggplot2::element_blank(), axis.text = ggplot2::element_blank(),
+                 axis.title = ggplot2::element_blank(), axis.ticks = ggplot2::element_blank(),
+                 panel.grid = ggplot2::element_blank(), legend.position = "bottom",
+                 plot.title = ggplot2::element_text(hjust = 0.5)) +
+  ggplot2::guides(fill = ggplot2::guide_colorbar(title.position = "top", title.hjust = 0.5))
 
 # YoY Growth for Rent -----------------------------------------------------
 #Run this only after you run average and median rent above
@@ -203,12 +237,9 @@ ggplot(med_yoy, aes(x = Year, y = `PercentChange`, group = Geography, color = Ge
 
 #Census Monthly Shelter Cost ----------------------------------------------
 #Grabbing monthly owner shelter cost vectors for 2006-2021
-osc_21v <- c("med_owner" = "v_CA21_4309", "avg_owner" = "v_CA21_4310",
-             "med_tenant" = "v_CA21_4317", "avg_tenant" = "v_CA21_4318")
-osc_16v <- c("med_owner" = "v_CA16_4893", "avg_owner" = "v_CA16_4894",
-             "med_tenant" = "v_CA16_4900", "avg_tenant" = "v_CA16_4901")
-osc_11v <- c("med_owner" = "v_CA11N_2284", "avg_owner" = "v_CA11N_2285",
-             "med_tenant" = "v_CA11N_2291", "avg_tenant" = "v_CA11N_2292")
+osc_21v <- c("med_owner" = "v_CA21_4309", "avg_owner" = "v_CA21_4310")
+osc_16v <- c("med_owner" = "v_CA16_4893", "avg_owner" = "v_CA16_4894")
+osc_11v <- c("med_owner" = "v_CA11N_2284", "avg_owner" = "v_CA11N_2285")
 
 #Function to grab data for the above vectors for 2011-2021
 osc_census <- function(region, geolevel, geoname, datayear, osc_year, cyear){
@@ -221,7 +252,7 @@ osc_census <- function(region, geolevel, geoname, datayear, osc_year, cyear){
              vectors = osc_year
   ) |> 
     mutate(Geography = geoname, Year = cyear) |> 
-    select(Geography, Year, med_owner, avg_owner, med_tenant, avg_tenant)
+    select(Geography, Year, med_owner, avg_owner)
 }
 
 #Same function as above but specific for 2006
@@ -235,39 +266,39 @@ osc_census06 <- function(region, geolevel, geoname){
              vectors = c("avg_owner" = "v_CA06_2055", "avg_tenant" = "v_CA06_2050")
   ) |> 
     mutate(Geography = geoname, Year = "2006") |> 
-    select(Geography, Year, avg_owner, avg_tenant)
+    select(Geography, Year, avg_owner)
 }
 
 #Grabbing monthly shelter cost for 2021
 osc_lvl_21 <- osc_census(2465005, "CSD", "Laval", "CA21", osc_21v, "2021")
-osc_mtlcma_21 <- osc_census(24462, "CMA", "Montreal CMA", "CA21", osc_21v, "2021")
+osc_mtl_21 <- osc_census(2466023, "CSD", "Montreal", "CA21", osc_21v, "2021")
 osc_qc_21 <- osc_census(24, "PR", "Quebec", "CA21", osc_21v, "2021")
-osc_21 <- bind_rows(osc_lvl_21, osc_mtlcma_21, osc_qc_21)
+osc_21 <- bind_rows(osc_lvl_21, osc_mtl_21, osc_qc_21)
 
 #Grabbing monthly shelter cost for 2016
 osc_lvl_16 <- osc_census(2465005, "CSD", "Laval", "CA16", osc_16v, "2016")
-osc_mtlcma_16 <- osc_census(24462, "CMA", "Montreal CMA", "CA16", osc_16v, "2016")
+osc_mtl_16 <- osc_census(2466023, "CSD", "Montreal", "CA16", osc_16v, "2016")
 osc_qc_16 <- osc_census(24, "PR", "Quebec", "CA16", osc_16v, "2016")
-osc_16 <- bind_rows(osc_lvl_16, osc_mtlcma_16, osc_qc_16)
+osc_16 <- bind_rows(osc_lvl_16, osc_mtl_16, osc_qc_16)
 
 #Grabbing monthly shelter cost for 2011
 osc_lvl_11 <- osc_census(2465005, "CSD", "Laval", "CA11", osc_11v, "2011")
-osc_mtlcma_11 <- osc_census(24462, "CMA", "Montreal CMA", "CA11", osc_11v, "2011")
+osc_mtl_11 <- osc_census(2466023, "CSD", "Montreal", "CA11", osc_11v, "2011")
 osc_qc_11 <- osc_census(24, "PR", "Quebec", "CA11", osc_11v, "2011")
-osc_11 <- bind_rows(osc_lvl_11, osc_mtlcma_11, osc_qc_11)
+osc_11 <- bind_rows(osc_lvl_11, osc_mtl_11, osc_qc_11)
 
 #Grabbing monthly shelter cost for 2006
 osc_lvl_06 <- osc_census06(2465005, "CSD", "Laval")
-osc_mtlcma_06 <- osc_census06(24462, "CMA", "Montreal CMA")
+osc_mtl_06 <- osc_census06(2466023, "CSD", "Montreal")
 osc_qc_06 <- osc_census06(24, "PR", "Quebec")
-osc_06 <- bind_rows(osc_lvl_06, osc_mtlcma_06, osc_qc_06) |> 
-  rename("owner" = avg_owner, "tenant" = avg_tenant)
+osc_06 <- bind_rows(osc_lvl_06, osc_mtl_06, osc_qc_06) |> 
+  rename("owner" = avg_owner)
 
 #Preparing the data for the median graph
 osc_med_graph <- bind_rows(osc_21, osc_16, osc_11) |> 
-  select(-avg_owner, -avg_tenant) |> 
-  rename("owner" = med_owner, "tenant" = med_tenant) |> 
-  pivot_longer(cols = c(owner, tenant),
+  select(-avg_owner) |> 
+  rename("owner" = med_owner) |> 
+  pivot_longer(cols = c(owner),
                names_to = "Rent_Type",
                values_to = "Rent") |> 
   mutate(Geography = paste0(Geography, " (", Rent_Type, ")")) |> 
@@ -281,15 +312,16 @@ ggplot(osc_med_graph, aes(x = Year, y = `Rent`, group = Geography, color = Geogr
        y = "Median Monthly Shelter Cost ($)") +
   theme_minimal() +
   theme(
-    legend.position = "bottom", legend.box = "horizontal"
+    legend.position = "bottom", legend.box = "horizontal",
+    legend.title = element_blank(), plot.title = element_text(hjust = 0.5)
   )
 
 #Preparing the data to create the average line graph
 osc_avg_graph <- bind_rows(bind_rows(osc_21, osc_16, osc_11)) |> 
-  select(-med_owner, -med_tenant) |> 
-  rename("owner" = avg_owner, "tenant" = avg_tenant) |> 
+  select(-med_owner) |> 
+  rename("owner" = avg_owner) |> 
   bind_rows(osc_06) |> 
-  pivot_longer(cols = c(owner, tenant),
+  pivot_longer(cols = c(owner),
                names_to = "Rent_Type",
                values_to = "Rent") |> 
   mutate(Geography = paste0(Geography, " (", Rent_Type, ")")) |> 
@@ -303,7 +335,8 @@ ggplot(osc_avg_graph, aes(x = Year, y = `Rent`, group = Geography, color = Geogr
        y = "Average Monthly Shelter Cost ($)") +
   theme_minimal() +
   theme(
-    legend.position = "bottom", legend.box = "horizontal"
+    legend.position = "bottom", legend.box = "horizontal",
+    legend.title = element_blank(), plot.title = element_text(hjust = 0.5)
   )
 
 # Affordability 30% -------------------------------------------------------
@@ -361,17 +394,18 @@ aff_graph <- bind_rows(aff_21, aff_16, aff_11, aff_06, aff_01) |>
 
 #Creating the line graph
 ggplot(aff_graph, aes(x = Year, y = proportion, group = hh_type, color = hh_type)) +
-  geom_line() +
+  geom_line(linewidth = 1.5) +
   labs(title = "Percentage of Households Spending >30% on Shelter Costs in Laval (2001-2021)",
        x = "Year",
-       y = "") +
+       y = "Proportion of Households (%)") +
   scale_y_continuous(limits = c(0, 40),
                      breaks = seq(0, 40, by = 10)) +
   scale_color_manual(values = c("royalblue3", "indianred2", "gold3"),
                      labels = c("All Households", "Owner Households", "Tenant Households")) +
   theme_minimal() +
   theme(
-    legend.position = "bottom", legend.box = "horizontal"
+    legend.position = "bottom", legend.box = "horizontal",
+    plot.title = element_text(hjust = 0.5), legend.title = element_blank()
   )
 # Core Housing Need --------------------------------------------
 #Grab core housing need percentage for Laval in 2021
@@ -397,7 +431,7 @@ chn_lvl <- get_cmhc("Core Housing Need", "Housing Standards",
 
 #Creating a line graph for chn_lvl
 ggplot(chn_lvl, aes(x = Year, y = `% Core Need`, group = "")) +
-  geom_line() +
+  geom_line(linewidth = 1.25) +
   labs(title = "Percentage of Households with Core Housing Need 2006-2021",
        x = "Year",
        y = "% of Households with Core Housing Need") +
@@ -517,23 +551,99 @@ pto_06 <- pto_census("CA06", pto_06v, "2006")
 pto_01 <- pto_census("CA01", pto_01v, "2001") |> 
   mutate(total = owner + tenant)
 
+#Grabbing Montreal and Quebec for comparison
+pto_mtl_21 <- get_census(dataset = "CA21",
+                         regions = list(CSD = 2466023),
+                         level = "CSD",
+                         vectors = pto_21v) |> 
+  mutate(rent = tenant * 100 / total, own = owner * 100 / total,
+         Geography = "Montreal") |> 
+  select(Geography, rent, own)
+pto_qc_21 <- get_census(dataset = "CA21",
+                         regions = list(PR = 24),
+                         level = "PR",
+                         vectors = pto_21v) |> 
+  mutate(rent = tenant * 100 / total, own = owner * 100 / total,
+         Geography = "Quebec") |> 
+  select(Geography, rent, own)
+
 #Making the data usable to graph
 pto_graph <- bind_rows(pto_21, pto_16, pto_11, pto_06, pto_01) |> 
   pivot_longer(cols = -Year, names_to = "Type", values_to = "Households") |> 
   mutate(Type = factor(Type, levels = c("total", "owner", "tenant")))
 
+#Proportion Graph
+pto_graph_prop <- bind_rows(pto_21, pto_16, pto_11, pto_06, pto_01) |> 
+  mutate("Owner Households" = owner * 100 / total,
+         "Tenant Households" = tenant * 100 / total) |> 
+  select(Year, "Owner Households", "Tenant Households") |> 
+  pivot_longer(cols = -Year, names_to = "Type", values_to = "Households") |> 
+  mutate(Type = factor(Type, levels = c("Owner Households", "Tenant Households")))
+
 #Graphing the data out
 ggplot(pto_graph, aes(x = Year, y = Households, fill = Type)) +
   geom_bar(stat = "identity", position = position_dodge()) +
-  labs(title = "Total, Owner and Tenant Households",
+  labs(title = "Total, Owner and Tenant Households in Laval 2001-2021",
        x = "Year",
        y = "Number of Households",
        fill = "Type of Household") +
   scale_fill_manual(values = c("total" = "royalblue2", "owner" = "indianred2",
                                "tenant" = "gold3"),
                     labels = c("Total", "Owner", "Tenant")) +
-  theme_minimal()
+  theme_minimal() +
+  theme(legend.position = "bottom", legend.box = "horizontal",
+        legend.title = element_blank(), plot.title = element_text(hjust = 0.5))
 
+#Creating a line chart of proportion over years
+ggplot(pto_graph_prop, aes(x = Year, y = Households, color = Type, group = Type)) +
+  geom_line(linewidth = 1.5) +
+  labs(title = "Proportion of Owner and Tenant Households in Laval 2001-2021",
+       x = "Year",
+       y = "Proportion of Households (%)") +
+  scale_color_manual(values = c("Owner Households" = "royalblue2", "Tenant Households" = "indianred2"),
+                     labels = c("Owner Households", "Tenant Households")) +
+  theme_minimal() +
+  theme(
+    legend.position = "bottom", legend.box = "horizontal",
+    legend.title = element_blank(), plot.title = element_text(hjust = 0.5)
+  )
+
+# Suitable Housing --------------------------------------------------------
+#Grabbing data from the municipial qol dashboard
+sh_lvl <- data.frame(
+  "Geography" = "Laval",
+  "Total" = 26.1,
+  "Owner" = 19,
+  "Tenant" = 40.1
+)
+sh_mtl <- data.frame(
+  "Geography" = "Montreal",
+  "Total" = 36.9,
+  "Owner" = 27.1,
+  "Tenant" = 42.6
+)
+sh_qc <- data.frame(
+  "Geography" = "Quebec",
+  "Total" = 24,
+  "Owner" = 16.2,
+  "Tenant" = 35.7
+)
+
+#Binding the rows together
+sh <- bind_rows(sh_lvl, sh_mtl, sh_qc) %>%
+  pivot_longer(cols = -Geography, values_to = "proportion", names_to = "Type") |> 
+  mutate(Type = factor(Type, levels = c("Total", "Owner", "Tenant")))
+
+#Creating a bar graph of suitable housing
+ggplot(sh, aes(x = Geography, y = proportion, fill = Type)) +
+  geom_bar(stat = "identity", position = position_dodge()) +
+  labs(title = "Proportion of Unsuitable Housing by Household Type 2021",
+       x = "",
+       y = "Proportion of Households (%)",
+       fill = "Type of Household") +
+  theme_minimal() +
+  theme(legend.position = "bottom", legend.box = "horizontal",
+        legend.title = element_blank(), plot.title = element_text(hjust = 0.5))
 # Housing Starts ----------------------------------------------------------
 
 #Grabbing and manipulating the data to be easier to use and graph
@@ -581,41 +691,113 @@ ggplot(startsp_lvl, aes(x = Year, y = `Count`, group = Type, color = Type)) +
     plot.title = element_text(hjust = 0.5), axis.text.x = element_text(angle = 45, hjust = 1)
   )
 
-# Maps for rent change ----------------------------------------------------
-avg_change18 <- get_cmhc(survey = "Rms", series = "Average Rent", dimension = "Bedroom Type", breakdown = "Census Tracts", geo_uid = "24462", year = "2018") |> 
-  filter(`Bedroom Type` == "Total") |> 
-  drop_na()
+# Maps for shelter cost change ----------------------------------------------------
+#Grabbing shelter cost data for 2021
+shelter_21 <- get_census(dataset = "CA21",
+                       regions = list(CSD = 2465005),
+                       level = "CT",
+                       vectors = c("avg_rent21" = "v_CA21_4318", "med_rent21" = "v_CA21_4317",
+                                   "avg_owner21" = "v_CA21_4310", "med_owner21" = "v_CA21_4309")) |> 
+  select(GeoUID, avg_rent21, med_rent21, avg_owner21, med_owner21)
 
-avg_change23 <- get_cmhc(survey = "Rms", series = "Average Rent", dimension = "Bedroom Type", breakdown = "Census Tracts", geo_uid = "24462", year = "2023") |> 
-  filter(`Bedroom Type` == "Total") |> 
-  drop_na()
+#Grabbing shelter cost data for 2016
+shelter_16 <- get_census(dataset = "CA16",
+                         regions = list(CSD = 2465005),
+                         level = "CT",
+                         vectors = c("avg_rent16" = "v_CA16_4901", "med_rent16" = "v_CA16_4900",
+                                     "avg_owner16" = "v_CA16_4894", "med_owner16" = "v_CA16_4893")) |> 
+  select(GeoUID, avg_rent16, med_rent16, avg_owner16, med_owner16)
 
-avg_change_map5 <- full_join(avg_change18, avg_change23, join_by(GeoUID)) |> 
-  drop_na() |> 
-  mutate(Change = (Value.y / Value.x * 100) - 100) |> 
-  select(GeoUID, Change) |> 
-  right_join(laval_ct, join_by(GeoUID))
+#Calculating the change between 2021 and 2016
+change_5 <- left_join(shelter_21, shelter_16, by = "GeoUID") |> 
+  mutate(avg_rent = as.numeric(as.character((avg_rent21 / avg_rent16 - 1) * 100)),
+         med_rent = as.numeric(as.character((med_rent21 / med_rent16 - 1) * 100)),
+         avg_own = as.numeric(as.character((avg_owner21 / avg_owner16 - 1) * 100)),
+         med_own = as.numeric(as.character((med_owner21 / med_owner16 - 1) * 100))) |> 
+  select(GeoUID, avg_rent, med_rent, avg_own, med_own)
 
-laval_test <- cancensus::get_census(dataset = "CA21", 
-                                    regions = list(CSD = 2465005), 
-                                    level = "CT", 
-                                    geo_format = "sf") |> 
-  left_join(avg_change_map5, join_by(GeoUID))
+#Prepping the data to make a map
+change_5_map <- left_join(laval_ct, change_5, join_by(GeoUID)) |> 
+  mutate(across(where(is.numeric), ~ ifelse(is.infinite(.), NA, .)))
 
-laval_test$Change <- as.numeric(laval_test$Change)
-
-ggplot(data = laval_test) +
-  geom_sf(aes(fill = Change)) +
-  labs(title = "Median Income in Laval", color = "Dollars $") +
-  scale_fill_viridis_c() +
+#Plotting the change in average rent (more graphs can be made if needed)
+ggplot(data = change_5_map) +
+  geom_sf(aes(fill = avg_rent)) +
+  labs(title = "% Average Rent Change in Laval 2016-2021",
+       fill = "% Average Rent Change") +
+  scale_fill_gradientn(colors = curbcut_scale, na.value = "#B3B3BB",
+                       guide = guide_colorbar(barheight = 1, barwidth = 10,
+                                              title.position = "top",
+                                              title.hjust = 0.5)) +  # Center the title
   theme_minimal() +
-  theme(axis.line = element_blank(),
-        axis.text = element_blank(),
-        axis.title = element_blank(),
-        axis.ticks = element_blank(),
-        panel.grid = element_blank()) +
-  theme(legend.title = element_blank(), plot.title = element_text(hjust = 0.5))
+  theme(axis.line = element_blank(), axis.text = element_blank(),
+        axis.title = element_blank(), axis.ticks = element_blank(),
+        panel.grid = element_blank(), legend.position = "bottom",
+        plot.title = element_text(hjust = 0.5))
 
 # 30, 50, and 80% of income -----------------------------------------------
-data30 <- read_csv("https://laval.curbcut.ca/session/b3f7b5d559567bd84b182bb9c41255b1/download/afford-afford-download_csv?w=")
-data50 <- read_csv("https://laval.curbcut.ca/session/b3f7b5d559567bd84b182bb9c41255b1/download/afford-afford-download_csv?w=")
+#Reading affordability data from CurbCut. Change filepath if needed
+afford30 <- read_csv("D:/McGill/can_cache/afford30.csv") |> 
+  mutate(name = as.character(name)) |> 
+  mutate(percentage = affordhou_total_sc30_total_total_pct_2021 * 100) |> 
+  mutate(name = sprintf("%.2f", as.numeric(name)))
+afford50 <- read_csv("D:/McGill/can_cache/afford50.csv") |> 
+  mutate(name = as.character(name)) |> 
+  mutate(percentage = affordhou_total_sc50_total_total_pct_2021 * 100) |> 
+  mutate(name = sprintf("%.2f", as.numeric(name)))
+afford80 <- read_csv("D:/McGill/can_cache/afford80.csv") |> 
+  mutate(name = as.character(name)) |> 
+  mutate(percentage = affordhou_total_sc80_total_total_pct_2021 * 100) |> 
+  mutate(name = sprintf("%.2f", as.numeric(name)))
+
+afford30map <- left_join(laval_ct, afford30, join_by("GeoUID" == "name")) |> 
+  mutate(percentage_bins = cut(percentage, breaks = c(5, 12.5, 20, 27.5, 35, 42.5)))
+afford50map <- left_join(laval_ct, afford50, join_by("GeoUID" == "name")) |> 
+  mutate(percentage_bins = cut(percentage, breaks = c(-Inf, 3.5, 7, 10.5, 14, 17.5)))
+afford80map <- left_join(laval_ct, afford80, join_by("GeoUID" == "name")) |> 
+  mutate(percentage_bins = cut(percentage, breaks = c(-Inf, 0.75, 1.5, 2.25, 3, Inf)))
+
+ggplot(data = afford30map) +
+  geom_sf(aes(fill = percentage_bins)) +
+  labs(title = "Housing Affordability in Laval 2021 (>30%)",
+       fill = "Proportion of Households Spending >30% of Income on Shelter") +
+  scale_fill_manual(values = curbcut_scale, na.value = "#B3B3BB",
+                    labels = c("5-12.5%", "12.5-20%", "20-27.5%", "27.5-35%", "> 35%")) +
+  guides(fill = guide_legend(title.position = "top", title.hjust = 0.5, 
+                             barheight = 1, barwidth = 10)) +
+  theme_minimal() +
+  theme(axis.line = element_blank(), axis.text = element_blank(),
+        axis.title = element_blank(), axis.ticks = element_blank(),
+        panel.grid = element_blank(), legend.position = "bottom",
+        plot.title = element_text(hjust = 0.5))
+
+ggplot(data = afford50map) +
+  geom_sf(aes(fill = percentage_bins)) +
+  labs(title = "Housing Affordability in Laval 2021 (>50%)",
+       fill = "Proportion of Households Spending >50% of Income on Shelter") +
+  scale_fill_manual(values = curbcut_scale, na.value = "#B3B3BB",
+                    labels = c("< 3.5%", "3.5-7%", "7-10.5%", "10.5-14%", "> 14%")) +
+  guides(fill = guide_legend(title.position = "top", title.hjust = 0.5, 
+                             barheight = 1, barwidth = 10)) +
+  theme_minimal() +
+  theme(axis.line = element_blank(), axis.text = element_blank(),
+        axis.title = element_blank(), axis.ticks = element_blank(),
+        panel.grid = element_blank(), legend.position = "bottom",
+        plot.title = element_text(hjust = 0.5))
+
+ggplot(data = afford80map) +
+  geom_sf(aes(fill = percentage_bins)) +
+  labs(title = "Housing Affordability in Laval 2021 (>80%)",
+       fill = "Proportion of Households Spending >80% of Income on Shelter") +
+  scale_fill_manual(values = curbcut_scale, na.value = "#B3B3BB",
+                    labels = c("< 0.75%", "0.75-1.5%", "1.5-2.25%", "2.25-3%", "> 3%")) +
+  guides(fill = guide_legend(title.position = "top", title.hjust = 0.5, 
+                             barheight = 1, barwidth = 10)) +
+  theme_minimal() +
+  theme(axis.line = element_blank(), axis.text = element_blank(),
+        axis.title = element_blank(), axis.ticks = element_blank(),
+        panel.grid = element_blank(), legend.position = "bottom",
+        plot.title = element_text(hjust = 0.5))
+
+# Service aide au logement ----------------------------------------
+#service_aide_au_logement_OMH_laval.pdf in the data folder
