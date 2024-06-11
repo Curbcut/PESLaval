@@ -1,6 +1,79 @@
 ### Axe 1 -- Habitudes de Vie ###
 # note: most data is being pulled from written reports
 
+# Physical Activity ----------------------------------------------------------
+
+activity_laval <- data.frame(`Region` = c("Laval"),
+                             `Active` = c(30.2),
+                             `ModeratelyActive` = c(9.1),
+                             `ALittleActive` = c(16.8),
+                             `Sedentary` = c(44.0))
+
+# pivot longer
+activity_laval <- activity_laval |> 
+  pivot_longer(-c(Region))
+
+#keep columns in order
+activity_laval$name <-
+  factor(activity_laval$name, levels = unique(activity_laval$name))
+
+ggplot(data = activity_laval, aes(x = name, y = value))+
+  geom_col() +
+  labs(title = "Laval", x = "Level of Activity", y = "Percent")
+
+
+# data frame for rest of quebec
+
+activity_qc <- data.frame(`Region` = c("Quebec"),
+                            `Active` = c(34.3),
+                            `ModeratelyActive` = c(11.1),
+                            `ALittleActive` = c(17.5),
+                            `Sedentary` = c(37.1))
+
+#pivot
+activity_qc <- activity_qc |> 
+  pivot_longer(-c(Region))
+
+#keep columns in order
+activity_qc$name <-
+  factor(activity_qc$name, levels = unique(activity_qc$name))
+
+# combine data sets
+
+combined_activity <- bind_rows(activity_laval,activity_qc)
+
+ggplot(data = combined_activity, aes(x = name, y = value, fill = Region))+
+  geom_col(position = "dodge")+
+  labs(x = "Level of Activity", y = "Percent", title = "Level of Physical Activity")
+
+
+# increase in sedentary lifestyles
+
+# Define the data laval 
+year <- c(2015, 2021)
+sedentary_residents <- c(33.1, 44)
+region <- c("Laval", "Laval")
+
+# Create the data frame laval 
+sedentary_increase_laval <- data.frame(Year = year, `sedentary_residents` = sedentary_residents, Region = region)
+
+
+# Define the data qc 
+year <- c(2015, 2021)
+sedentary_residents <- c(32, 37.1)
+region <- c("Quebec", "Quebec")
+
+# Create the data frame qc
+sedentary_increase_qc <- data.frame(Year = year, `sedentary_residents` = sedentary_residents, Region = region)
+
+combined_sedentary <- bind_rows(sedentary_increase_laval, sedentary_increase_qc)
+
+ggplot(data = combined_sedentary, aes(x = Year, y = sedentary_residents, fill = Region))+
+  geom_bar(stat = "identity", position = "dodge") +
+  scale_x_continuous(breaks = c(2015, 2021))+
+  geom_text(aes(label = paste0(sedentary_residents, "%")), position = position_dodge(width = 0.9), vjust = -0.5) +
+  facet_wrap(~Region)
+
 # Smoking Habits ------------------------------------------------------------
 
 # for laval
