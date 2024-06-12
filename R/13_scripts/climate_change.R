@@ -4,8 +4,7 @@ library(sf)
 library(readxl)
 library(cmhc)
 library(scales)
-library(raster)
-library(rasterVis)
+library(raster) #Only load this if you don't need to use select()
 
 #Setting CensusMapper API Key because it won't save
 set_cancensus_api_key("CensusMapper_4308d496f011429cf814385050f083dc")
@@ -51,14 +50,20 @@ curbcut_na <- "#B3B3BB"
 #Shapefile for heat index in Laval
 #src = https://www.donneesquebec.ca/recherche/dataset/ilots-de-chaleur-fraicheur-urbains-et-ecarts-de-temperature-relatifs-2020-2022
 #Edited using QGIS to be Laval only
-heat_sf <- read_sf(dsn = "D://McGill/can_cache/heat", layer = "heat")
+heat_sf <- read_sf(dsn = "D://McGill/can_cache/heat", layer = "heat") |> 
+  st_transform(4326)
+
+if (is.na(st_crs(heat_sf))) {
+  heat_sf <- st_set_crs(heat_sf, 4326)
+}
 
 #Mapping out heat_sf
-ggplot(data = heat_sf) +
-  geom_sf(aes(fill = `_label`), color = NA) +
-  labs(title = "Laval Heat and Coolness Islands 2020-2022",
-       fill = "Heat Index") +
-  scale_fill_gradientn(colors = curbcut_scale, na.value = curbcut_na) +
+ggplot() +
+  geom_sf(data = heat_sf, aes(fill = `_label`), color = NA) +
+  labs(title = "Indice d’intensité d’îlots de chaleur urbains de Laval 2020-2022 ",
+       fill = "Indice d'Intensité de Chaleur") +
+  scale_fill_gradientn(colors = curbcut_scale, na.value = curbcut_na,
+                       labels = label_comma(big.mark = ".", decimal.mark = ",")) +
   theme_minimal() +
   theme(axis.line = element_blank(), axis.text = element_blank(),
         axis.title = element_blank(), axis.ticks = element_blank(),
@@ -69,7 +74,7 @@ ggplot(data = heat_sf) +
 
 #Shapefile for heat vulnerability and edited using QGIS for Laval
 #src = https://atlas-vulnerabilite.ulaval.ca/vague-de-chaleur/
-ouranos_sf <- heat_sf <- read_sf(dsn = "D://McGill/can_cache/heat", layer = "ouranosheat") |> 
+ouranos_sf <- read_sf("D://McGill/can_cache/heat/ouranosheat.shp") |> 
   select(-URL_12) |> 
   mutate(Index = case_when(
     N_Vulnre_2 == 'Donnée manquante' ~ NA,
@@ -81,12 +86,17 @@ ouranos_sf <- heat_sf <- read_sf(dsn = "D://McGill/can_cache/heat", layer = "our
     TRUE ~ "0"  # Default value for all other cases
   ))
 
+#calculating number of people who are highly vulnerable to heat waves
+vuln_pop <- ouranos_sf |> 
+  filter(N_Vulnre_2 %in% c("Forte vulnérabilité")) |> 
+  summarise(sum_Pop = sum(Pop16_12, na.rm = TRUE))
+
 #Mapping out heat vulnerability
 ggplot(data = ouranos_sf) +
   geom_sf(data = laval_csd, fill = "#F1F1F1", color = "black") +
   geom_sf(aes(fill = `Index`), color = "#454545", size = 0.3) +
-  labs(title = "Heat Vulnerability in Laval 2018",
-       fill = "Level of Vulnerability") +
+  labs(title = "Vulnérabilité à la chaleur à Laval 2018",
+       fill = "Niveau de vulnérabilité") +
   scale_fill_manual(values = heat_scale) +
   theme_minimal() +
   theme(axis.line = element_blank(), axis.text = element_blank(),
@@ -111,7 +121,7 @@ plot(canopy_tif, main = "", breaks = breaks, col = color_breaks,
     box = FALSE, axes = FALSE, legend.shrink = 0.3)
 
 #Adding title to the .tif map
-title(main = "Canopy Coverage in Laval 2021", adj = 0.7, line = -2, cex.main = 1.2)
+title(main = "Couverture du Couvert Végétal à Laval 2021", adj = 0.9, line = -2, cex.main = 1.2)
 
 #Mapping out greenspaces (unused)
 ggplot() +
@@ -125,7 +135,8 @@ ggplot() +
 
 # Flooding ----------------------------------------------------------------
 #Vectors for the flooding
-flooding <- st_read("D://Mcgill/can_cache/flood.gpkg")
+flooding <- st_read("D://Mcgill/can_cache/flood.gpkg") |> 
+  st_transform(crs = 4326)
 curbcut_flooding <- st_read("/Users/justin/Documents/R/curbcut/zone_inondable_RCI_CDU_20240607_PG.shp") |> 
   st_transform(crs = 4326)
 flooding0_2 <- curbcut_flooding |> 
@@ -135,17 +146,24 @@ flooding2_20 <- curbcut_flooding |>
 flooding20_100 <- curbcut_flooding |> 
   filter(LIMITE == "Zone inondable 20-100 ans")
 
+#Grabbing the shapefile for Laval DB so number of areas affected by flooding can be calculated
+laval_db <- cancensus::get_census(dataset = "CA21", 
+                                  regions = list(CSD = 2465005), 
+                                  level = "DB", 
+                                  geo_format = "sf") |> 
+  st_transform(32198)
+
 #Bounding box of Laval
 laval_bbox <- st_bbox(laval_csd)
 
 #Mapping the Quebec given data
 ggplot() +
-  geom_sf(data = laval_csd, fill = "grey", color = NA) +
-  geom_sf(data = flooding, fill = "lightblue", color = NA) +
+  geom_sf(data = mtlcma_sf, fill = "grey", color = "black") +
+  geom_sf(data = laval_csd, fill = "#FAF9F6", color = NA) +
+  geom_sf(data = flooding, fill = "#74ccf4", color = NA) +
   geom_sf(data = laval_csd, fill = NA, color = "black") +
-  labs(title = "Flood Zones in Laval 2023",
+  labs(title = "Zones inondables de Laval 2023",
        fill = "Level of Vulnerability") +
-  scale_fill_manual(values = heat_scale) +
   theme_minimal() +
   theme(axis.line = element_blank(), axis.text = element_blank(),
         axis.title = element_blank(), axis.ticks = element_blank(),
@@ -174,3 +192,17 @@ ggplot() +
         legend.position = "bottom", legend.justification = "center") +
   coord_sf(xlim = c(laval_bbox$xmin, laval_bbox$xmax),
            ylim = c(laval_bbox$ymin, laval_bbox$ymax))
+
+#Validating shapefiles to ensure the analysis works
+flooding <- st_make_valid(flooding)
+laval_db <- st_make_valid(laval_db)
+#Determining which DBs intersect with the flood zones, and then giving them a value of 1 in the flood column
+intersects <- st_intersects(laval_db, flooding, sparse = FALSE)
+laval_db$flooded <- apply(intersects, 1, function(x) as.integer(any(x)))
+#Summing up the population of DBs that intersect with the flood zone and calculating the proportion of the population
+flood_lvl <- laval_db |> 
+  summarise(
+    total_pop = sum(Population, na.rm = TRUE),
+    flood_pop = sum(Population[flooded == 1], na.rm = TRUE)
+  ) |> 
+  mutate(flood_prop = flood_pop / total_pop)

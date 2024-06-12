@@ -55,10 +55,10 @@ avg_rent_annual <- bind_rows(avg_rent_lvl, avg_rent_mtl, avg_rent_qc) |>
 
 #Line graph
 ggplot(avg_rent_annual, aes(x = Year, y = `Value`, group = Geography, color = Geography)) +
-  geom_line() +
-  labs(title = "Average Monthly Rent 2010-2023",
-       x = "Year",
-       y = "Average Monthly Rent ($)") +
+  geom_line(linewidth = 1.25) +
+  labs(title = "Loyer mensuel moyen 2010-2023",
+       x = "Année",
+       y = "Loyer mensuel moyen ($)") +
   scale_color_manual(values = c("Laval" = "royalblue2", "Montreal" = "indianred2",
                                 "Quebec" = "gold3"),
                      labels = c("Laval", "Montreal", "Quebec")) +
@@ -100,10 +100,10 @@ med_rent_annual <- bind_rows(med_rent_lvl, med_rent_mtl, med_rent_qc) |>
   mutate(Geography = factor(Geography, levels = c("Laval", "Montreal", "Quebec")))
 
 ggplot(med_rent_annual, aes(x = Year, y = `Value`, group = Geography, color = Geography)) +
-  geom_line(size = 0.75) +
-  labs(title = "Median Monthly Rent 2010-2023",
-       x = "Year",
-       y = "Median Monthly Rent ($)") +
+  geom_line(linewidth = 1.25) +
+  labs(title = "Loyer mensuel médian 2010-2023",
+       x = "Année",
+       y = "Loyer mensuel médian ($)") +
   scale_color_manual(values = c("Laval" = "royalblue2", "Montreal" = "indianred2",
                                 "Quebec" = "gold3"),
                      labels = c("Laval", "Montreal", "Quebec")) +
@@ -156,8 +156,8 @@ avg_rent[avg_rent$`Bedroom Type` == "Total", ] |>
   merge(laval_zones[c("ZONE_NAME_EN")], by.x = "Survey Zones", by.y = "ZONE_NAME_EN") |> 
   sf::st_as_sf() |> 
   ggplot2::ggplot() +
-  ggplot2::labs(title = "Average Rent in Laval 2023",
-                fill = "Average Rent") +
+  ggplot2::labs(title = "Loyer moyen à Laval 2023",
+                fill = "Loyer moyen") +
   ggplot2::geom_sf(ggplot2::aes(fill = avg_rent_2023)) +
   ggplot2::theme_minimal() +
   ggplot2::scale_fill_gradientn(colors = curbcut_scale) +
@@ -171,8 +171,8 @@ avg_rent5 |>
   merge(laval_zones[c("ZONE_NAME_EN")], by.x = "Survey Zones", by.y = "ZONE_NAME_EN") |> 
   sf::st_as_sf() |> 
   ggplot2::ggplot() +
-  ggplot2::labs(title = "Average Monthly Rent Change in Laval (2018-2023)",
-                fill = "Change in Rent (%)") +
+  ggplot2::labs(title = "Variation mensuelle moyenne du loyer à Laval (2018-2023)",
+                fill = "Variation du loyer (%)") +
   ggplot2::geom_sf(ggplot2::aes(fill = avg_rent_2023)) +
   ggplot2::theme_minimal() +
   ggplot2::scale_fill_gradientn(colors = curbcut_scale) +
@@ -306,10 +306,16 @@ osc_med_graph <- bind_rows(osc_21, osc_16, osc_11) |>
 
 #Median line graph
 ggplot(osc_med_graph, aes(x = Year, y = `Rent`, group = Geography, color = Geography)) +
-  geom_line() +
-  labs(title = "Median Monthly Shelter Cost 2011-2021",
-       x = "Year",
-       y = "Median Monthly Shelter Cost ($)") +
+  geom_line(linewidth = 1.25) +
+  labs(title = "Coût de logement mensuel médian pour les ménages propriétaires 2011-2021",
+       x = "Année",
+       y = "Coût de logement mensuel médian ($)") +
+  scale_color_manual(labels = c("Laval (owner)" = "Laval", 
+                                "Montreal (owner)" = "Montreal",
+                                "Quebec (owner)" = "Quebec"),
+                     values = c("Laval (owner)" = "royalblue3", 
+                                "Montreal (owner)" = "indianred3",
+                                "Quebec (owner)" = "gold3")) +
   theme_minimal() +
   theme(
     legend.position = "bottom", legend.box = "horizontal",
@@ -329,10 +335,16 @@ osc_avg_graph <- bind_rows(bind_rows(osc_21, osc_16, osc_11)) |>
 
 #Line graph for average monthly shelter cost
 ggplot(osc_avg_graph, aes(x = Year, y = `Rent`, group = Geography, color = Geography)) +
-  geom_line() +
-  labs(title = "Average Monthly Shelter Cost 2006-2021",
-       x = "Year",
-       y = "Average Monthly Shelter Cost ($)") +
+  geom_line(linewidth = 1.25) +
+  labs(title = "Coût de logement mensuel moyen pour les ménages propriétaires 2006-2021",
+       x = "Année",
+       y = "Coût mensuel moyen du logement ($)") +
+  scale_color_manual(labels = c("Laval (owner)" = "Laval", 
+                                "Montreal (owner)" = "Montreal",
+                                "Quebec (owner)" = "Quebec"),
+                     values = c("Laval (owner)" = "royalblue3", 
+                                "Montreal (owner)" = "indianred3",
+                                "Quebec (owner)" = "gold3")) +
   theme_minimal() +
   theme(
     legend.position = "bottom", legend.box = "horizontal",
@@ -394,14 +406,14 @@ aff_graph <- bind_rows(aff_21, aff_16, aff_11, aff_06, aff_01) |>
 
 #Creating the line graph
 ggplot(aff_graph, aes(x = Year, y = proportion, group = hh_type, color = hh_type)) +
-  geom_line(linewidth = 1.5) +
-  labs(title = "Percentage of Households Spending >30% on Shelter Costs in Laval (2001-2021)",
-       x = "Year",
-       y = "Proportion of Households (%)") +
+  geom_line(linewidth = 1.25) +
+  labs(title = "% de ménages consacrant plus de 30 % de leur revenu aux frais de logement (2001-2021)",
+       x = "Année",
+       y = "Proportion de ménages (%)") +
   scale_y_continuous(limits = c(0, 40),
                      breaks = seq(0, 40, by = 10)) +
   scale_color_manual(values = c("royalblue3", "indianred2", "gold3"),
-                     labels = c("All Households", "Owner Households", "Tenant Households")) +
+                     labels = c("Tous les ménages", "Ménages propriétaires", "Ménages locataires")) +
   theme_minimal() +
   theme(
     legend.position = "bottom", legend.box = "horizontal",
@@ -432,11 +444,11 @@ chn_lvl <- get_cmhc("Core Housing Need", "Housing Standards",
 #Creating a line graph for chn_lvl
 ggplot(chn_lvl, aes(x = Year, y = `% Core Need`, group = "")) +
   geom_line(linewidth = 1.25) +
-  labs(title = "Percentage of Households with Core Housing Need 2006-2021",
-       x = "Year",
-       y = "% of Households with Core Housing Need") +
-  scale_y_continuous(limits = c(0, 30),
-                     breaks = seq(0, 30, by = 10)) +
+  labs(title = "Pourcentage de ménages ayant des besoins impérieux en matière de logement 2006-2021",
+       x = "Année",
+       y = "Ménages ayant des besoins impérieux en matière de logement (%)") +
+  scale_y_continuous(limits = c(0, 20),
+                     breaks = seq(0, 20, by = 10)) +
   theme_minimal() +
   theme(plot.title = element_text(hjust = 0.5))
 
@@ -507,18 +519,21 @@ chn_qol <- data.frame(
   Overall = as.numeric(c("6.4", "10.5", "6.0")),
   Owner = as.numeric(c("2.2", "3.5", "2.1")),
   Tenant = as.numeric(c("14.8", "14.6", "11.9")),
-  Subsidized = as.numeric(c("21.5", "18.5", "15.9"))
-) |> 
+  Subsidized = as.numeric(c("21.5", "18.5", "15.9"))) |> 
   pivot_longer(cols = -Geography, names_to = "Type", values_to = "Proportion") |> 
   mutate(Type = factor(Type, levels = c("Overall", "Owner", "Tenant", "Subsidized")))
 
 #Creating the plot showing proportions of core housing need
 ggplot(chn_qol, aes(x = Geography, y = Proportion, fill = Type)) +
   geom_bar(stat = "identity", position = position_dodge()) +
-  labs(title = "Core Housing Need by Type of Household 2021",
-       x = "Geography",
-       y = "Proportion of Households (%)",
+  labs(title = "Besoins impérieux de logement par type de ménage 2021",
+       x = "",
+       y = "Proportion de ménages (%)",
        fill = "Type of Household") +
+  scale_fill_manual(values = c("Overall" = "royalblue2", "Owner" = "indianred2",
+                               "Tenant" = "gold3", "Subsidized" = "chartreuse3"),
+                    labels = c("Overall" = "Dans l'ensemble", "Owner" = "Propriétaire",
+                               "Tenant" = "Locataire", "Subsidized" = "Subventionné")) +
   theme_minimal() +
   theme(legend.position = "bottom", legend.title = element_blank(),
         plot.title = element_text(hjust = 0.5))
@@ -583,13 +598,13 @@ pto_graph_prop <- bind_rows(pto_21, pto_16, pto_11, pto_06, pto_01) |>
 #Graphing the data out
 ggplot(pto_graph, aes(x = Year, y = Households, fill = Type)) +
   geom_bar(stat = "identity", position = position_dodge()) +
-  labs(title = "Total, Owner and Tenant Households in Laval 2001-2021",
-       x = "Year",
-       y = "Number of Households",
+  labs(title = "Total, ménages propriétaires et locataires à Laval 2001-2021",
+       x = "Année",
+       y = "Nombre de ménages",
        fill = "Type of Household") +
   scale_fill_manual(values = c("total" = "royalblue2", "owner" = "indianred2",
                                "tenant" = "gold3"),
-                    labels = c("Total", "Owner", "Tenant")) +
+                    labels = c("Total", "Propriétaire", "Locataire")) +
   theme_minimal() +
   theme(legend.position = "bottom", legend.box = "horizontal",
         legend.title = element_blank(), plot.title = element_text(hjust = 0.5))
@@ -597,11 +612,11 @@ ggplot(pto_graph, aes(x = Year, y = Households, fill = Type)) +
 #Creating a line chart of proportion over years
 ggplot(pto_graph_prop, aes(x = Year, y = Households, color = Type, group = Type)) +
   geom_line(linewidth = 1.5) +
-  labs(title = "Proportion of Owner and Tenant Households in Laval 2001-2021",
-       x = "Year",
-       y = "Proportion of Households (%)") +
+  labs(title = "Proportion de ménages propriétaires et locataires à Laval 2001-2021",
+       x = "Année",
+       y = "Proportion de ménages (%)") +
   scale_color_manual(values = c("Owner Households" = "royalblue2", "Tenant Households" = "indianred2"),
-                     labels = c("Owner Households", "Tenant Households")) +
+                     labels = c("Ménages propriétaires", "Ménages locataire")) +
   theme_minimal() +
   theme(
     legend.position = "bottom", legend.box = "horizontal",
@@ -637,10 +652,13 @@ sh <- bind_rows(sh_lvl, sh_mtl, sh_qc) %>%
 #Creating a bar graph of suitable housing
 ggplot(sh, aes(x = Geography, y = proportion, fill = Type)) +
   geom_bar(stat = "identity", position = position_dodge()) +
-  labs(title = "Proportion of Unsuitable Housing by Household Type 2021",
+  labs(title = "Logement de taille inadaptée 2021",
        x = "",
-       y = "Proportion of Households (%)",
+       y = "Proportion de ménages (%)",
        fill = "Type of Household") +
+  scale_fill_manual(values = c("Total" = "royalblue2", "Owner" = "indianred2",
+                               "Tenant" = "gold3"),
+                    labels = c("Total", "Propriétaire", "Locataire")) +
   theme_minimal() +
   theme(legend.position = "bottom", legend.box = "horizontal",
         legend.title = element_blank(), plot.title = element_text(hjust = 0.5))
@@ -661,9 +679,12 @@ starts_lvl <- get_cmhc(survey = "Scss", series = "Starts", dimension = "Intended
 #Graphing the data
 ggplot(starts_lvl, aes(x = Year, y = Units, fill = `Intended Market`)) +
   geom_bar(stat = "identity", position = position_dodge()) +
-  labs(title = "Unit Starts in Laval 2010-2023",
-       x = "Year",
-       y = "Number of Starts") +
+  labs(title = "Mises en chantier d’unités d’habitation à Laval 2010-2023",
+       x = "Année",
+       y = "Nombre de mises en chantier") +
+  scale_fill_manual(values = c("All" = "indianred2", "Homeowner" = "chartreuse3",
+                               "Rental" = "royalblue3", "Condo" = "gold3"),
+                    labels = c("Total", "Propriétaire", "De location", "Copropriété")) +
   theme_minimal() +
   theme(
     plot.title = element_text(hjust = 0.5),
@@ -682,9 +703,11 @@ startsp_lvl <- starts_lvl |>
 #Graphing the proportion of housing starts
 ggplot(startsp_lvl, aes(x = Year, y = `Count`, group = Type, color = Type)) +
   geom_line(size = 1.25) +
-  labs(title = "Proportion of Housing Starts 2010-2023",
-       x = "Year",
-       y = "Proportion of Start Type (%)") +
+  labs(title = "Proportion des mises en chantier 2010-2023",
+       x = "Année",
+       y = "Proportion de types de mises en chantier (%)") +
+  scale_color_manual(values = c("Owner Starts" = "indianred2", "Rental Starts" = "chartreuse3"),
+                    labels = c("Démarrage par le propriétaire", "Débuts de location")) +
   theme_minimal() +
   theme(
     legend.position = "bottom", legend.box = "horizontal", legend.title = element_blank(),
@@ -759,8 +782,8 @@ afford80map <- left_join(laval_ct, afford80, join_by("GeoUID" == "name")) |>
 
 ggplot(data = afford30map) +
   geom_sf(aes(fill = percentage_bins)) +
-  labs(title = "Housing Affordability in Laval 2021 (>30%)",
-       fill = "Proportion of Households Spending >30% of Income on Shelter") +
+  labs(title = "Abordabilité du logement à Laval 2021 (>30%)",
+       fill = "Proportion de ménages consacrant plus de 30% de leur revenu au logement") +
   scale_fill_manual(values = curbcut_scale, na.value = "#B3B3BB",
                     labels = c("5-12.5%", "12.5-20%", "20-27.5%", "27.5-35%", "> 35%")) +
   guides(fill = guide_legend(title.position = "top", title.hjust = 0.5, 
@@ -773,8 +796,8 @@ ggplot(data = afford30map) +
 
 ggplot(data = afford50map) +
   geom_sf(aes(fill = percentage_bins)) +
-  labs(title = "Housing Affordability in Laval 2021 (>50%)",
-       fill = "Proportion of Households Spending >50% of Income on Shelter") +
+  labs(title = "Abordabilité du logement à Laval 2021 (>50%)",
+       fill = "Proportion de ménages consacrant plus de 50% de leur revenu au logement") +
   scale_fill_manual(values = curbcut_scale, na.value = "#B3B3BB",
                     labels = c("< 3.5%", "3.5-7%", "7-10.5%", "10.5-14%", "> 14%")) +
   guides(fill = guide_legend(title.position = "top", title.hjust = 0.5, 
@@ -787,8 +810,8 @@ ggplot(data = afford50map) +
 
 ggplot(data = afford80map) +
   geom_sf(aes(fill = percentage_bins)) +
-  labs(title = "Housing Affordability in Laval 2021 (>80%)",
-       fill = "Proportion of Households Spending >80% of Income on Shelter") +
+  labs(title = "Abordabilité du logement à Laval 2021 (>80%)",
+       fill = "Proportion de ménages consacrant plus de 80% de leur revenu au logement") +
   scale_fill_manual(values = curbcut_scale, na.value = "#B3B3BB",
                     labels = c("< 0.75%", "0.75-1.5%", "1.5-2.25%", "2.25-3%", "> 3%")) +
   guides(fill = guide_legend(title.position = "top", title.hjust = 0.5, 

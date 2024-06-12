@@ -87,26 +87,26 @@ ind_total_income <- bind_rows(indtotinc_lvl_total, indtotinc_lvl_men, indtotinc_
 #Prepare table for individual income brackets grouped bar graph
 ind_total_bar <- ind_total_income |> 
   select(-total_count, -wo_total_income, -w_total_income, -over_100) |> 
-  rename("< $10,000" = "under_10", "$10-19,999" = "10_20", "$20-29,999" = "20_30",
-         "$30-39,999" = "30_40", "$40-$49,999" = "40_50", "$50-59,999" = "50_60",
-         "$60-69,999" = "60_70", "$70-79,999" = "70_80", "$80-89,999" = "80_90",
-         "$90-99,999" = "90_100", "$100-150,000" = "100_150", "> $150,000" = "over_150") |> 
+  rename("< 10.000 $" = "under_10", "10 à 19.999 $" = "10_20", "20 à 29.999 $" = "20_30",
+         "30 à 39.999 $" = "30_40", "40 à 49.999 $" = "40_50", "50 à 59.999 $" = "50_60",
+         "60 à 69.999 $" = "60_70", "70 à 79.999 $" = "70_80", "80 à 89.999 $" = "80_90",
+         "90 à 99.999 $" = "90_100", "100 à 150.000 $" = "100_150", "> 150.000 $" = "over_150") |> 
   pivot_longer(cols = -Geography, names_to = "Bracket", values_to = "Value") |> 
-  mutate(Bracket = factor(Bracket, levels = c("< $10,000", "$10-19,999", "$20-29,999",
-                                              "$30-39,999", "$40-$49,999", "$50-59,999",
-                                              "$60-69,999", "$70-79,999", "$80-89,999",
-                                              "$90-99,999", "$100-150,000", "> $150,000")))
-
+  mutate(Bracket = factor(Bracket, levels = c("< 10.000 $", "10 à 19.999 $", "20 à 29.999 $",
+                                              "30 à 39.999 $", "40 à 49.999 $", "50 à 59.999 $",
+                                              "60 à 69.999 $", "70 à 79.999 $", "80 à 89.999 $",
+                                              "90 à 99.999 $", "100 à 150.000 $", "> 150.000 $")))
 #Grouped bar graph for individual brackets
 ggplot(ind_total_bar, aes(x = Bracket, y = Value, fill = Geography)) +
   geom_bar(stat = "identity", position = "dodge", width = 0.7) +
-  labs(title = "Total Income Brackets for Individuals in Laval in 2020",
-       x = "", y = "Number of Persons") +
+  labs(title = "Tranches de revenu total pour les particuliers à Laval 2020",
+       x = "", y = "Personnes") +
   scale_fill_manual(values = c("Laval" = "royalblue2", 
                                "Men" = "indianred", 
                                "Women" = "gold2"),
                     name = "Status",
-  ) +
+                    labels = c("Laval" = "Laval", "Men" = "Hommes", "Women" = "Femmes")) +
+  scale_x_discrete(labels = function(x) gsub(",", ".", x)) +
   theme_minimal() +
   theme(legend.position = "bottom",
         legend.title = element_blank(),
@@ -116,25 +116,25 @@ ggplot(ind_total_bar, aes(x = Bracket, y = Value, fill = Geography)) +
 #Preparing table for bar graph for total income brackets by every $50,000 
 ind_total_bar_50 <- ind_total_income |> 
   select(-total_count, -wo_total_income, -w_total_income, -over_100) |> 
-  mutate("< $50,000" = under_10 + `10_20` + `20_30` + `30_40` + `40_50`,
-         "$50-99,999" = `50_60` + `60_70` + `70_80` + `80_90` + `90_100`,
-         "$100-150,000" = `100_150`, "> $150,000" = over_150) |> 
+  mutate("< 50.000 $" = under_10 + `10_20` + `20_30` + `30_40` + `40_50`,
+         "50 à 99.999 $" = `50_60` + `60_70` + `70_80` + `80_90` + `90_100`,
+         "100 à 150.000 $" = `100_150`, "> 150.000$" = over_150) |> 
   select(-under_10, -`10_20`, -`20_30`, -`30_40`, -`40_50`, -`50_60`,
          -`60_70`, -`70_80`, -`80_90`, -`90_100`, -`100_150`, -over_150) |> 
   pivot_longer(cols = -Geography, names_to = "Bracket", values_to = "Value") |>
-  mutate(Bracket = factor(Bracket, levels = c("< $50,000", "$50-99,999",
-                                              "$100-150,000", "> $150,000")))
+  mutate(Bracket = factor(Bracket, levels = c("< 50.000 $", "50 à 99.999 $",
+                                              "100 à 150.000 $", "> 150.000$")))
 
 #Bar graph for total individual income by $50,000 intervals
 ggplot(ind_total_bar_50, aes(x = Bracket, y = Value, fill = Geography)) +
   geom_bar(stat = "identity", position = "dodge", width = 0.7) +
-  labs(title = "Total Income Brackets ($50,000) for Individuals in Laval in 2020",
-       x = "", y = "Number of Persons") +
+  labs(title = "Tranches de revenu total pour les particuliers de Laval 2020",
+       x = "", y = "Personnes") +
   scale_fill_manual(values = c("Laval" = "royalblue2", 
                                "Men" = "indianred", 
                                "Women" = "gold2"),
                     name = "Status",
-  ) +
+                    labels = c("Laval" = "Laval", "Men" = "Hommes", "Women" = "Femmes")) +
   theme_minimal() +
   theme(legend.position = "bottom",
         legend.title = element_blank(),
@@ -201,26 +201,26 @@ ind_at_income <- bind_rows(indat21_lvl_total, indat21_lvl_men, indat21_lvl_women
 #Prepping table for bar graph
 ind_at_bar <- ind_at_income |> 
   select(-total_count, -wo_at_income, -w_at_income, -over_100) |> 
-  rename("< $10,000" = "under_10", "$10-19,999" = "10_20", "$20-29,999" = "20_30",
-         "$30-39,999" = "30_40", "$40-$49,999" = "40_50", "$50-59,999" = "50_60",
-         "$60-69,999" = "60_70", "$70-79,999" = "70_80", "$80-89,999" = "80_90",
-         "$90-99,999" = "90_100", "$100-125,000" = "100_125", "> $125,000" = "over_125") |> 
+  rename("< 10.000 $" = "under_10", "10 à 19.999 $" = "10_20", "20 à 29.999 $" = "20_30",
+         "30 à 39.999 $" = "30_40", "40 à 49.999 $" = "40_50", "50 à 59.999 $" = "50_60",
+         "60 à 69.999 $" = "60_70", "70 à 79.999 $" = "70_80", "80 à 89.999 $" = "80_90",
+         "90 à 99.999 $" = "90_100", "100 à 125.000 $" = "100_125", "> 125.000 $" = "over_125") |> 
   pivot_longer(cols = -Geography, names_to = "Bracket", values_to = "Value") |> 
-  mutate(Bracket = factor(Bracket, levels = c("< $10,000", "$10-19,999", "$20-29,999",
-                                              "$30-39,999", "$40-$49,999", "$50-59,999",
-                                              "$60-69,999", "$70-79,999", "$80-89,999",
-                                              "$90-99,999", "$100-125,000", "> $125,000")))
+  mutate(Bracket = factor(Bracket, levels = c("< 10.000 $", "10 à 19.999 $", "20 à 29.999 $",
+                                              "30 à 39.999 $", "40 à 49.999 $", "50 à 59.999 $",
+                                              "60 à 69.999 $", "70 à 79.999 $", "80 à 89.999 $",
+                                              "90 à 99.999 $", "100 à 125.000 $", "> 125.000 $")))
 
 #Bar Graph for individual AT income
 ggplot(ind_at_bar, aes(x = Bracket, y = Value, fill = Geography)) +
   geom_bar(stat = "identity", position = "dodge", width = 0.7) +
-  labs(title = "After-Tax Individual Income Brackets in Laval 2020",
-       x = "", y = "Number of Persons") +
+  labs(title = "Tranches de revenu individuel après impôt à Laval 2020",
+       x = "", y = "Personnes") +
   scale_fill_manual(values = c("Laval" = "royalblue2", 
                                "Men" = "indianred", 
                                "Women" = "gold2"),
                     name = "Status",
-  ) +
+                    labels = c("Laval" = "Laval", "Men" = "Hommes", "Women" = "Femmes")) +
   theme_minimal() +
   theme(legend.position = "bottom",
         legend.title = element_blank(),
@@ -286,28 +286,28 @@ indeminc <- bind_rows(indeminc_lvl_total, indeminc_lvl_men, indeminc_lvl_women)
 
 #Prepare table for normal interval bar graph
 indeminc_bar <- indeminc |> 
-  mutate("< $10,000" = under_5 + `5_10`) |> 
-  rename("$10-19,999" = "10_20", "$20-29,999" = "20_30", "$30-39,999" = "30_40",
-         "$40-$49,999" = "40_50", "$50-59,999" = "50_60", "$60-69,999" = "60_70",
-         "$70-79,999" = "70_80", "$80-89,999" = "80_90", "$90-99,999" = "90_100",
-         "$100-124,999" = "100_125", "> $125,000" = "over_125") |> 
+  mutate("< 10.000 $" = under_5 + `5_10`) |> 
+  rename("10 à 19.999 $" = "10_20", "20 à 29.999 $" = "20_30",
+         "30 à 39.999 $" = "30_40", "40 à 49.999 $" = "40_50", "50 à 59.999 $" = "50_60",
+         "60 à 69.999 $" = "60_70", "70 à 79.999 $" = "70_80", "80 à 89.999 $" = "80_90",
+         "90 à 99.999 $" = "90_100", "100 à 125.000 $" = "100_125", "> 125.000 $" = "over_125") |> 
   select(-total_count, -w_em_income, -wo_em_income, -under_5, -`5_10`, -over_100) |> 
   pivot_longer(cols = -Geography, names_to = "Bracket", values_to = "Count") |> 
-  mutate(Bracket = factor(Bracket, levels = c("< $10,000", "$10-19,999", "$20-29,999",
-                                              "$30-39,999", "$40-$49,999", "$50-59,999",
-                                              "$60-69,999", "$70-79,999", "$80-89,999",
-                                              "$90-99,999", "$100-124,999", "> $125,000")))
+  mutate(Bracket = factor(Bracket, levels = c("< 10.000 $", "10 à 19.999 $", "20 à 29.999 $",
+                                              "30 à 39.999 $", "40 à 49.999 $", "50 à 59.999 $",
+                                              "60 à 69.999 $", "70 à 79.999 $", "80 à 89.999 $",
+                                              "90 à 99.999 $", "100 à 125.000 $", "> 125.000 $")))
 
 #Bar Graph for individual employment income
 ggplot(indeminc_bar, aes(x = Bracket, y = Count, fill = Geography)) +
   geom_bar(stat = "identity", position = "dodge", width = 0.7) +
-  labs(title = "Employment Income Brackets for Individuals in Laval 2020",
-       x = "", y = "Number of Persons") +
+  labs(title = "Tranches de revenu d’emploi pour les particuliers de Laval 2020",
+       x = "", y = "Personnes") +
   scale_fill_manual(values = c("Laval" = "royalblue2", 
                                "Men" = "indianred", 
                                "Women" = "gold2"),
                     name = "Status",
-  ) +
+                    labels = c("Laval" = "Laval", "Men" = "Hommes", "Women" = "Femmes")) +
   theme_minimal() +
   theme(legend.position = "bottom",
         legend.title = element_blank(),
@@ -316,11 +316,11 @@ ggplot(indeminc_bar, aes(x = Bracket, y = Count, fill = Geography)) +
 
 # Total Household Income --------------------------------------------------
 #Setting the names for the vectors
-tot_hh_names <- c("Total", "< $5,000", "$5-9,999", "$10-14,999", "$15-19,999",
-                  "$20-24,999", "$25-29,999", "$30-34,999", "$35-39,999", "$40-44,999",
-                  "$45-49,999", "$50-59,999", "$60-69,999", "$70-79,999", "$80-89,999",
-                  "$90-99,999", "=> $100,000", "$100-124,999", "$125-149,999",
-                  "$150-199,999", "=> $200,000")
+tot_hh_names <- c("Total", "< 5.000 $", "5 à 9.999 $", "10 à 14.999 $", "15 à 19.999 $",
+                  "20 à 24.999 $", "25 à 29.999 $", "30 à 34.999 $", "35 à 39.999 $", "40 à 44.999 $",
+                  "45 à 49.999 $", "50 à 59.999 $", "60 à 69.999 $", "70 à 79.999 $", "80 à 89.999 $",
+                  "90 à 99.999 $", "=> 100.000 $", "100 à 124.999 $", "125 à 149.999 $",
+                  "150 à 199.999 $", "=> 200.000 $")
 
 #Grabbing vectors for total household income and renaming them with tot_hh_names
 tot_hh_vectors <- can21$vector[which(can21$vector == "v_CA21_923"):which(can21$vector == "v_CA21_943")] |> 
@@ -336,26 +336,26 @@ tot_hh_lvl  <- get_census(dataset = "CA21",
 
 #Preparing the bar graph for "regular" intervals
 tot_hh_bar <- tot_hh_lvl |> 
-  mutate("< $10,000" = `< $5,000` + `$5-9,999`,
-         "$10-19,999" = `$10-14,999` + `$15-19,999`,
-         "$20-29,999" = `$20-24,999` + `$25-29,999`,
-         "$30-39,999" = `$30-34,999` + `$35-39,999`,
-         "$40-49,999" = `$40-44,999` + `$45-49,999`) |> 
-  rename("> $200,000" = "=> $200,000") |> 
-  select(-"< $5,000", -"$5-9,999", -"$10-14,999", -"$15-19,999", -"$20-24,999",
-         -"$25-29,999", -"$30-34,999", -"$35-39,999", -"$40-44,999", -"$45-49,999",
-         -Total, -"=> $100,000") |> 
+  mutate("< 10.000 $" = `< 5.000 $` + `5 à 9.999 $`,
+         "10 à 19.999 $" = `10 à 14.999 $` + `15 à 19.999 $`,
+         "20 à 29.999 $" = `20 à 24.999 $` + `25 à 29.999 $`,
+         "30 à 39.999 $" = `30 à 34.999 $` + `35 à 39.999 $`,
+         "40 à 49.999 $" = `40 à 44.999 $` + `45 à 49.999 $`) |> 
+  rename("> 200.000 $" = "=> 200.000 $") |> 
+  select(-"< 5.000 $", -"5 à 9.999 $", -"10 à 14.999 $", -"15 à 19.999 $", -"20 à 24.999 $",
+         -"25 à 29.999 $", -"30 à 34.999 $", -"35 à 39.999 $", -"40 à 44.999 $", -"45 à 49.999 $",
+         -Total, -"=> 100.000 $") |> 
   pivot_longer(cols = everything(), names_to = "Bracket", values_to = "Counts") |>
-  mutate(Bracket = factor(Bracket, levels = c("> $200,000", "$150-199,999", "$125-149,999",
-                                              "$100-124,999", "$90-99,999", "$80-89,999",
-                                              "$70-79,999", "$60-69,999", "$50-59,999",
-                                              "$40-49,999", "$30-39,999", "$20-29,999",
-                                              "$10-19,999", "< $10,000")))
+  mutate(Bracket = factor(Bracket, levels = c("> 200.000 $", "150 à 199.999 $", "125 à 149.999 $",
+                                              "100 à 124.999 $", "90 à 99.999 $", "80 à 89.999 $",
+                                              "70 à 79.999 $", "60 à 69.999 $", "50 à 59.999 $",
+                                              "40 à 49.999 $", "30 à 39.999 $", "20 à 29.999 $",
+                                              "10 à 19.999 $", "< 10.000 $")))
 
 #Creating the sideways bar graph for tot_hh_bar
 ggplot(tot_hh_bar, aes(x = Bracket, y = Counts, fill = "")) +
   geom_bar(stat = "identity", position = "dodge", width = 0.7, fill = "royalblue2") +
-  labs(title = "2020 Total Household Income in Laval", x = "Total Household Income", y = "Number of Households") +
+  labs(title = "Revenu total des ménages à Laval en 2020", x = "Revenu total du ménage", y = "Nombre de ménages") +
   theme_minimal() +
   theme(legend.position = "none",
         axis.text.x = element_text(angle = 45, hjust = 1),
@@ -364,20 +364,20 @@ ggplot(tot_hh_bar, aes(x = Bracket, y = Counts, fill = "")) +
 
 #Preparing the bar graph table for $50k intervals
 tot_hh_bar_50 <- tot_hh_lvl |> 
-  mutate("< $50,000"= `< $5,000` + `$5-9,999` + `$10-14,999` + `$15-19,999` + `$20-24,999` +
-           `$25-29,999` + `$30-34,999` + `$35-39,999` +`$40-44,999` + `$45-49,999`,
-         "$50-99,999" = `$50-59,999` + `$60-69,999` + `$70-79,999` + `$80-89,999` + `$90-99,999`,
-         "$100-149,999" = `$100-124,999` + `$125-149,999`) |> 
-  rename("> $200,000" = "=> $200,000") |> 
-  select("< $50,000", "$50-99,999", "$100-149,999", "$150-199,999", "> $200,000") |> 
+  mutate("< 50.000 $"= `< 5.000 $` + `5 à 9.999 $` + `10 à 14.999 $` + `15 à 19.999 $` + `20 à 24.999 $` +
+           `25 à 29.999 $` + `30 à 34.999 $` + `35 à 39.999 $` +`40 à 44.999 $` + `45 à 49.999 $`,
+         "50 à 99.999 $" = `50 à 59.999 $` + `60 à 69.999 $` + `70 à 79.999 $` + `80 à 89.999 $` + `90 à 99.999 $`,
+         "100 à 149.999 $" = `100 à 124.999 $` + `125 à 149.999 $`) |> 
+  rename("> 200.000 $" = "=> 200.000 $") |> 
+  select("< 50.000 $", "50 à 99.999 $", "100 à 149.999 $", "150 à 199.999 $", "> 200.000 $") |> 
   pivot_longer(cols = everything(), names_to = "Bracket", values_to = "Counts") |> 
-  mutate(Bracket = factor(Bracket, levels = c("> $200,000", "$150-199,999", "$100-149,999",
-                                              "$50-99,999", "< $50,000")))
+  mutate(Bracket = factor(Bracket, levels = c("> 200.000 $", "150 à 199.999 $", "100 à 149.999 $",
+                                              "50 à 99.999 $", "< 50.000 $")))
 
 #Bar graph for tot_hh_bar_50
 ggplot(tot_hh_bar_50, aes(x = Bracket, y = Counts, fill = "")) +
   geom_bar(stat = "identity", position = "dodge", width = 0.7, fill = "royalblue2") +
-  labs(title = "2020 Total Household Income ($50,000) in Laval", x = "Total Household Income", y = "Number of Households") +
+  labs(title = "Revenu total des ménages à Laval en 2020", x = "Revenu total du ménage", y = "Nombre de ménages") +
   theme_minimal() +
   theme(legend.position = "none",
         axis.text.x = element_text(angle = 45, hjust = 1),
@@ -386,10 +386,11 @@ ggplot(tot_hh_bar_50, aes(x = Bracket, y = Counts, fill = "")) +
 
 # After-Tax Household Income ----------------------------------------------
 #Setting the names for the vectors
-at_hh_names <- c("Total", "< $5,000", "$5-9,999", "$10-14,999", "$15-19,999",
-                 "$20-24,999", "$25-29,999", "$30-34,999", "$35-39,999", "$40-44,999",
-                 "$45-49,999", "$50-59,999", "$60-69,999", "$70-79,999", "$80-89,999",
-                 "$90-99,999", "=> $100,000", "$100-124,999", "$125-149,999", "=> $150,000")
+at_hh_names <- c("Total", "< 5.000 $", "5 à 9.999 $", "10 à 14.999 $", "15 à 19.999 $",
+                 "20 à 24.999 $", "25 à 29.999 $", "30 à 34.999 $", "35 à 39.999 $", "40 à 44.999 $",
+                 "45 à 49.999 $", "50 à 59.999 $", "60 à 69.999 $", "70 à 79.999 $", "80 à 89.999 $",
+                 "90 à 99.999 $", "=> 100.000 $", "100 à 124.999 $", "125 à 149.999 $",
+                 "> 150.000 $")
 
 #Grabbing vectors for AT household income and renaming them with at_hh_names
 at_hh_vectors <- can21$vector[which(can21$vector == "v_CA21_944"):which(can21$vector == "v_CA21_963")] |> 
@@ -405,27 +406,26 @@ at_hh_lvl  <- get_census(dataset = "CA21",
 
 #Preparing the bar graph for "regular" intervals
 at_hh_bar <- at_hh_lvl |> 
-  mutate("< $10,000" = `< $5,000` + `$5-9,999`,
-         "$10-19,999" = `$10-14,999` + `$15-19,999`,
-         "$20-29,999" = `$20-24,999` + `$25-29,999`,
-         "$30-39,999" = `$30-34,999` + `$35-39,999`,
-         "$40-49,999" = `$40-44,999` + `$45-49,999`) |> 
-  select(-"< $5,000", -"$5-9,999", -"$10-14,999", -"$15-19,999", -"$20-24,999",
-         -"$25-29,999", -"$30-34,999", -"$35-39,999", -"$40-44,999", -"$45-49,999",
-         -Total, -"=> $100,000") |> 
-  rename("> $150,000" = "=> $150,000") |> 
+  mutate("< 10.000 $" = `< 5.000 $` + `5 à 9.999 $`,
+         "10 à 19.999 $" = `10 à 14.999 $` + `15 à 19.999 $`,
+         "20 à 29.999 $" = `20 à 24.999 $` + `25 à 29.999 $`,
+         "30 à 39.999 $" = `30 à 34.999 $` + `35 à 39.999 $`,
+         "40 à 49.999 $" = `40 à 44.999 $` + `45 à 49.999 $`) |> 
+  select(-"< 5.000 $", -"5 à 9.999 $", -"10 à 14.999 $", -"15 à 19.999 $", -"20 à 24.999 $",
+         -"25 à 29.999 $", -"30 à 34.999 $", -"35 à 39.999 $", -"40 à 44.999 $", -"45 à 49.999 $",
+         -Total, -"=> 100.000 $") |> 
   pivot_longer(cols = everything(), names_to = "Bracket", values_to = "Counts") |>
-  mutate(Bracket = factor(Bracket, levels = c("> $150,000", "$125-149,999",
-                                              "$100-124,999", "$90-99,999", "$80-89,999",
-                                              "$70-79,999", "$60-69,999", "$50-59,999",
-                                              "$40-49,999", "$30-39,999", "$20-29,999",
-                                              "$10-19,999", "< $10,000")))
+  mutate(Bracket = factor(Bracket, levels = c("> 150.000 $", "125 à 149.999 $",
+                                              "100 à 124.999 $", "90 à 99.999 $", "80 à 89.999 $",
+                                              "70 à 79.999 $", "60 à 69.999 $", "50 à 59.999 $",
+                                              "40 à 49.999 $", "30 à 39.999 $", "20 à 29.999 $",
+                                              "10 à 19.999 $", "< 10.000 $")))
 
 #Creating the sideways bar graph for tot_hh_bar
 ggplot(at_hh_bar, aes(x = Bracket, y = Counts, fill = "")) +
   geom_bar(stat = "identity", position = "dodge", width = 0.7, fill = "royalblue2") +
-  labs(title = "2020 After-Tax Household Income in Laval", x = "After-Tax Household Income",
-       y = "Number of Households") +
+  labs(title = "Revenu des ménages après impôt 2020 à Laval", x = "Revenu des ménages après impôt",
+       y = "Nombre de ménages") +
   theme_minimal() +
   theme(legend.position = "none",
         axis.text.x = element_text(angle = 45, hjust = 1),
@@ -434,20 +434,20 @@ ggplot(at_hh_bar, aes(x = Bracket, y = Counts, fill = "")) +
 
 #Preparing the bar graph table for $50k intervals
 at_hh_bar_50 <- at_hh_lvl |> 
-  mutate("< $50,000"= `< $5,000` + `$5-9,999` + `$10-14,999` + `$15-19,999` + `$20-24,999` +
-           `$25-29,999` + `$30-34,999` + `$35-39,999` +`$40-44,999` + `$45-49,999`,
-         "$50-99,999" = `$50-59,999` + `$60-69,999` + `$70-79,999` + `$80-89,999` + `$90-99,999`,
-         "$100-149,999" = `$100-124,999` + `$125-149,999`) |> 
-  select("< $50,000", "$50-99,999", "$100-149,999", "=> $150,000") |> 
-  rename("> $150,000" = "=> $150,000") |>
+  mutate("< 50.000 $"= `< 5.000 $` + `5 à 9.999 $` + `10 à 14.999 $` + `15 à 19.999 $` + `20 à 24.999 $` +
+           `25 à 29.999 $` + `30 à 34.999 $` + `35 à 39.999 $` +`40 à 44.999 $` + `45 à 49.999 $`,
+         "50 à 99.999 $" = `50 à 59.999 $` + `60 à 69.999 $` + `70 à 79.999 $` + `80 à 89.999 $` + `90 à 99.999 $`,
+         "100 à 149.999 $" = `100 à 124.999 $` + `125 à 149.999 $`) |> 
+  select("< 50.000 $", "50 à 99.999 $", "100 à 149.999 $", "> 150.000 $") |> 
   pivot_longer(cols = everything(), names_to = "Bracket", values_to = "Counts") |> 
-  mutate(Bracket = factor(Bracket, levels = c("> $150,000", "$100-149,999",
-                                              "$50-99,999", "< $50,000")))
+  mutate(Bracket = factor(Bracket, levels = c("> 150.000 $", "100 à 149.999 $",
+                                              "50 à 99.999 $", "< 50.000 $")))
 
 #Bar graph for at_hh_bar_50
 ggplot(at_hh_bar_50, aes(x = Bracket, y = Counts, fill = "")) +
   geom_bar(stat = "identity", position = "dodge", width = 0.7, fill = "royalblue2") +
-  labs(title = "2020 After-Tax Household Income in Laval", x = "After-Tax Household Income", y = "Number of Households") +
+  labs(title = "Revenu des ménages après impôt 2020 à Laval", x = "Revenu des ménages après impôt",
+       y = "Nombre de ménages") +
   theme_minimal() +
   theme(legend.position = "none",
         axis.text.x = element_text(angle = 45, hjust = 1),
@@ -500,17 +500,17 @@ hh_inc20_graph <- bind_rows(hh_inc20_lvl, hh_inc20_mtl, hh_inc20_qc) |>
 ggplot(hh_inc20_graph, aes(x = Geography, y = income, fill = income_type)) +
   geom_bar(stat = "identity", position = "stack") +
   facet_wrap(~`Household Type`, scales = "fixed", nrow = 1) +
-  labs(title = "2020 Private Household Income", x = "", y = "Private Household Income") +
+  labs(title = "Revenu des ménages privés 2020", x = "", y = "Revenu des ménages privés") +
   theme_minimal() +
   scale_fill_manual(values = c("total_diff" = "#aec7e8", "at_total" = "#1f77b4",
                                "one_p_diff" = "#ffbb78", "at_one_p" = "#ff7f0e",
                                "two_p_diff" = "#98df8a", "at_two_p" = "#2ca02c"),
-                    labels = c("total_diff" = "Private Household Total Income",
-                               "at_total" = "Private Household After-Tax Income",
-                               "one_p_diff" = "1 Person Total Income",
-                               "at_one_p" = "1 Person After-Tax Income",
-                               "two_p_diff" = "2+ Person Total Income",
-                               "at_two_p" = "2+ Person After Income")) +
+                    labels = c("total_diff" = "Revenu total du ménage privé",
+                               "at_total" = "Revenu après impôt des ménages privés",
+                               "one_p_diff" = "Revenu total d'une personne",
+                               "at_one_p" = "Revenu après impôt d'une personne",
+                               "two_p_diff" = "Revenu total pour deux personnes et plus",
+                               "at_two_p" = "Revenu après impôt pour deux personnes et plus")) +
   theme(axis.text.x = element_text(angle = 45, hjust = 1),
         plot.title = element_text(hjust = 0.5), legend.title = element_blank(),
         legend.position = "bottom")
@@ -567,24 +567,25 @@ ehh_inc20_graph <- bind_rows(ehh_inc20_lvl, ehh_inc20_mtl, ehh_inc20_qc) |>
 ggplot(ehh_inc20_graph, aes(x = Geography, y = income, fill = income_type)) +
   geom_bar(stat = "identity", position = "stack") +
   facet_wrap(~`Household Type`, scales = "fixed", nrow = 1) +
-  labs(title = "2020 Economic Household Income in Laval", x = "", y = "Economic Household Income") +
+  labs(title = "Revenu économique des ménages 2020 à Laval", x = "", y = "Revenu économique des ménages") +
   theme_minimal() +
   scale_fill_manual(values = c("total_diff" = "#aec7e8", "at_total" = "#1f77b4",
                                "one_p_diff" = "#ffbb78", "at_one_p" = "#ff7f0e",
                                "couple_diff" = "#98df8a", "at_couple" = "#2ca02c",
                                "couple_c_diff" = "#ff9896", "at_couple_c" = "#d62728"),
-                    labels = c("total_diff" = "Economic Household Total Income",
-                               "at_total" = "Economic Household After-Tax Income",
-                               "one_p_diff" = "1 Parent Total Income",
-                               "at_one_p" = "1 Parent After-Tax Income",
-                               "couple_diff" = "Couple Total Income",
-                               "at_couple" = "Couple After-Tax Income",
-                               "couple_c_diff" = "Couple w/ Children Total Income",
-                               "at_couple_c" = "Couple w/ Children After Tax Income")) +
+                    labels = c("total_diff" = "Revenu total du ménage économique",
+                               "at_total" = "Revenu économique des ménages après impôt",
+                               "one_p_diff" = "Revenu total d'un seul parent",
+                               "at_one_p" = "Revenu après impôt d'un seul parent",
+                               "couple_diff" = "Revenu total du couple",
+                               "at_couple" = "Revenu du couple après impôt",
+                               "couple_c_diff" = "Revenu total d'un couple avec enfants",
+                               "at_couple_c" = "Couple avec enfants Revenus après impôts")) +
   scale_y_continuous(labels = scales::comma) +
   theme(axis.text.x = element_text(angle = 45, hjust = 1),
         plot.title = element_text(hjust = 0.5), legend.title = element_blank(),
-        legend.position = "bottom")
+        legend.position = "bottom", strip.text.x = element_blank()) +
+  guides(fill = guide_legend(nrow = 4))
 
 # Evolution of Individual Income ------------------------------------------
 #Census grabber for median individual income for 2020 to start up the graph table
@@ -695,20 +696,20 @@ mii_yoygraph_cpi <- bind_rows(mii_lvl_graph, mii_mtl_graph, mii_qc_graph) |>
 #Creating the line graph for median individual income
 ggplot(mii_graph, aes(x = Year, y = Income, color = Geography, group = Geography)) +
   geom_line(linewidth = 1.25) +
-  labs(title = "Individual Median Income 2000-2020",
-       x = "Year",
-       y = "Individual Median Income ($)") +
+  labs(title = "Revenu médian individuel 2000-2020",
+       x = "Année",
+       y = "Revenu médian individuel ($)") +
   theme_minimal() +
   theme(legend.position = "bottom", legend.box = "horizontal",
         legend.title = element_blank(), plot.title = element_text(hjust = 0.5))
 
 #Line graph for mii yoy growth
 ggplot(mii_yoygraph, aes(x = Year, y = Growth, color = Geography, group = Geography)) +
-  geom_line() +
+  geom_line(linewidth = 1.25) +
   scale_color_manual(values = c("CPI" = "grey", "Laval" = "royalblue2",
                                 "Montreal" = "indianred3", "Quebec" = "gold2")) +
   labs(title = "Individual Median Income Growth 2005-2020",
-       x = "Year",
+       x = "Année",
        y = "Income Growth (%)") +
   theme_minimal() +
   theme(legend.position = "bottom", legend.title = element_blank(),
@@ -718,8 +719,8 @@ ggplot(mii_yoygraph, aes(x = Year, y = Growth, color = Geography, group = Geogra
 #Plot for year over year growth
 ggplot(mii_yoygraph, aes(x = Year, y = Growth, fill = Geography)) +
   geom_bar(stat = "identity", position = "dodge", width = 0.7) +
-  labs(title = "Individual Median Income Growth 2005-2020",
-       x = "Year", y = "Income Growth (%)") +
+  labs(title = "Croissance du revenu médian individuel 2005-2020",
+       x = "Année", y = "Croissance des revenus (%)") +
   theme_minimal() +
   theme(legend.position = "bottom",
         legend.title = element_blank(),
@@ -728,12 +729,13 @@ ggplot(mii_yoygraph, aes(x = Year, y = Growth, fill = Geography)) +
 
 #Line graph for CPI and mii index
 ggplot(mii_yoygraph_cpi, aes(x = Year, y = Index, color = Geography, group = Geography)) +
-  geom_line() +
+  geom_line(linewidth = 1.25) +
   scale_color_manual(values = c("CPI" = "grey", "Laval" = "royalblue2",
-                                "Montreal" = "indianred3", "Quebec" = "gold2")) +
-  labs(title = "Individual Median Income versus CPI 2000-2020",
-       x = "Year",
-       y = "Normalized Individual Median Income") +
+                                "Montreal" = "indianred3", "Quebec" = "gold2"),
+                     labels = c("IPC", "Laval", "Montreal", "Quebec")) +
+  labs(title = "Revenu médian individuel par rapport à l'IPC 2000-2020",
+       x = "Année",
+       y = "Revenu médian individuel normalisé") +
   theme_minimal() +
   theme(legend.position = "bottom", legend.title = element_blank(),
         axis.text.x = element_text(angle = 45, hjust = 1),
@@ -807,10 +809,10 @@ mhh_graph <- bind_rows(mhh_lvl_graph, mhh_mtl_graph, mhh_qc_graph) |>
 
 #Creating the line graph for median household income
 ggplot(mhh_graph, aes(x = Year, y = Income, color = Geography, group = Geography)) +
-  geom_line() +
-  labs(title = "Median Household Income 2000-2020",
-       x = "Year",
-       y = "Median Household Income ($)") +
+  geom_line(linewidth = 1.25) +
+  labs(title = "Revenu médian des ménages 2000-2020",
+       x = "Année",
+       y = "Revenu médian des ménages ($)") +
   theme_minimal() +
   theme(legend.position = "bottom", legend.box = "horizontal",
         legend.title = element_blank(), plot.title = element_text(hjust = 0.5))
@@ -843,12 +845,13 @@ mhh_yoygraph_cpi <- bind_rows(mhh_lvl_graph, mhh_mtl_graph, mhh_qc_graph) |>
 
 #Line graph for CPI and mhh index
 ggplot(mhh_yoygraph_cpi, aes(x = Year, y = Index, color = Geography, group = Geography)) +
-  geom_line() +
+  geom_line(linewidth = 1.25) +
   scale_color_manual(values = c("CPI" = "grey", "Laval" = "royalblue2",
-                                "Montreal" = "indianred3", "Quebec" = "gold2")) +
-  labs(title = "Median Household Income versus CPI 2000-2020",
-       x = "Year",
-       y = "Normalized Median Household Income") +
+                                "Montreal" = "indianred3", "Quebec" = "gold2"),
+                     labels = c("IPC", "Laval", "Montreal", "Quebec")) +
+  labs(title = "Revenu médian des ménages par rapport à l'IPC 2000-2020",
+       x = "Année",
+       y = "Revenu médian normalisé des ménages") +
   theme_minimal() +
   theme(legend.position = "bottom", legend.title = element_blank(),
         axis.text.x = element_text(angle = 45, hjust = 1),
@@ -874,7 +877,7 @@ laval_medinc <- get_census(dataset = "CA21",
 #Mapping median income
 ggplot(data = laval_medinc) +
   geom_sf(aes(fill = med_inc), color = NA) +
-  labs(title = "Median Individual Income in Laval 2020", color = "Dollars $", fill = "Median Income $") +
+  labs(title = "Revenu individuel médian à Laval 2020", color = "Dollars $", fill = "Revenu médian $") +
   scale_fill_gradientn(colors = curbcut_scale, na.value = curbcut_na) +
   theme_minimal() +
   theme(axis.line = element_blank(), axis.text = element_blank(),
@@ -894,7 +897,7 @@ laval_hhmedinc <- get_census(dataset = "CA21",
 #Mapping household median income
 ggplot(data = laval_hhmedinc) +
   geom_sf(aes(fill = med_inc), color = NA) +
-  labs(title = "Median Household Income in Laval 2020", color = "Dollars $", fill = "Median Income $") +
+  labs(title = "Revenu médian des ménages à Laval 2020", color = "Dollars $", fill = "Revenu médian $") +
   scale_fill_gradientn(colors = curbcut_scale, na.value = curbcut_na) +
   theme_minimal() +
   theme(axis.line = element_blank(), axis.text = element_blank(),
@@ -925,8 +928,8 @@ socio21map <- left_join(laval_da, socio21vmap, join_by("name" == "DA"))
 #Plotting material deprivation
 ggplot(data = socio21map) +
   geom_sf(aes(fill = SCOREMAT), color = NA) +
-  labs(title = "Material Deprivation in Laval 2021",
-       fill = "Material Factor Score") +
+  labs(title = "La défavorisation matérielle à Laval 2021",
+       fill = "Score de défavorisation matérielle") +
   scale_fill_gradientn(colors = curbcut_scale, na.value = curbcut_na) +
   theme_minimal() +
   theme(axis.line = element_blank(), axis.text = element_blank(),
@@ -939,8 +942,8 @@ ggplot(data = socio21map) +
 #Mapping social deprivation
 ggplot(data = socio21map) +
   geom_sf(aes(fill = SCORESOC), color = NA) +
-  labs(title = "Social Deprivation in Laval 2021",
-       fill = "Social Factor Score") +
+  labs(title = "La défavorisation sociale à Laval 2021",
+       fill = "Score de défavorisation sociale") +
   scale_fill_gradientn(colors = curbcut_scale, na.value = curbcut_na) +
   theme_minimal() +
   theme(axis.line = element_blank(), axis.text = element_blank(),

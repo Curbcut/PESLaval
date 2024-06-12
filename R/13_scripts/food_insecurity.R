@@ -43,7 +43,7 @@ imm_lvl <- get_census(dataset = "CA21",
 
 ggplot(data = imm_lvl) +
   geom_sf(aes(fill = imm_prop), color = NA) +
-  labs(title = "Immigration Population in Laval 2021", color = "Dollars $", fill = "Proportion of Immigrants (%)") +
+  labs(title = "Population immigrante à Laval 2021", fill = "Proportion d'immigrants (%)") +
   scale_fill_gradientn(colors = curbcut_scale, na.value = curbcut_na) +
   theme_minimal() +
   theme(axis.line = element_blank(), axis.text = element_blank(),
@@ -63,7 +63,7 @@ onep_lvl <- get_census(dataset = "CA21",
 
 ggplot(data = onep_lvl) +
   geom_sf(aes(fill = onep_prop), color = NA) +
-  labs(title = "One-Parent Families in Laval 2021", color = "Dollars $", fill = "Proportion of One-Parent Families (%)") +
+  labs(title = "Familles monoparentales à Laval 2021", fill = "Proportion de familles monoparentales (%)") +
   scale_fill_gradientn(colors = curbcut_scale, na.value = curbcut_na) +
   theme_minimal() +
   theme(axis.line = element_blank(), axis.text = element_blank(),
@@ -82,8 +82,8 @@ alone_lvl <- get_census(dataset = "CA21",
 
 ggplot(data = alone_lvl) +
   geom_sf(aes(fill = alone_prop), color = NA) +
-  labs(title = "Population Living Alone in Laval 2021", color = "Dollars $",
-       fill = "Proportion of One-Person Households (%)") +
+  labs(title = "Population vivant seule à Laval 2021",
+       fill = "Proportion de ménages composés d'une seule personne (%)") +
   scale_fill_gradientn(colors = curbcut_scale, na.value = curbcut_na) +
   theme_minimal() +
   theme(axis.line = element_blank(), axis.text = element_blank(),
@@ -103,8 +103,8 @@ older75_lvl <- get_census(dataset = "CA21",
 
 ggplot(data = older75_lvl) +
   geom_sf(aes(fill = older75_prop), color = NA) +
-  labs(title = "Population 75 and Older in Laval 2021", color = "Dollars $",
-       fill = "Proportion of Population 75 and Older (%)") +
+  labs(title = "Population de 75 ans et plus à Laval 2021",
+       fill = "Proportion de la population de 75 ans et plus (%)") +
   scale_fill_gradientn(colors = curbcut_scale, na.value = curbcut_na) +
   theme_minimal() +
   theme(axis.line = element_blank(), axis.text = element_blank(),
@@ -123,8 +123,8 @@ une_lvl <- get_census(dataset = "CA21",
 
 ggplot(data = une_lvl) +
   geom_sf(aes(fill = une_prop), color = NA) +
-  labs(title = "Under-Educated Population in Laval 2021", color = "Dollars $",
-       fill = "Proportion of Population Under-Educated (%)") +
+  labs(title = "Population sous-éduqué à Laval 2021",
+       fill = "Proportion de la population sous-éduqué (%)") +
   scale_fill_gradientn(colors = curbcut_scale, na.value = curbcut_na) +
   theme_minimal() +
   theme(axis.line = element_blank(), axis.text = element_blank(),
@@ -142,8 +142,8 @@ lim_lvl <- get_census(dataset = "CA21",
 
 ggplot(data = lim_lvl) +
   geom_sf(aes(fill = lico), color = NA) +
-  labs(title = "Low-Income Population in Laval 2021", color = "Dollars $",
-       fill = "Prevalance of Low-Income (LIM-AT) (%)") +
+  labs(title = "Population à faible revenu à Laval 2021",
+       fill = "Prévalence du faible revenu (MFR-ApI)(%)") +
   scale_fill_gradientn(colors = curbcut_scale, na.value = curbcut_na) +
   theme_minimal() +
   theme(axis.line = element_blank(), axis.text = element_blank(),
@@ -243,12 +243,14 @@ ggplot(rf, aes(x = Year, y = Proportion, color = `Risk Factor`, group = `Risk Fa
   geom_line(linewidth = 1.25) +
   scale_color_manual(values = c("Immigration" = "#66c2a5", "One Parent Families" = "#fc8d62",
                                 "Living Alone" = "#8da0cb", "Older than 75" = "#e78ac3",
-                                "Under-Educated" = "#a6d854", "Low Income*" = "#ffd92f")) +
-  labs(title = "Proportion of Population with Risk Factors for\n
-       Food Insecurity in Laval 2001-2021",
-       x = "Year",
-       y = "Proportion of Population (%)",
-       caption = "*Years 2011-2021 use the LIM-AT definition of low income") +
+                                "Under-Educated" = "#a6d854", "Low Income*" = "#ffd92f"),
+                     labels = c("Immigrant", "Familles monoparentales", "Vivre seul",
+                                "Plus de 75 ans", "Sous-éduqué", "Faible revenu")) +
+  labs(title = "Proportion de la population présentant des facteurs de risque\n
+                pour Insécurité alimentaire à Laval 2001-2021",
+       x = "Année",
+       y = "Proportion de la population (%)",
+       caption = "*Les années 2011 à 2021 utilisent la définition MFR-ApI du faible revenu") +
   theme_minimal() +
   theme(legend.position = "bottom", legend.title = element_blank(),
         axis.text.x = element_text(angle = 45, hjust = 1),
