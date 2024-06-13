@@ -340,9 +340,11 @@ ggplot(data = weight_laval, aes(x = name, y = value, fill = gender))+
   facet_wrap(~gender)+
   labs(y = "Percent", x = "Condition")
 
-# compare to Quebec
 
+# Set rebase as the default pull behavior
+system("git config pull.rebase true")
 
-
+# Pull the latest changes
+system("git pull")
 
 
