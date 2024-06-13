@@ -382,8 +382,10 @@ adolescant_screentime <- adolescant_screentime |>
 combined_screentime <- bind_rows(youngchildren_screentime, adolescant_screentime)
 
 combined_screentime$name <- 
-  factor(combined_screentime$name, levels = unique(combined_screentime$name))
-  
+  factor(combined_screentime$name, levels = unique(combined_screentime$name))  
+
+combined_screentime$Age <- factor(combined_screentime$Age, 
+                                        levels = c("6-12", "13-17"))  
   
 ggplot(data = combined_screentime, aes(x = Age, y = value, fill = name)) +
   geom_bar(stat = "identity") +
