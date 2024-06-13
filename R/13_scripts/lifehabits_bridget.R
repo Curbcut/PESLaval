@@ -306,4 +306,43 @@ drug_use_qc_plot <-
   ylim(0, 23)
 
 #visualise plots
-grid.arrange(drug_use_Laval_plot, drug_use_qc_plot, ncol = 2)           
+grid.arrange(drug_use_Laval_plot, drug_use_qc_plot, ncol = 2)
+
+
+# obesity / overweight residents ----------------------------------------------
+
+weight_laval <- data.frame(`Region` = c("Laval"),
+                           `Women Overweight` = c(31.1),
+                           `Women Obesity` = c(22.5),
+                           `Men Overweight` = c(43.1),
+                           `Men Obesity` = c(24.2),
+                           `Total Overweight` = c(37.1),
+                           `Total Obesity` = c(23.3))
+
+# pivot
+weight_laval <- weight_laval |> 
+  pivot_longer(-c(Region))
+
+# Separate the 'name' column into 'Gender' 
+weight_laval <- weight_laval|> 
+  mutate(gender = str_extract(name, "(Men.|Women.|Total.)"),
+       name = str_remove(name, "(Men.|Women.|Total.)")) 
+
+# keep columns in correct order
+weight_laval$gender <-
+  factor(weight_laval$gender, levels = unique(weight_laval$gender))
+
+# plot
+ggplot(data = weight_laval, aes(x = name, y = value, fill = gender))+
+  geom_col(position = "dodge")+
+  scale_fill_manual(values = c("Women." = "pink", "Men." = "blue", "Total." = "grey")) +
+  geom_text(aes(label = paste0(value, "%")), position = position_dodge(width = 0.9), vjust = -0.5) +
+  facet_wrap(~gender)+
+  labs(y = "Percent", x = "Condition")
+
+# compare to Quebec
+
+
+
+
+
