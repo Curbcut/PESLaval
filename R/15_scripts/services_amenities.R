@@ -8,7 +8,6 @@ library(rlang)
 
 #Setting up the cancensus api key
 set_cancensus_api_key("CensusMapper_4308d496f011429cf814385050f083dc", install = TRUE)
-
 set_cancensus_cache_path("D:/McGill/can_cache", install = TRUE, overwrite = TRUE)
 
 #Laval shapefile for DAs
@@ -16,6 +15,7 @@ laval_csd <- cancensus::get_census(dataset = "CA21",
                                   regions = list(CSD = 2465005), 
                                   level = "CSD", 
                                   geo_format = "sf")
+
 #Bounds box for Laval for later use in maps
 laval_bbox <- st_bbox(laval_csd)
 
@@ -51,17 +51,17 @@ lvl_sociodem <- get_census(dataset = "CA21",
          vis_min, immigrant, avg_rent, unafford_house)
 
 # Day Care ----------------------------------------------------------------
-dc_bike <- read_csv("D://Mcgill/can_cache/daycares/bike.csv") |> 
-  mutate(bike = as.double(access_bicycle_daycarespots_20_2024),
+dc_transit <- read_csv("/Users/justin/Documents/R/curbcut/daycare/transit.csv") |> 
+  mutate(transit = as.double(access_transit_pwd_daycarespots_15_2024),
          ID = as.character(ID)) |> 
-  select(ID, bike)
-dc_car <- read_csv("D://Mcgill/can_cache/daycares/car.csv") |> 
-  mutate(car = as.double(access_car_daycarespots_20_2024),
+  select(ID, transit)
+dc_car <- read_csv("/Users/justin/Documents/R/curbcut/daycare/car.csv") |> 
+  mutate(car = as.double(access_car_daycarespots_15_2024),
          ID = as.character(ID)) |> 
   select(ID, car)
-daycare <- st_read("D://Mcgill/can_cache/daycares/walk/access_data.shp") |> 
-  rename("walk" = a___20_) |> 
-  left_join(dc_bike, join_by(ID)) |> 
+daycare <- st_read("/Users/justin/Documents/R/curbcut/daycare/access_data.shp") |> 
+  rename("walk" = a___15_) |> 
+  left_join(dc_transit, join_by(ID)) |> 
   left_join(dc_car, join_by(ID)) |> 
   left_join(lvl_sociodem, join_by(ID == GeoUID))
 
@@ -70,9 +70,9 @@ walkdaycare <- ggplot() +
   geom_sf(data = daycare, aes(fill = walk), color = NA, show.legend = FALSE) +
   geom_sf(data = laval_csd, fill = NA, color = "black") +
   scale_fill_gradientn(colors = curbcut_scale,
-                       breaks = c(0, 1250, 2500, 3750, 5000, 6250, 7500, 8750, 10000), 
-                       limits = c(0, 10000),
-                       values = scales::rescale(c(0, 1250, 2500, 3750, 5000, 6250, 7500, 8750, 10000)),
+                       breaks = c(0, 1200, 2400, 3600, 4800, 6000, 7200, 8400, 9600), 
+                       limits = c(0, 9600),
+                       values = scales::rescale(c(0, 1200, 2400, 3600, 4800, 6000, 7200, 8400, 9600)),
                        oob = scales::squish) +
   theme_minimal() +
   labs(title = "À pied") +
@@ -83,18 +83,18 @@ walkdaycare <- ggplot() +
   coord_sf(xlim = c(laval_bbox$xmin, laval_bbox$xmax),
            ylim = c(laval_bbox$ymin, laval_bbox$ymax))
 
-bikedaycare <- ggplot() +
+transitdaycare <- ggplot() +
   geom_sf(data = mtlcma_sf, fill = "lightgrey") +
-  geom_sf(data = daycare, aes(fill = bike), color = NA) +
+  geom_sf(data = daycare, aes(fill = transit), color = NA) +
   geom_sf(data = laval_csd, fill = NA, color = "black") +
   scale_fill_gradientn(colors = curbcut_scale,
-                       breaks = c(0, 1250, 2500, 3750, 5000, 6250, 7500, 8750, 10000), 
-                       limits = c(0, 10000),
-                       values = scales::rescale(c(0, 1250, 2500, 3750, 5000, 6250, 7500, 8750, 10000)),
+                       breaks = c(0, 1200, 2400, 3600, 4800, 6000, 7200, 8400, 9600), 
+                       limits = c(0, 9600),
+                       values = scales::rescale(c(0, 1200, 2400, 3600, 4800, 6000, 7200, 8400, 9600)),
                        oob = scales::squish,
-                       name = "Nombre de places de garderie accessibles en 20 minutes") +
+                       name = "Nombre de places de garderie accessibles en 15 minutes") +
   theme_minimal() +
-  labs(title = "À vélo") +
+  labs(title = "Transport en commun") +
   guides(fill = guide_colourbar(title.position = "top",
                                 title.hjust = 0.5, barwidth = 20, barheight = 0.5)) +
   theme(plot.title = element_text(hjust = 0.5), axis.text = element_blank(),
@@ -109,9 +109,9 @@ cardaycare <- ggplot() +
   geom_sf(data = daycare, aes(fill = car), color = NA, show.legend = FALSE) +
   geom_sf(data = laval_csd, fill = NA, color = "black") +
   scale_fill_gradientn(colors = curbcut_scale,
-                       breaks = c(0, 1250, 2500, 3750, 5000, 6250, 7500, 8750, 10000), 
-                       limits = c(0, 10000),
-                       values = scales::rescale(c(0, 1250, 2500, 3750, 5000, 6250, 7500, 8750, 10000)),
+                       breaks = c(0, 1200, 2400, 3600, 4800, 6000, 7200, 8400, 9600), 
+                       limits = c(0, 9600),
+                       values = scales::rescale(c(0, 1200, 2400, 3600, 4800, 6000, 7200, 8400, 9600)),
                        oob = scales::squish) +
   theme_minimal() +
   labs(title = "En voiture") +
@@ -122,9 +122,10 @@ cardaycare <- ggplot() +
   coord_sf(xlim = c(laval_bbox$xmin, laval_bbox$xmax),
            ylim = c(laval_bbox$ymin, laval_bbox$ymax))
 
-daycare_map <- walkdaycare + bikedaycare + cardaycare +
-  plot_annotation(title = "Nombre de places de garderie accessibles en 20 minutes") &
+daycare_map <- walkdaycare + transitdaycare + cardaycare +
+  plot_annotation(title = "Nombre de places de garderie accessibles en 15 minutes") &
   theme(plot.title = element_text(hjust = 0.5))
+print(daycare_map)
 # Schools -----------------------------------------------------------------
 #Importing accessible educational institutions within 20 minutes for Laval by
 #bike, car, and walking, and binding together. Taken from the curbcut website
@@ -287,10 +288,39 @@ drivehealth <- ggplot() +
 health_map <- walkhealth + bikehealth + drivehealth +
   plot_annotation(title = "Nombre d'établissements de santé et de services sociaux en 20 minutes") &
   theme(plot.title = element_text(hjust = 0.5))
+
+# Calculations ------------------------------------------------------------
+#Importing walk and transit data for arenas
+arena_walk <- read_csv("/Users/justin/Documents/R/curbcut/arenas/walk.csv")
+arena_transit <- read_csv("/Users/justin/Documents/R/curbcut/arenas/transit.csv")
+
+#Calculating the proportion of the population that had access to at least 1 arena
+arena_walk_0 <- arena_walk |> 
+  summarize(total_population = sum(population, na.rm = TRUE),
+            access_0 = sum(population[access_foot_arena_15_2024 != 0], na.rm = TRUE)) |> 
+  mutate(proportion = access_0 / total_population)
+arena_transit_0 <- arena_transit |> 
+  summarize(total_population = sum(population, na.rm = TRUE),
+            access_0 = sum(population[access_transit_pwd_arena_15_2024 != 0], na.rm = TRUE)) |> 
+  mutate(proportion = access_0 / total_population)
+
+#Importing walk and transit data for community centres
+community_walk <- read_csv("/Users/justin/Documents/R/curbcut/community/walk.csv")
+community_transit <- read_csv("/Users/justin/Documents/R/curbcut/community/transit.csv")
+
+#Calculating the proportion of the population that does not have access to at least 1 community centre
+community_walk_0 <- community_walk |> 
+  summarize(total_population = sum(population, na.rm = TRUE),
+            access_0 = sum(population[access_foot_centre_communautaire_15_2024 == 0], na.rm = TRUE)) |> 
+  mutate(proportion = access_0 / total_population)
+community_transit_0 <- community_transit |> 
+  summarize(total_population = sum(population, na.rm = TRUE),
+            access_0 = sum(population[access_transit_pwd_centre_communautaire_15_2024 == 0], na.rm = TRUE)) |> 
+  mutate(proportion = access_0 / total_population)
 # Bivariate Map Functions -------------------------------------------------
 legend_breaks <- function(basedata, xvariable){
   basedata <- basedata %>%
-    mutate(x = !!sym(xvariable), y = !!sym("bike"))
+    mutate(x = !!sym(xvariable), y = !!sym("car"))
   bi_class_breaks(basedata, x = "x", y = "y", style = "fisher", dim = 3, split = TRUE)
 }
 
@@ -321,7 +351,7 @@ bi_map_create <- function(basedata, bi_variable, titletext){
 bi_finish <- function(map_name, legend_name){
   ggdraw() +
     draw_plot(map_name, 0, 0, 1, 1) +
-    draw_plot(legend_name, 0.67, 0.0365, 0.32, 0.32)
+    draw_plot(legend_name, 0.67, 0.035, 0.32, 0.32)
 }
 
 # School Bivariate Maps ---------------------------------------------------
@@ -357,67 +387,80 @@ school_income_breaks <- legend_breaks(school, "low_income")
 school_income_legend <- create_legend("Faible revenu", "Éducation", school_income_breaks)
 school_income_map <- bi_map_create(school_bi, "school_low_income", "Accès à l’éducation et faibles revenus")
 school_income_plot <- bi_finish(school_income_map, school_income_legend)
+print(school_income_plot)
 
 #Bivariate map for school and ages 15 and under
 school_under15_breaks <- legend_breaks(school, "under_15")
 school_under15_legend <- create_legend("Moins de 15 ans", "Éducation", school_under15_breaks)
 school_under15_map <- bi_map_create(school_bi, "school_under_15", "Accès à l'éducation et personnes de moins de 15 ans")
 school_under15_plot <- bi_finish(school_under15_map, school_under15_legend)
+print(school_under15_plot)
 
 #Bivariate map for school and ages 15-65
 school_1564_breaks <- legend_breaks(school, "15_64")
 school_1564_legend <- create_legend("15-65 ans", "Éducation", school_1564_breaks)
 school_1564_map <- bi_map_create(school_bi, "school_15_65", "Accès à l'éducation et personnes de 15 à 65 ans")
 school_1564_plot <- bi_finish(school_1564_map, school_1564_legend)
+print(school_1564_plot)
 
 #Bivariate map for school and ages 65 and older
 school_older65_breaks <- legend_breaks(school, "65_older")
 school_older65_legend <- create_legend("65 ans et plus", "Éducation", school_older65_breaks)
 school_older65_map <- bi_map_create(school_bi, "school_65_older", "Accès à l’éducation et personnes de 65 ans et plus")
 school_older65_plot <- bi_finish(school_older65_map, school_older65_legend)
+print(school_older65_plot)
 
 #Bivariate map for school and visible minorities
 school_vismin_breaks <- legend_breaks(school, "vis_min")
 school_vismin_legend <- create_legend("Minorité visible", "Éducation", school_vismin_breaks)
 school_vismin_map <- bi_map_create(school_bi, "school_vis_min", "Accès à l’éducation et proportion de minorités visibles")
 school_vismin_plot <- bi_finish(school_vismin_map, school_vismin_legend)
+print(school_vismin_plot)
 
 #Bivariate map for school and immigrants
 school_immigrant_breaks <- legend_breaks(school, "immigrant")
 school_immigrant_legend <- create_legend("Immigrant", "Éducation", school_immigrant_breaks)
 school_immigrant_map <- bi_map_create(school_bi, "school_immigrant", "Accès à l’éducation et population immigrée")
 school_immigrant_plot <- bi_finish(school_immigrant_map, school_immigrant_legend)
+print(school_immigrant_plot)
 
 #Bivariate map for school and rent
 school_rent_breaks <- legend_breaks(school, "avg_rent")
 school_rent_legend <- create_legend("Loyer moyen", "Éducation", school_rent_breaks)
 school_rent_map <- bi_map_create(school_bi, "school_rent", "Accès à l’éducation et loyer moyen")
 school_rent_plot <- bi_finish(school_rent_map, school_rent_legend)
+print(school_rent_plot)
 
+#Bivariate map for school and housing affordability
+school_house_breaks <- legend_breaks(school, "unafford_house")
+school_house_legend <- create_legend("Logement inabordable", "Éducation", school_house_breaks)
+school_house_map <- bi_map_create(school_bi, "school_house", "Accès à l’éducation et logement inabordable")
+school_house_plot <- bi_finish(school_house_map, school_house_legend)
+print(school_house_plot)
 
 # Daycare Bivariate Maps --------------------------------------------------
-daycare_bi <- bi_class(daycare, x = low_income, y = bike, style = "fisher", dim = 3) |> 
+daycare_bi <- bi_class(daycare, x = low_income, y = car, style = "fisher", dim = 3) |> 
   mutate(daycare_low_income = bi_class) |> 
   select(-bi_class, -low_income)
-daycare_bi <- bi_class(daycare_bi, x = under_15, y = bike, style = "fisher", dim = 3) |> 
+daycare_bi <- bi_class(daycare_bi, x = under_15, y = car, style = "fisher", dim = 3) |> 
   mutate(daycare_under_15 = bi_class) |> 
   select(-bi_class, -under_15)
-daycare_bi <- bi_class(daycare_bi, x = `15_64`, y = bike, style = "fisher", dim = 3) |> 
+daycare_bi <- bi_class(daycare_bi, x = `15_64`, y = car, style = "fisher", dim = 3) |> 
   mutate(daycare_15_65 = bi_class) |> 
   select(-bi_class, -`15_64`)
-daycare_bi <- bi_class(daycare_bi, x = `65_older`, y = bike, style = "fisher", dim = 3) |> 
+daycare_bi <- bi_class(daycare_bi, x = `65_older`, y = car, style = "fisher", dim = 3) |> 
   mutate(daycare_65_older = bi_class) |> 
   select(-bi_class, -`65_older`)
-daycare_bi <- bi_class(daycare_bi, x = vis_min, y = bike, style = "fisher", dim = 3) |> 
+daycare_bi <- bi_class(daycare_bi, x = vis_min, y = car, style = "fisher", dim = 3) |> 
   mutate(daycare_vis_min = bi_class) |> 
   select(-bi_class, -vis_min)
-daycare_bi <- bi_class(daycare_bi, x = immigrant, y = bike, style = "fisher", dim = 3) |> 
+daycare_bi <- bi_class(daycare_bi, x = immigrant, y = car, style = "fisher", dim = 3) |> 
   mutate(daycare_immigrant = bi_class) |> 
   select(-bi_class, -immigrant)
-daycare_bi <- bi_class(daycare_bi, x = avg_rent, y = bike, style = "fisher", dim = 3) |> 
+daycare_bi <- bi_class(daycare_bi, x = avg_rent, y = car, style = "fisher", dim = 3) |> 
   mutate(daycare_rent = bi_class) |> 
   select(-bi_class, -avg_rent)
-daycare_bi <- bi_class(daycare_bi, x = unafford_house, y = bike, style = "fisher", dim = 3) |> 
+daycare_bi <- bi_class(daycare_bi, x = unafford_house, y = car, style = "fisher", dim = 3) |> 
   mutate(daycare_house = bi_class) |> 
   select(-bi_class, -unafford_house)
 
@@ -426,42 +469,56 @@ daycare_income_breaks <- legend_breaks(daycare, "low_income")
 daycare_income_legend <- create_legend("Faible revenu", "Garderies", daycare_income_breaks)
 daycare_income_map <- bi_map_create(daycare_bi, "daycare_low_income", "Accès aux garderies et faibles revenus")
 daycare_income_plot <- bi_finish(daycare_income_map, daycare_income_legend)
+print(daycare_income_plot)
 
 #Bivariate map for daycare and ages 15 and under
 daycare_under15_breaks <- legend_breaks(daycare, "under_15")
 daycare_under15_legend <- create_legend("Moins de 15 ans", "Garderies", daycare_under15_breaks)
 daycare_under15_map <- bi_map_create(daycare_bi, "daycare_under_15", "Accès aux garderies et personnes de moins de 15 ans")
 daycare_under15_plot <- bi_finish(daycare_under15_map, daycare_under15_legend)
+print(daycare_under15_plot)
 
 #Bivariate map for daycare and ages 15-65
 daycare_1564_breaks <- legend_breaks(daycare, "15_64")
 daycare_1564_legend <- create_legend("15-65 ans", "Garderies", daycare_1564_breaks)
 daycare_1564_map <- bi_map_create(daycare_bi, "daycare_15_65", "Accès aux garderies et personnes de 15 à 65 ans")
 daycare_1564_plot <- bi_finish(daycare_1564_map, daycare_1564_legend)
+print(daycare_1564_plot)
 
 #Bivariate map for daycare and ages 65 and older
 daycare_older65_breaks <- legend_breaks(daycare, "65_older")
 daycare_older65_legend <- create_legend("65 ans et plus", "Garderies", daycare_older65_breaks)
 daycare_older65_map <- bi_map_create(daycare_bi, "daycare_65_older", "Accès aux garderies et personnes de 65 ans et plus")
 daycare_older65_plot <- bi_finish(daycare_older65_map, daycare_older65_legend)
+print(daycare_older65_plot)
 
 #Bivariate map for daycare and visible minorities
 daycare_vismin_breaks <- legend_breaks(daycare, "vis_min")
 daycare_vismin_legend <- create_legend("Minorité visible", "Garderies", daycare_vismin_breaks)
 daycare_vismin_map <- bi_map_create(daycare_bi, "daycare_vis_min", "Accès aux garderies et proportion de minorités visibles")
 daycare_vismin_plot <- bi_finish(daycare_vismin_map, daycare_vismin_legend)
+print(daycare_vismin_plot)
 
 #Bivariate map for daycare and immigrants
 daycare_immigrant_breaks <- legend_breaks(daycare, "immigrant")
 daycare_immigrant_legend <- create_legend("Immigrant", "Garderies", daycare_immigrant_breaks)
 daycare_immigrant_map <- bi_map_create(daycare_bi, "daycare_immigrant", "Accès aux garderies et population immigrée")
 daycare_immigrant_plot <- bi_finish(daycare_immigrant_map, daycare_immigrant_legend)
+print(daycare_immigrant_plot)
 
 #Bivariate map for daycare and rent
 daycare_rent_breaks <- legend_breaks(daycare, "avg_rent")
 daycare_rent_legend <- create_legend("Loyer moyen", "Garderies", daycare_rent_breaks)
 daycare_rent_map <- bi_map_create(daycare_bi, "daycare_rent", "Accès aux garderies et loyer moyen")
 daycare_rent_plot <- bi_finish(daycare_rent_map, daycare_rent_legend)
+print(daycare_rent_plot)
+
+#Bivariate map for daycare and housing affordability
+daycare_house_breaks <- legend_breaks(daycare, "unafford_house")
+daycare_house_legend <- create_legend("Logement inabordable", "Garderies", daycare_house_breaks)
+daycare_house_map <- bi_map_create(daycare_bi, "daycare_house", "Accès aux garderies et logement inabordable")
+daycare_house_plot <- bi_finish(daycare_house_map, daycare_house_legend)
+print(daycare_house_plot)
 
 # Health Bivariate Maps --------------------------------------------------
 health_bi <- bi_class(health, x = low_income, y = bike, style = "fisher", dim = 3) |> 
@@ -537,3 +594,10 @@ health_rent_legend <- create_legend("Loyer moyen", "Établissements de santé", 
 health_rent_map <- bi_map_create(health_bi, "health_rent", "Accès aux établissements de santé et loyer moyen")
 health_rent_plot <- bi_finish(health_rent_map, health_rent_legend)
 print(health_rent_plot)
+
+#Bivariate map for health and housing affordability
+health_house_breaks <- legend_breaks(health, "unafford_house")
+health_house_legend <- create_legend("Logement inabordable", "Établissements de santé", health_house_breaks)
+health_house_map <- bi_map_create(health_bi, "health_house", "Établissements de santé et logement inabordable")
+health_house_plot <- bi_finish(health_house_map, health_house_legend)
+print(health_house_plot)

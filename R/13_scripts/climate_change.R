@@ -182,7 +182,7 @@ ggplot() +
   geom_sf(data = flooding2_20, fill = "#74a9cf",color = NA) +
   geom_sf(data = flooding0_2, fill = "#045a8d",color = NA) +
   geom_sf(data = laval_csd, fill = NA, color = "black") +
-  labs(title = "Flood Zones in Laval 2023",
+  labs(title = "Zones inondables de Laval 2019",
        fill = "Level of Vulnerability") +
   theme_minimal() +
   theme(axis.line = element_blank(), axis.text = element_blank(),
