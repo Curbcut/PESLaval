@@ -69,7 +69,6 @@ laval_family_size21 <-  get_census(
   dataset = "CA21",
   regions = list(CSD = 2465005),
   level = "CSD",
-  geo_format = "sf",
   vectors = c(
     family_size = "v_CA21_492",
     family_2 = "v_CA21_493",
@@ -84,7 +83,7 @@ laval_family_size21 <-
          family_4_pct = family_4/family_size,
          family_5_pct = family_5/family_size)
 
-# Create a dataframe for plotting
+# Create a graph to visualise family size distribution in Laval
 family_size_plot <- 
   family_size21 |> 
   data.frame(
@@ -95,7 +94,6 @@ family_size_plot <-
                  laval_family_size21$family_5_pct))
 
 
-# Modify the ggplot code
 ggplot(family_size_plot, aes(x = family_size, y = percentage)) +
   geom_bar(stat = "identity") +
   labs(x = "Family Size", y = "Percentage", 
@@ -152,7 +150,7 @@ laval_family_size16 <-
 
 
 
-#  2006
+#  Family size in Laval in 2006
 
 laval_family_size06 <-  get_census(
   dataset = "CA06",
@@ -173,7 +171,7 @@ laval_family_size06 <-
          family_4_pct = family_4/family_size,
          family_5_pct = family_5/family_size)
 
-#1996
+# family size in laval in 1996
 
 laval_family_size96 <-  get_census(
   dataset = "CA1996",
@@ -195,7 +193,7 @@ laval_family_size96 <-
          family_5_pct = family_5/family_size)
 
 
-
+#create a graph to visualise the evolution over time
 # Combine datasets
 laval_family_size <- bind_rows(
   laval_family_size21 %>% mutate(year = 2021),
@@ -244,6 +242,7 @@ avg_children <-  get_census(
   vectors =
     c(avg_child = "v_CA21_498"))
 
+# creating a map to visualise the spatial distribution of the number of children
 ggplot(avg_children) +
   geom_sf(aes(fill = avg_child)) +
   scale_fill_viridis_c() +  
@@ -253,6 +252,8 @@ ggplot(avg_children) +
   theme(
     plot.title = element_text(hjust = 0.5, face = "bold")
   )
+
+
 
 #here, I get the laval data over the census years to do a time comparison
 
@@ -264,6 +265,8 @@ laval_avg_children_21 <-  get_census(
   geo_format = "sf",
   vectors = c(
     avg_child = "v_CA21_498"))
+
+laval_avg_child_number <- print(laval_avg_children_21$avg_child)
 
 ### for 2016, no average number of children as its own variable
 
@@ -306,7 +309,8 @@ laval_avg_children <- bind_rows(
   laval_avg_children_01 %>% select(year, avg_child)
 )
 
-# Plot the data using ggplot2
+# Plot the data - showing the evolution of the average number of children
+#in laval over the years
 ggplot(data = laval_avg_children, aes(x = year, y = avg_child)) +
   geom_line(color = "blue") +
   geom_point(color = "red") +
@@ -326,6 +330,7 @@ qc_avg_children <-  get_census(
   vectors = c(
     avg_child = "v_CA21_498"))
 
+qc_avg_child_number <- print(qc_avg_children$avg_child)
 
 
 # Families in private households ------------------------------------------
@@ -372,7 +377,6 @@ laval_household_family_21 <-  get_census(
   dataset = "CA21",
   regions = list(CSD = 2465005),
   level = "CSD",
-  geo_format = "sf",
   vectors = c(
     household_total = "v_CA21_499",
     couple_fam = "v_CA21_500",
@@ -387,7 +391,7 @@ laval_household_family_21 <-  get_census(
     one_parent_man = "v_CA21_509"
   ))
 
-#### percentages by parent variable ####
+#### percentages by their parent variable ####
 laval_household_family_relative <- 
   laval_household_family |> 
   mutate(couple_fam_pct = couple_fam/household_total,
@@ -419,6 +423,10 @@ laval_household_family_21 <-
          one_parent_woman_pct = one_parent_woman / household_total,
          one_parent_man_pct = one_parent_man / household_total
   ) 
+
+print(laval_household_family_21$couple_fam_married_pct*100"%")
+print(paste0(round(laval_household_family_21$couple_fam_married_pct*100,1), "%"))
+
 
 # I am pulling the data for the last few censuses for comparisons over time
 
@@ -652,6 +660,7 @@ ggplot(long_data, aes(x = as.factor(year), y = percentage, fill = family_type)) 
   theme(legend.title = element_blank())
 
 #line plot with percentages shown on graph
+# this graph shows 
 ggplot(long_data, aes(x = as.factor(year), y = percentage, color = family_type, group = family_type)) +
   geom_line(size = 1) +
   geom_point(size = 3) +
@@ -1058,6 +1067,7 @@ household_size <-  get_census(
   dataset = "CA21",
   regions = list(CSD = 2465005),
   level = "CT",
+  geo_format = "sf",
   vectors = c(
     avg_size = "v_CA21_452",
     total = "v_CA21_443",
@@ -1067,6 +1077,10 @@ household_size <-  get_census(
     four = "v_CA21_447",
     five_more = "v_CA21_448"
   ))
+
+household_size |> 
+  ggplot()+
+  geom_sf(aes(geometry = geometry, fill = avg_size, scale_) 
 
 household_size <- 
   household_size |> 
@@ -1414,8 +1428,9 @@ laval_household_persons_evol_long <-
                values_to = "count") |> 
   mutate(household_persons = factor(household_persons, levels = sort_vect)) 
 
+# Assuming laval_household_persons_evol_pct is correctly formatted
 laval_household_persons_evol_pct <- 
-laval_household_persons21 |> 
+  laval_household_persons21 |> 
   mutate(one_evol = ((laval_household_persons21$one - 
                         laval_household_persons96$one)/
                        laval_household_persons96$one)*100,
@@ -1441,13 +1456,88 @@ laval_household_persons21 |>
                                  paste0("+", round(four_more_evol, 1), "%"), 
                                  paste0(round(four_more_evol, 1), "%"))) |> 
   pivot_longer(cols = c(one_evol, two_evol, three_evol, four_more_evol),
-                names_to = "household_persons_change",
-                values_to = "percentage")
-         
+               names_to = "household_persons",
+               values_to = "percentage") |> 
+  mutate(household_persons = recode(household_persons, 
+                                    one_evol = "one",
+                                    two_evol = "two",
+                                    three_evol = "three",
+                                    four_more_evol = "four_more"))
 
-laval_household_persons21_evol <- 
-  bind_cols(laval_household_persons21_long,pct_change = laval_household_persons_evol_pct$percentage)
+# Merge percentage change data with the long format data
+laval_household_persons_evol_long <- 
+  laval_household_persons_evol_long |> 
+  left_join(laval_household_persons_evol_pct, by = "household_persons") |> 
+  mutate(household_persons = factor(household_persons, levels = sort_vect))
+
+# Create the bar chart with percentage change labels
+ggplot(laval_household_persons_evol_long, aes(x = household_persons, y = count, fill = as.factor(year))) +
+  geom_bar(stat = "identity", position = position_dodge()) +
+  geom_text(data = subset(laval_household_persons_evol_long, year == 2021), 
+            aes(label = percentage, y = count + 0.05 * max(count)), 
+            position = position_dodge(width = 0.9), 
+            vjust = 0.5, 
+            hjust = 0.05,
+            size = 4, 
+            color = "orange") +
+  scale_fill_manual(values = c("1996" = "skyblue", "2021" = "orange"), name = "Year") +
+  labs(title = "Number of Persons in Households by Household Size in Laval (1996 vs 2021)",
+       x = "Household Size",
+       y = "Number of Persons") +
+  theme_minimal() +
+  theme(plot.title = element_text(hjust = 0.5))
+
   
+#VISUALISATION
+
+library(dplyr)
+library(tidyr)
+library(ggplot2)
+
+# Step 1: Process the 2021 data
+laval_household_persons21 <- 
+  laval_household_size21 |> 
+  mutate(one = one,
+         two = two * 2,
+         three = three * 3,
+         four_more = four * 4 + five_more * 5) |> 
+  mutate(total = sum(c(one, two, three, four_more))) |> 
+  select(GeoUID, total, one, two, three, four_more)
+
+# Step 2: Process the 1996 data
+laval_household_persons96 <- 
+  laval_household_size96 |> 
+  mutate(one = one,
+         two = two * 2,
+         three = three * 3,
+         four_more = four_five * 4.5 + six_more * 6) |> 
+  mutate(total = sum(c(one, two, three, four_more))) |> 
+  select(GeoUID, total, one, two, three, four_more)
+
+# Step 3: Combine data for both years
+laval_household_persons_evol <- bind_rows(
+  laval_household_persons21 |> mutate(year = 2021),
+  laval_household_persons96 |> mutate(year = 1996)
+) |> 
+  select(GeoUID, year, everything())
+
+# Step 4: Pivot to long format
+laval_household_persons_evol_long <- 
+  laval_household_persons_evol |> 
+  pivot_longer(cols = c(one, two, three, four_more),
+               names_to = "household_persons",
+               values_to = "count") |> 
+  mutate(household_persons = factor(household_persons, levels = c("one", "two", "three", "four_more")))
+
+# Step 5: Create the side-by-side bar chart
+ggplot(laval_household_persons_evol_long, aes(x = household_persons, y = count, fill = as.factor(year))) +
+  geom_bar(stat = "identity", position = position_dodge()) +
+  scale_fill_manual(values = c("1996" = "skyblue", "2021" = "orange"), name = "Year") +
+  labs(title = "Number of Persons in Households by Household Size in Laval (1996 vs 2021)",
+       x = "Household Size",
+       y = "Number of Persons") +
+  theme_minimal() +
+  theme(plot.title = element_text(hjust = 0.5))
 
 # TK
 
