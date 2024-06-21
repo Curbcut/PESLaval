@@ -137,7 +137,7 @@ ggplot() +
 #Vectors for the flooding
 flooding <- st_read("D://Mcgill/can_cache/flood.gpkg") |> 
   st_transform(crs = 4326)
-curbcut_flooding <- st_read("/Users/justin/Documents/R/curbcut/zone_inondable_RCI_CDU_20240607_PG.shp") |> 
+curbcut_flooding <- st_read("D://Mcgill/can_cache/enviro/zone_inondable_RCI_CDU_20240607_PG.shp") |> 
   st_transform(crs = 4326)
 flooding0_2 <- curbcut_flooding |> 
   filter(LIMITE == "Zone inondable 0-2 ans")
@@ -151,7 +151,7 @@ laval_db <- cancensus::get_census(dataset = "CA21",
                                   regions = list(CSD = 2465005), 
                                   level = "DB", 
                                   geo_format = "sf") |> 
-  st_transform(32198)
+  st_transform(4326)
 
 #Bounding box of Laval
 laval_bbox <- st_bbox(laval_csd)
@@ -174,7 +174,7 @@ ggplot() +
   coord_sf(xlim = c(laval_bbox$xmin, laval_bbox$xmax),
            ylim = c(laval_bbox$ymin, laval_bbox$ymax))
 
-#Flood map using the more granular data, not included in the first draft
+#Flood map using the more granular data, not included in the first draft version 1
 ggplot() +
   geom_sf(data = mtlcma_sf, fill = "grey", color = "black") +
   geom_sf(data = laval_csd, fill = "#F8F8F8", color = "black") +
@@ -185,6 +185,30 @@ ggplot() +
   labs(title = "Zones inondables de Laval 2019",
        fill = "Level of Vulnerability") +
   theme_minimal() +
+  theme(axis.line = element_blank(), axis.text = element_blank(),
+        panel.background = element_rect(fill = "#cedbdc"),
+        axis.title = element_blank(), axis.ticks = element_blank(),
+        panel.grid = element_blank(), plot.title = element_text(hjust = 0.5),
+        legend.position = "bottom", legend.justification = "center") +
+  coord_sf(xlim = c(laval_bbox$xmin, laval_bbox$xmax),
+           ylim = c(laval_bbox$ymin, laval_bbox$ymax))
+
+#Flood map using more granular data, version 2 without making separate files
+ggplot(data = curbcut_flooding) +
+  geom_sf(data = mtlcma_sf, fill = "grey", color = "black") +
+  geom_sf(data = laval_csd, fill = "#F8F8F8", color = NA) +
+  geom_sf(aes(fill = LIMITE), color = NA) +
+  scale_fill_manual(values = c(
+    "Zone inondable 0-2 ans" = "#045a8d",
+    "Zone inondable 2-20 ans" = "#74a9cf",
+    "Zone inondable 20-100 ans" = "#bdc9e1"),
+    labels = c(
+      "Zone inondable 0-2 ans" = "Zone inondable 0-2 ans",
+      "Zone inondable 2-20 ans" = "2-20 ans",
+      "Zone inondable 20-100 ans" = "20-100 ans")) +
+  geom_sf(data = laval_csd, fill = NA, color = "black") +
+  theme_minimal() +
+  labs(title = "Carte des zones inondables 2019", fill = "") +
   theme(axis.line = element_blank(), axis.text = element_blank(),
         panel.background = element_rect(fill = "#cedbdc"),
         axis.title = element_blank(), axis.ticks = element_blank(),
@@ -206,3 +230,38 @@ flood_lvl <- laval_db |>
     flood_pop = sum(Population[flooded == 1], na.rm = TRUE)
   ) |> 
   mutate(flood_prop = flood_pop / total_pop)
+
+#Analysis for granular data, first validating shapefiles
+curbcut_flooding <- st_make_valid(curbcut_flooding)
+laval_db <- st_make_valid(laval_db)
+
+#Assigning flood values based on the LIMITE column
+assign_flooding_value <- function(LIMITE) {
+  case_when(
+    LIMITE == "Zone inondable 0-2 ans" ~ 1,
+    LIMITE == "Zone inondable 2-20 ans" ~ 2,
+    LIMITE == "Zone inondable 20-100 ans" ~ 3,
+    TRUE ~ NA_real_
+  )
+}
+
+#Creating a new vector that combines the DBs of Laval and the flood data
+laval_joined <- st_join(laval_db, curbcut_flooding) |> 
+  mutate(Flooding = assign_flooding_value(LIMITE)) |> 
+  group_by(GeoUID) |> 
+  summarise(Flooding = if_else(any(!is.na(Flooding)), min(Flooding, na.rm = TRUE), 0)) |> 
+  st_drop_geometry()
+
+#Assign flood values to DBs and then calculates proportion of population that
+#are at risk of flooding by year
+laval_flooded <- laval_db |> 
+  left_join(laval_joined, by = "GeoUID") |> 
+  summarise(
+    total_population = sum(Population, na.rm = TRUE),
+    flooding_0_2 = sum(ifelse(Flooding == 1, Population, 0), na.rm = TRUE),
+    flooding_2_20 = sum(ifelse(Flooding %in% c(1, 2), Population, 0), na.rm = TRUE),
+    flooding_20_100 = sum(ifelse(Flooding %in% c(1, 2, 3), Population, 0), na.rm = TRUE)
+  ) |> 
+  mutate(proportion_0_2 = flooding_0_2 * 100 / total_population,
+         proportion_2_20 = flooding_2_20 * 100 / total_population,
+         proportion_20_100 = flooding_20_100 * 100 / total_population)

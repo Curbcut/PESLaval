@@ -457,6 +457,24 @@ noc_women <- c("total" = "v_CA21_6563", "na" = "v_CA21_6566", "all" = "v_CA21_65
                "6" = "v_CA21_6590", "7" = "v_CA21_6593", "8" = "v_CA21_6596",
                "9" = "v_CA21_6599")
 
+
+noc_total16 <- c("total" = "v_CA16_5654", "na" = "v_CA16_5657", "all" = "v_CA16_5660",
+                "0" = "v_CA16_5663", "1" = "v_CA16_5666", "2" = "v_CA16_5669",
+                "3" = "v_CA16_5672", "4" = "v_CA16_5675", "5" = "v_CA16_5678",
+                "6" = "v_CA16_5681", "7" = "v_CA16_5684", "8" = "v_CA16_5687",
+                "9" = "v_CA16_5690")
+noc_men16 <- c("total" = "v_CA16_5655", "na" = "v_CA16_5658", "all" = "v_CA16_5661",
+                "0" = "v_CA16_5664", "1" = "v_CA16_5667", "2" = "v_CA16_5670",
+                "3" = "v_CA16_5673", "4" = "v_CA16_5676", "5" = "v_CA16_5679",
+                "6" = "v_CA16_5682", "7" = "v_CA16_5685", "8" = "v_CA16_5688",
+                "9" = "v_CA16_5691")
+noc_women16 <- c("total" = "v_CA16_5656", "na" = "v_CA16_5659", "all" = "v_CA16_5662",
+                 "0" = "v_CA16_5665", "1" = "v_CA16_5668", "2" = "v_CA16_5671",
+                 "3" = "v_CA16_5674", "4" = "v_CA16_5677", "5" = "v_CA16_5680",
+                 "6" = "v_CA16_5683", "7" = "v_CA16_5686", "8" = "v_CA16_5689",
+                 "9" = "v_CA16_5692")
+
+
 #Vector with the given names for the NOC occupations vectors above
 noc_names <- c("total", "na", "all", "0", "1", "2", "3", "4", "5", "6", "7", "8", "9")
 
@@ -487,11 +505,49 @@ noc_lvl_women  <- get_census(dataset = "CA21",
   mutate(Type = "Women") |> 
   select(Type, everything())
 
+#Grabbing Laval-wide NOC occupations 2016
+noc_lvl_total16 <- get_census(dataset = "CA16", 
+                             regions = list(CSD = 2465005), 
+                             level = "CSD",
+                             vectors = noc_total16) |> 
+  select(all_of(noc_names)) |> 
+  mutate(Type = "Total") |> 
+  select(Type, everything())
+
+#Grabbing men NOC occupations 2016
+noc_lvl_men16 <- get_census(dataset = "CA16", 
+                           regions = list(CSD = 2465005), 
+                           level = "CSD",
+                           vectors = noc_men16) |> 
+  select(all_of(noc_names)) |> 
+  mutate(Type = "Men") |> 
+  select(Type, everything())
+
+#Grabbing women NOC occupations
+noc_lvl_women16 <- get_census(dataset = "CA16", 
+                             regions = list(CSD = 2465005), 
+                             level = "CSD",
+                             vectors = noc_women16) |> 
+  select(all_of(noc_names)) |> 
+  mutate(Type = "Women") |> 
+  select(Type, everything())
+
 #Binding the NOC tables together
 noc_occupation <- bind_rows(noc_lvl_total, noc_lvl_men, noc_lvl_women)
+noc_occupation16 <- bind_rows(noc_lvl_total16, noc_lvl_men16, noc_lvl_women16)
+
+#Exporting the tables so proportion can be calculated using excel
+write.csv(noc_occupation, "D://McGill/can_cache/noc_occupation.csv", row.names = FALSE)
+write.csv(noc_occupation16, "D://McGill/can_cache/noc_occupation16.csv", row.names = FALSE)
 
 #Set up table to create a grouped bar graph
 noc_occupation_table <- noc_occupation |> 
+  select(-total, -all) |> 
+  pivot_longer(cols = -Type, names_to = "category", values_to = "count") |> 
+  mutate(Type = factor(Type, levels = c("Total", "Men", "Women"))) |> 
+  mutate(category = factor(category, levels = c("na", "0", "1", "2", "3", "4", "5", "6", "7", "8", "9")))
+
+noc_occupation_table16 <- noc_occupation16 |> 
   select(-total, -all) |> 
   pivot_longer(cols = -Type, names_to = "category", values_to = "count") |> 
   mutate(Type = factor(Type, levels = c("Total", "Men", "Women"))) |> 
@@ -517,23 +573,6 @@ ggplot(noc_occupation_table, aes(x = category, y = count, fill = Type)) +
   theme(legend.position = "bottom", legend.title = element_blank(),
         axis.text.x = element_text(angle = 45, hjust = 1),
         plot.title = element_text(hjust = 0.5))
-
-#Preparing the table to create a pie graph
-noc_occupation_pie <- noc_occupation |> 
-  select(-Type, -total, -all) |> 
-  slice(c(-2, -3)) |> 
-  pivot_longer(cols = everything(), names_to = "category", values_to = "count")
-
-#Pie chart for NOS
-ggplot(noc_occupation_pie, aes(x = "", y = count, fill = category)) +
-  geom_bar(width = 1, stat = "identity") +
-  coord_polar("y", start = 0) +
-  theme_void() +
-  labs(title = "National Occupational Classification 2021") +
-  scale_fill_discrete(labels = c("na" = "Not Applicable")) +
-  theme(
-    legend.position = "right", legend.title = element_blank()
-  )
 
 # North American Industry Classification System ---------------------------
 #Vectors for 2021 NAICS categories
