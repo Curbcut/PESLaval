@@ -9,12 +9,15 @@ set_cancensus_api_key("CensusMapper_4308d496f011429cf814385050f083dc")
 #Caching census data to reduce amount of calls and speed up process.
 #Personal use only, change the folder to your own folder if you want to use it
 set_cancensus_cache_path("D:/McGill/can_cache", install = TRUE, overwrite = TRUE)
+set_cancensus_cache_path("/Users/justin/Documents/R/CurbCutSelf")
+
 # Employment Data 2021 ---------------------------------------------------------
 #Vectors for 2021 total population 15+ by labour force (lf) status, employed, and unemployed (25% sample data)
-lf_vectors_21 <- c("lf_pop" = "v_CA21_6492", "tot_empl" = "v_CA21_6498", "tot_unempl" = "v_CA21_6501")
+lf_vectors_21 <- c("tot_pop" = "v_CA21_6492", "lf_pop" = "v_CA21_6495",
+                   "tot_empl" = "v_CA21_6498", "tot_unempl" = "v_CA21_6501")
 
 #Vector with the given CanCensus names from lf_vectors_21
-lf_names_21 <- c("lf_pop", "tot_empl", "tot_unempl")
+lf_names_21 <- c("tot_pop", "lf_pop", "tot_empl", "tot_unempl")
 
 #Grab lf_vectors_21 data for Laval and Montreal and cleans up the table
 lf_lvl_mtl_21  <- get_census(dataset = "CA21", 
@@ -23,15 +26,6 @@ lf_lvl_mtl_21  <- get_census(dataset = "CA21",
                               vectors = lf_vectors_21) |> 
   select(all_of(lf_names_21)) |> 
   mutate(Geography = c("Laval", "Montreal")) |> 
-  select(Geography, everything())
-
-#Grab lf_vectors_21 data for the Montreal CMA and cleans up the table
-lf_mtl_cma_21 <- get_census(dataset = "CA21", 
-                                  regions = list(CMA = 24462), 
-                                  level = "CMA",
-                                  vectors = lf_vectors_21) |> 
-  select(all_of(lf_names_21)) |> 
-  mutate(Geography = "Montreal CMA") |> 
   select(Geography, everything())
 
 #Grab lf_vectors_21 data for the province of Quebec and cleans up the table
@@ -45,7 +39,7 @@ lf_qc_21  <- get_census(dataset = "CA21",
 
 #Combines the data and calculates (un)employment rate, and then cleans up the table
 lf_combined_21 <- bind_rows(lf_lvl_mtl_21, lf_qc_21) |> 
-  mutate(empl_rate_21 = round(tot_empl * 100 / lf_pop, 1),
+  mutate(empl_rate_21 = round(tot_empl * 100 / tot_pop, 1),
          unempl_rate_21 = round(tot_unempl*100 / lf_pop, 1)) |> 
   select(Geography, empl_rate_21, unempl_rate_21)
 
@@ -228,7 +222,7 @@ unemployment_rate <- lf_combined |>
   pivot_longer(cols = -Geography, names_to = "Year", values_to = "Value")
 
 
-#Creating the line graph for employment rate
+#Creating the line graph for unemployment rate
 ggplot(unemployment_rate, aes(x = as.factor(Year), y = Value, color = Geography, group = Geography)) +
   geom_line(size = 1.5) +
   labs(title = "Taux de chômage de 2001 à 2021", x = "Année",

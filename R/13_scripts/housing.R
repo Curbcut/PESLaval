@@ -9,6 +9,7 @@ set_cancensus_api_key("CensusMapper_4308d496f011429cf814385050f083dc")
 #Personal use only, change the folder to your own folder if you want to use it
 set_cancensus_cache_path("D:/McGill/can_cache", install = TRUE, overwrite = TRUE)
 set_cmhc_cache_path("D:/McGill/can_cache", install = TRUE, overwrite = TRUE)
+cmhc::set_cmhc_cache_path("/Users/justin/Documents/R/CurbCutSelf", install = TRUE, overwrite = TRUE)
 
 #See values of CMHC
 cmhc_breakdown <- list_cmhc_breakdowns()
@@ -40,6 +41,10 @@ avg_rent_cmhc <- function(geoid, years, geoname) {
 #Grabbing annual average rent data from 2010 to 2023
 avg_rent_lvl <- avg_rent_cmhc(2465005, years, "Laval")
 avg_rent_mtl <- avg_rent_cmhc(2466023, years, "Montreal")
+
+test <- get_cmhc(survey = "Rms", series = "Average Rent", dimension = "Bedroom Type",
+                 breakdown = "Survey Zones", geo_uid = 2465005, year = 2022)
+
 #Manually inputting the province of Quebec's data as it's unavailable using the CMHC package
 #src = https://www.cmhc-schl.gc.ca/professionals/housing-markets-data-and-research/housing-data/data-tables/rental-market/rental-market-report-data-tables
 avg_rent_qc <- data.frame(
@@ -48,6 +53,32 @@ avg_rent_qc <- data.frame(
            2020, 2021, 2022, 2023),
   Value = c(648, 666, 693, 679, 691, 712, 727, 736, 761, 800, 845, 874, 952, 1022)
 )
+
+#YoY growth calculation
+avg_rent_yoy <- bind_rows(avg_rent_lvl, avg_rent_mtl, avg_rent_qc) |> 
+  pivot_wider(id_cols = "Geography", names_from = Year, values_from = Value) |> 
+  mutate(`2010_2011` = (`2011` / `2010` - 1) * 100,
+         `2011_2012` = (`2012` / `2011` - 1) * 100,
+         `2012_2013` = (`2013` / `2012` - 1) * 100,
+         `2013_2014` = (`2014` / `2013` - 1) * 100,
+         `2014_2015` = (`2015` / `2014` - 1) * 100,
+         `2015_2016` = (`2016` / `2015` - 1) * 100,
+         `2016_2017` = (`2017` / `2016` - 1) * 100,
+         `2017_2018` = (`2018` / `2017` - 1) * 100,
+         `2018_2019` = (`2019` / `2018` - 1) * 100,
+         `2019_2020` = (`2020` / `2019` - 1) * 100,
+         `2020_2021` = (`2021` / `2020` - 1) * 100,
+         `2021_2022` = (`2022` / `2021` - 1) * 100,
+         `2022_2023` = (`2023` / `2022` - 1) * 100) |> 
+  select(Geography, `2010_2011`,`2011_2012`, `2012_2013`, `2013_2014`, `2014_2015`,
+         `2015_2016`, `2016_2017`, `2017_2018`, `2018_2019`, `2019_2020`, `2020_2021`,
+         `2021_2022`, `2022_2023`) |> 
+  rename("2011" = `2010_2011`, "2012" = `2011_2012`, "2013" = `2012_2013`,
+         "2014" = `2013_2014`, "2015" = `2014_2015`, "2016" = `2015_2016`,
+         "2017" = `2016_2017`, "2018" = `2017_2018`, "2019" = `2018_2019`,
+         "2020" = `2019_2020`, "2021" = `2020_2021`, "2022" = `2021_2022`,
+         "2023" =  `2022_2023`) |> 
+  pivot_longer(cols = -Geography, names_to = "Year", values_to = "Growth")
 
 #Preparing the table for the line graph
 avg_rent_annual <- bind_rows(avg_rent_lvl, avg_rent_mtl, avg_rent_qc) |> 
@@ -68,6 +99,14 @@ ggplot(avg_rent_annual, aes(x = Year, y = `Value`, group = Geography, color = Ge
     legend.title = element_blank(), plot.title = element_text(hjust = 0.5)
   )
 
+ggplot(avg_rent_yoy, aes(x = Year, y = Growth, fill = Geography)) +
+  geom_bar(stat = "identity", position = position_dodge()) +
+  theme_minimal() +
+  labs(title = "Variation d’une année sur l’autre du loyer moyen 2010-2023",
+       x = "Année",
+       y = "Variation du loyer moyen (%)") +
+  theme(legend.position = "bottom", legend.box = "horizontal",
+        legend.title = element_blank(), plot.title = element_text(hjust = 0.5))
 # Median Rent -------------------------------------------------------------
 #Choosing years to pull data from
 years <- 2010:2023
@@ -86,6 +125,7 @@ med_rent_cmhc <- function(geoid, years, geoname) {
 #Grabbing annual average rent data from 2010 to 2023
 med_rent_lvl <- med_rent_cmhc(2465005, years, "Laval")
 med_rent_mtl <- med_rent_cmhc(2466023, years, "Montreal")
+
 #Manually inputting the province of Quebec's data as it's unavailable using the CMHC package
 #src = https://www.cmhc-schl.gc.ca/professionals/housing-markets-data-and-research/housing-data/data-tables/rental-market/rental-market-report-data-tables
 med_rent_qc <- data.frame(
@@ -94,6 +134,32 @@ med_rent_qc <- data.frame(
            2020, 2021, 2022, 2023),
   Value = c(610, 629, 625, 645, 650, 665, 675, 693, 705, 745, 773, 800, 860, 939)
 )
+
+#YoY growth calculation
+med_rent_yoy <- bind_rows(med_rent_lvl, med_rent_mtl, med_rent_qc) |> 
+  pivot_wider(id_cols = "Geography", names_from = Year, values_from = Value) |> 
+  mutate(`2010_2011` = (`2011` / `2010` - 1) * 100,
+         `2011_2012` = (`2012` / `2011` - 1) * 100,
+         `2012_2013` = (`2013` / `2012` - 1) * 100,
+         `2013_2014` = (`2014` / `2013` - 1) * 100,
+         `2014_2015` = (`2015` / `2014` - 1) * 100,
+         `2015_2016` = (`2016` / `2015` - 1) * 100,
+         `2016_2017` = (`2017` / `2016` - 1) * 100,
+         `2017_2018` = (`2018` / `2017` - 1) * 100,
+         `2018_2019` = (`2019` / `2018` - 1) * 100,
+         `2019_2020` = (`2020` / `2019` - 1) * 100,
+         `2020_2021` = (`2021` / `2020` - 1) * 100,
+         `2021_2022` = (`2022` / `2021` - 1) * 100,
+         `2022_2023` = (`2023` / `2022` - 1) * 100) |> 
+  select(Geography, `2010_2011`,`2011_2012`, `2012_2013`, `2013_2014`, `2014_2015`,
+         `2015_2016`, `2016_2017`, `2017_2018`, `2018_2019`, `2019_2020`, `2020_2021`,
+         `2021_2022`, `2022_2023`) |> 
+  rename("2011" = `2010_2011`, "2012" = `2011_2012`, "2013" = `2012_2013`,
+         "2014" = `2013_2014`, "2015" = `2014_2015`, "2016" = `2015_2016`,
+         "2017" = `2016_2017`, "2018" = `2017_2018`, "2019" = `2018_2019`,
+         "2020" = `2019_2020`, "2021" = `2020_2021`, "2022" = `2021_2022`,
+         "2023" =  `2022_2023`) |> 
+  pivot_longer(cols = -Geography, names_to = "Year", values_to = "Growth")
 
 #Preparing the table for the line graph
 med_rent_annual <- bind_rows(med_rent_lvl, med_rent_mtl, med_rent_qc) |> 
@@ -113,9 +179,18 @@ ggplot(med_rent_annual, aes(x = Year, y = `Value`, group = Geography, color = Ge
     legend.title = element_blank(), plot.title = element_text(hjust = 0.5)
   )
 
+ggplot(med_rent_yoy, aes(x = Year, y = Growth, fill = Geography)) +
+  geom_bar(stat = "identity", position = position_dodge()) +
+  theme_minimal() +
+  labs(title = "Variation d’une année sur l’autre du loyer médian 2010-2023",
+       x = "Année",
+       y = "Variation du loyer médian (%)") +
+  theme(legend.position = "bottom", legend.box = "horizontal",
+        legend.title = element_blank(), plot.title = element_text(hjust = 0.5))
+
 # Monthly Tenant Cost by Laval Zone -----------------------------------------------------
 # CMHC zones
-zones <- cmhc::get_cmhc_geography(level = "ZONE")
+zones <- cmhc::get_cmhc_geography(level = "NBHD")
 zones <- sf::st_transform(zones, crs = 32618)
 
 # Laval
@@ -130,14 +205,14 @@ years <- 2010:2023
 
 # Get the average rent for year 2023
 avg_rent <- lapply(years, \(year) {
-  avg_r <- cmhc::get_cmhc(survey = "Rms", series = "Average Rent", breakdown = "Survey Zones", 
+  avg_r <- cmhc::get_cmhc(survey = "Rms", series = "Average Rent", breakdown = "Neighbourhoods", 
                           dimension = "Bedroom Type", geo_uid = "24462", year = year) 
   # Only keep Laval's
-  avg_r[avg_r$`Survey Zones` %in% laval_zones$ZONE_NAME_EN, ]
+  avg_r[avg_r$`Neighbourhoods` %in% laval_zones$ZONE_NAME_EN, ]
 })
 
 #Pulling average rent data for each zone and each bedroom type
-avg_rent <- lapply(avg_rent, `[`, c("Survey Zones", "Bedroom Type", "Value"))
+avg_rent <- lapply(avg_rent, `[`, c("Neighbourhoods", "Bedroom Type", "Value"))
 avg_rent <- mapply(\(year, table) {
   names(table)[3] <- paste0("avg_rent_", year)
   table
@@ -153,7 +228,7 @@ avg_rent5 <- avg_rent |>
 
 #Mapping the average rent by zone onto Laval
 avg_rent[avg_rent$`Bedroom Type` == "Total", ] |> 
-  merge(laval_zones[c("ZONE_NAME_EN")], by.x = "Survey Zones", by.y = "ZONE_NAME_EN") |> 
+  merge(laval_zones[c("ZONE_NAME_EN")], by.x = "Neighbourhoods", by.y = "ZONE_NAME_EN") |> 
   sf::st_as_sf() |> 
   ggplot2::ggplot() +
   ggplot2::labs(title = "Loyer moyen à Laval 2023",
@@ -545,7 +620,7 @@ pto_11v <- c("total" = "v_CA11N_2277", "owner" = "v_CA11N_2281", "tenant" = "v_C
 pto_06v <- c("total" = "v_CA06_2048", "owner" = "v_CA06_2053", "tenant" = "v_CA06_2049")
 pto_01v <- c("owner" = "v_CA01_1670", "tenant" = "v_CA01_1666")
 
-#Census Grabbing Function
+#Census Grabbing Function for Laval
 pto_census <- function(datayear, pto_year, cyear){
   get_census(dataset = datayear,
              regions = list(CSD = 2465005),
@@ -557,7 +632,31 @@ pto_census <- function(datayear, pto_year, cyear){
            -Dwellings, -Households, -CD_UID, -PR_UID, -CMA_UID)
 }
 
-#Grabbing data for 2001-2021
+#Census Grabbing Function for Quebec for Comparison
+pto_census_QC <- function(datayear, pto_year, cyear){
+  get_census(dataset = datayear,
+             regions = list(PR = 24),
+             level = "PR",
+             vectors = pto_year
+  ) |> 
+    mutate(Year = cyear) |> 
+    select(-GeoUID, -Type, -`Region Name`, -`Area (sq km)`, -Population,
+           -Dwellings, -Households, -C_UID)
+}
+
+#Census Grabbing Function for Canada for Comparison
+pto_census_CA <- function(datayear, pto_year, cyear){
+  get_census(dataset = datayear,
+             regions = list(C = 01),
+             level = "C",
+             vectors = pto_year
+  ) |> 
+    mutate(Year = cyear) |> 
+    select(-GeoUID, -Type, -`Region Name`, -`Area (sq km)`, -Population,
+           -Dwellings, -Households)
+}
+
+#Grabbing data for 2001-2021 for Laval
 pto_21 <- pto_census("CA21", pto_21v, "2021")
 pto_16 <- pto_census("CA16", pto_16v, "2016")
 pto_11 <- pto_census("CA11", pto_11v, "2011") |> 
@@ -565,6 +664,29 @@ pto_11 <- pto_census("CA11", pto_11v, "2011") |>
 pto_06 <- pto_census("CA06", pto_06v, "2006")
 pto_01 <- pto_census("CA01", pto_01v, "2001") |> 
   mutate(total = owner + tenant)
+
+#Grabbing data for 2001-2021 for Quebec and Canada
+pto_21_QC <- pto_census_QC("CA21", pto_21v, "2021")
+pto_16_QC <- pto_census_QC("CA16", pto_16v, "2016")
+pto_11_QC <- pto_census_QC("CA11", pto_11v, "2011") |> 
+  select(-`NHS Non Return Rate`)
+pto_06_QC <- pto_census_QC("CA06", pto_06v, "2006")
+pto_01_QC <- pto_census_QC("CA01", pto_01v, "2001") |> 
+  mutate(total = owner + tenant)
+pto_graph_QC <- bind_rows(pto_21_QC, pto_16_QC, pto_11_QC, pto_06_QC, pto_01_QC) |> 
+  mutate("Owner Households" = owner * 100 / total,
+         "Tenant Households" = tenant * 100 / total)
+
+pto_21_CA <- pto_census_CA("CA21", pto_21v, "2021")
+pto_16_CA <- pto_census_CA("CA16", pto_16v, "2016")
+pto_11_CA <- pto_census_CA("CA11", pto_11v, "2011") |> 
+  select(-`NHS Non Return Rate`)
+pto_06_CA <- pto_census_CA("CA06", pto_06v, "2006")
+pto_01_CA <- pto_census_CA("CA01", pto_01v, "2001") |> 
+  mutate(total = owner + tenant)
+pto_graph_CA <- bind_rows(pto_21_CA, pto_16_CA, pto_11_CA, pto_06_CA, pto_01_CA) |> 
+  mutate("Owner Households" = owner * 100 / total,
+         "Tenant Households" = tenant * 100 / total)
 
 #Grabbing Montreal and Quebec for comparison
 pto_mtl_21 <- get_census(dataset = "CA21",
@@ -675,6 +797,11 @@ starts_lvl <- get_cmhc(survey = "Scss", series = "Starts", dimension = "Intended
          Year != "2024", Year != "2009") |> 
   mutate(`Intended Market` = factor(`Intended Market`, levels = c("All", "Homeowner", "Rental",
                                                                   "Condo")))
+starts_lvl_line <- starts_lvl |> 
+  filter(`Intended Market` != "All") |> 
+  mutate(`Intended Market` = gsub("Homeowner", "Homeowner Starts", `Intended Market`)) |> 
+  mutate(`Intended Market` = gsub("Rental", "Rental Starts", `Intended Market`)) |> 
+  mutate(`Intended Market` = gsub("Condo", "Condo Starts", `Intended Market`))
 
 #Graphing the data
 ggplot(starts_lvl, aes(x = Year, y = Units, fill = `Intended Market`)) +
@@ -714,6 +841,75 @@ ggplot(startsp_lvl, aes(x = Year, y = `Count`, group = Type, color = Type)) +
     plot.title = element_text(hjust = 0.5), axis.text.x = element_text(angle = 45, hjust = 1)
   )
 
+ggplot(starts_lvl_line, aes(x = Year, y = `Units`, group = `Intended Market`, color = `Intended Market`)) +
+  geom_line(size = 1.25) +
+  labs(title = "Mises en chantier à Laval 2010-2023",
+       x = "Année",
+       y = "Nombre de logements") +
+  scale_color_manual(values = c("Homeowner Starts" = "#333366",
+                                "Condo Starts" = "#cd5c5c",
+                                "Rental Starts" = "#478547"),
+                     labels = c("Démarrage par le propriétaire",
+                                "Mises en chantier de condos",
+                                "Débuts de location")) +
+  theme_minimal() +
+  theme(
+    legend.position = "bottom", legend.box = "horizontal", legend.title = element_blank(),
+    plot.title = element_text(hjust = 0.5), axis.text.x = element_text(angle = 45, hjust = 1)
+  )
+# Housing Completions -----------------------------------------------------
+completions_lvl <- get_cmhc(survey = "Scss", series = "Completions", dimension = "Intended Market",
+                       breakdown = "Historical Time Periods", geo_uid = 2465005, year = 2009) |> 
+  mutate(Date = dmy(paste0("01 ", DateString)), Year = as.factor(year(Date))) |> 
+  select(Year, `Intended Market`, Value) |> 
+  group_by(Year, `Intended Market`) |> 
+  summarize(Units = sum(Value), .groups = "drop") |> 
+  filter(`Intended Market` != "Unknown", `Intended Market` != "Co-Op",
+         Year != "2024", Year != "2009") |> 
+  mutate(`Intended Market` = factor(`Intended Market`, levels = c("All", "Homeowner", "Rental",
+                                                                  "Condo")))
+
+completions_lvl_line <- completions_lvl |> 
+  filter(`Intended Market` != "All") |> 
+  mutate(`Intended Market` = gsub("Homeowner", "Homeowner Completions", `Intended Market`)) |> 
+  mutate(`Intended Market` = gsub("Rental", "Rental Completions", `Intended Market`)) |> 
+  mutate(`Intended Market` = gsub("Condo", "Condo Completions", `Intended Market`))
+
+starts_completions <- bind_rows(starts_lvl_line, completions_lvl_line)
+
+ggplot(starts_completions, aes(x = Year, y = `Units`, group = `Intended Market`, color = `Intended Market`)) +
+  geom_line(size = 1.25) +
+  labs(title = "Mises en chantier et achèvements d'habitations à Laval 2010-2023",
+       x = "Année",
+       y = "Nombre de logements") +
+  scale_color_manual(values = c("Homeowner Starts" = "#333366", "Homeowner Completions" = "#707094",
+                                "Condo Starts" = "#cd5c5c", "Condo Completions" = "#dc8d8d",
+                                "Rental Starts" = "#478547", "Rental Completions" = "#77DD77"),
+                     labels = c("Démarrage par le propriétaire", "Achèvements par le propriétaire",
+                                "Mises en chantier de condos", "Achèvements de condos",
+                                "Débuts de location", "Achèvements de location")) +
+  theme_minimal() +
+  theme(
+    legend.position = "bottom", legend.box = "horizontal", legend.title = element_blank(),
+    plot.title = element_text(hjust = 0.5), axis.text.x = element_text(angle = 45, hjust = 1)
+  )
+
+ggplot(completions_lvl_line, aes(x = Year, y = `Units`, group = `Intended Market`, color = `Intended Market`)) +
+  geom_line(size = 1.25) +
+  labs(title = "Logements achevés à Laval 2010-2023",
+       x = "Année",
+       y = "Nombre de logements") +
+  scale_color_manual(values = c("Homeowner Completions" = "#707094",
+                                "Condo Completions" = "#dc8d8d",
+                                "Rental Completions" = "#77DD77"),
+                     labels = c("Achèvements par le propriétaire",
+                                "Achèvements de condos",
+                                "Achèvements de location")) +
+  theme_minimal() +
+  theme(
+    legend.position = "bottom", legend.box = "horizontal", legend.title = element_blank(),
+    plot.title = element_text(hjust = 0.5), axis.text.x = element_text(angle = 45, hjust = 1)
+  )
 # Maps for shelter cost change ----------------------------------------------------
 #Grabbing shelter cost data for 2021
 shelter_21 <- get_census(dataset = "CA21",
