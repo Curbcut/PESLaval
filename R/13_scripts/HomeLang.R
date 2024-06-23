@@ -4,6 +4,7 @@ library(sf)
 library(dplyr)
 library(tidyr)
 library(stringr)
+library(forcats)
 
 # Home Languages ----------------------------------------------------------
 
@@ -167,13 +168,19 @@ lavalhomelang_percent <- lavalhomelang %>%
  ggplot(tidyhomelang, aes(x = year, y = Percentage, fill = Language)) + 
    geom_bar(stat = "identity", position = "fill")
  
+ # reorder to show french then english then non-official 
+ library(forcats)
+ retidyhomelang <- tidyhomelang |> 
+   mutate(Language = fct_relevel(Language, "Non-official", "English", "French"))
+ 
  #trying again but adding percentages
- ggplot(tidyhomelang, aes(x=year, y=Percentage, fill= Language)) +
+ ggplot(retidyhomelang, aes(x=year, y=Percentage, fill= Language)) +
    geom_bar(stat="identity", position = "fill") +
+   ggtitle("Languages spoken most often at home in Laval") +
    scale_y_continuous(labels = scales::percent) +
    geom_text(aes(label = paste0(round(Percentage),"%")),
              position = position_fill(vjust = 0.5),
-             size = 4,
+             size = 3,
              color = "white") +
    labs(y = "Percentage")
 
@@ -181,15 +188,20 @@ lavalhomelang_percent <- lavalhomelang %>%
            position = position_stack(vjust = 0.5), size = 3)
  
 #now compare Laval to Quebec in 2021 
-#something crazy is happening with this code... 
- ggplot(tidyhomelang21, aes(x = region, y = Percentage, fill = Language)) + 
+
+ ggplot(retidyhomelang21, aes(x = region, y = Percentage, fill = Language)) + 
    geom_bar(stat = "identity", position = "fill") +
+   ggtitle("Languages spoken most often at home in 2021") +
    scale_y_continuous(labels = scales::percent) +
    geom_text(aes(label = paste0(round(Percentage), "%")),
              position = position_fill(vjust = 0.5), 
              size = 3,
              color = "white") +
                labs(y="Percentage")
+ 
+ # need to reorder to show the same order: non-official, english, and french
+ retidyhomelang21 <- tidyhomelang21 |> 
+   mutate(Language = fct_relevel(Language, "Non-official", "English", "French"))
 
  # I want to reorder to show french, english, non offical in the stacked bar graph  
  retidyhomelang <- tidyhomelang |> 
@@ -337,7 +349,7 @@ prophomelang21 <- tidyallhomelang21 |>
 
 #rename column
 prophomelang21 <-  prophomelang21 |> 
-  rename(prop = c(percentage/100))
+  rename(prop = c(percentage/ 100))
 
 #retry plotting 
 ggplot(prophomelang21, aes(x = region, y = percentage, fill = language)) + 
@@ -345,6 +357,16 @@ ggplot(prophomelang21, aes(x = region, y = percentage, fill = language)) +
   scale_y_continuous(labels = scales::percent) +
   geom_text(aes(label = paste0(round(percentage*100),"%")),
             position = position_stack(vjust = 0.5),
+            size = 4,
+            color = "white") +
+  labs(y = "percentage", title = "All languages spoken at Home 2021")
+
+#replot to have the bars beside each other
+ggplot(prophomelang21, aes(x = region, y = percentage, fill = language)) + 
+  geom_bar(stat = "identity", position = "dodge") +
+  scale_y_continuous(labels = scales::percent) +
+  geom_text(aes(label = paste0(round(percentage*100),"%")),
+            position = position_dodge(vjust = 0.5),
             size = 4,
             color = "white") +
   labs(y = "percentage", title = "All languages spoken at Home 2021")
@@ -375,6 +397,8 @@ lavalhome21 <- get_census(dataset = "CA21",
                          geo_format = "sf", 
                          labels = "short")
 
+# there are 169785 households in Laval 
+
 #find the top 5 non-official languages will do this for the top 5 languages 
 lavalhome21_tidy <- lavalhome21 |> 
   pivot_longer(cols = v_CA21_2371:v_CA21_2881, 
@@ -398,6 +422,13 @@ ggplot(lang5_laval, aes(x = reorder(label, -lang_count), y = lang_count, fill = 
        y = "Number of Speakers") +
   theme(axis.text.x = element_text(angle = 45, hjust = 1)) # Rotate x-axis labels for better readability
 
+# for the report- helpful to see the number as proportion of households 
+# # there are 169785 households in Laval 
+# Arabic : 20220 / 169785 =  12 %
+# Spanish : 9660 / 169785 = 5.6%
+# Armenian : 7280 / 169785 = 4.2 
+# Greek: 5460 / 169785 = 3.2
+# Romanian: 4530 / 169785 = 2.6
 
 
  
