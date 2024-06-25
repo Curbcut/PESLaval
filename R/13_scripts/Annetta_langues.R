@@ -434,6 +434,7 @@ ggplot(combinedFir21, aes(region, Percentage, fill = Language)) +
   geom_bar(stat = "identity", position = "fill")
 #need to reorder
 ## Reorder following a precise order
+
 pFirLang21 <- combinedFir21 %>%
   mutate(Language = fct_relevel(Language, 
                                 "Neither", "English", "Both", 
