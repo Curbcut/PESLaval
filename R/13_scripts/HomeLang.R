@@ -89,7 +89,7 @@ homelang16vector <-  c(
 homelang16_laval <- get_census(dataset = "CA16",
                                regions = list(CSD = 2465005),
                                level = "CSD",
-                               vectors = homelang06vector)
+                               vectors = homelang16vector)
 #lastly data for 2021 (Total - Language spoken most often at home for the total population)
 View(list_census_vectors("CA21"))
      
@@ -176,7 +176,7 @@ lavalhomelang_percent <- lavalhomelang %>%
  #trying again but adding percentages
  ggplot(retidyhomelang, aes(x=year, y=Percentage, fill= Language)) +
    geom_bar(stat="identity", position = "fill") +
-   ggtitle("Languages spoken most often at home in Laval") +
+   ggtitle("Language spoken most often at home in Laval") +
    scale_y_continuous(labels = scales::percent) +
    geom_text(aes(label = paste0(round(Percentage),"%")),
              position = position_fill(vjust = 0.5),
