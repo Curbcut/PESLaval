@@ -168,12 +168,24 @@ lavalhomelang_percent <- lavalhomelang %>%
  ggplot(tidyhomelang, aes(x = year, y = Percentage, fill = Language)) + 
    geom_bar(stat = "identity", position = "fill")
  
+ #trying to add percentages
+ ggplot(tidyhomelang, aes(x=year, y=Percentage, fill= Language)) +
+   geom_bar(stat="identity", position = "fill") +
+   ggtitle("Languages spoken most often at home in Laval") +
+   scale_y_continuous(labels = scales::percent) +
+   geom_text(aes(label = paste0(round(Percentage),"%")),
+             position = position_fill(vjust = 0.5),
+             size = 3,
+             color = "white") +
+   labs(y = "Percentage")
+ 
  # reorder to show french then english then non-official 
  library(forcats)
  retidyhomelang <- tidyhomelang |> 
    mutate(Language = fct_relevel(Language, "Non-official", "English", "French"))
  
  #trying again but adding percentages
+ 
  ggplot(retidyhomelang, aes(x=year, y=Percentage, fill= Language)) +
    geom_bar(stat="identity", position = "fill") +
    ggtitle("Language spoken most often at home in Laval") +
