@@ -1260,7 +1260,6 @@ laval_household_size16 <-  get_census(
   dataset = "CA16",
   regions = list(CSD = 2465005),
   level = "CSD",
-  geo_format = "sf",
   vectors = c(
     avg_size = "v_CA16_425",
     total = "v_CA16_418",
@@ -1282,7 +1281,6 @@ laval_household_size06 <-  get_census(
   dataset = "CA06",
   regions = list(CSD = 2465005),
   level = "CSD",
-  geo_format = "sf",
   vectors = c(
     avg_size = "v_CA06_135",
     total = "v_CA06_128",
@@ -1305,7 +1303,6 @@ laval_household_size01 <-  get_census(
   dataset = "CA01",
   regions = list(CSD = 2465005),
   level = "CSD",
-  geo_format = "sf",
   vectors = c(
     avg_size = "v_CA01_128",
     total = "v_CA01_121",
@@ -1352,21 +1349,28 @@ laval_household_size06 <- laval_household_size06 %>% mutate(year = 2006)
 laval_household_size01 <- laval_household_size01 %>% mutate(year = 2001)
 laval_household_size96 <- laval_household_size96 %>% mutate(year = 1996)
 
+
+#sorting vector
+sort_vect <- 
+  c("une_personne","deux_personnes" ,"trois_personnes","quatre_personnes_plus")
+
 # Select and rename columns to be consistent across data frames
-laval_household_size21 <- laval_household_size21 %>%
-  select(year, one_pct, two_pct, three_pct, four_more_pct)
+laval_household_size21 <- laval_household_size21  |> 
+  select(year, une_personne, deux_personnes, trois_personnes, quatre_personnes_plus)
+  
+  
 
 laval_household_size16 <- laval_household_size16 %>%
-  select(year, one_pct, two_pct, three_pct, four_more_pct)
+  select(year, une_personne, deux_personnes, trois_personnes, quatre_personnes_plus)
 
 laval_household_size06 <- laval_household_size06 %>%
-  select(year, one_pct, two_pct, three_pct, four_more_pct)
+  select(year, une_personne, deux_personnes, trois_personnes, quatre_personnes_plus)
 
 laval_household_size01 <- laval_household_size01 %>%
-  select(year, one_pct, two_pct, three_pct, four_more_pct)
+  select(year, une_personne, deux_personnes, trois_personnes, quatre_personnes_plus)
 
 laval_household_size96 <- laval_household_size96 %>%
-  select(year, one_pct, two_pct, three_pct, four_more_pct)
+  select(year, une_personne, deux_personnes, trois_personnes, quatre_personnes_plus)
 
 # Combine the data frames into one
 combined_data <- bind_rows(laval_household_size21, laval_household_size16, laval_household_size06,
@@ -1374,17 +1378,25 @@ combined_data <- bind_rows(laval_household_size21, laval_household_size16, laval
 
 # Reshape the data to a long format
 long_data <- combined_data %>%
-  pivot_longer(cols = c(one_pct, two_pct, three_pct, four_more_pct),
+  pivot_longer(cols = c(une_personne, deux_personnes, trois_personnes, quatre_personnes_plus),
                names_to = "household_size",
                values_to = "percentage") |> 
-  select(-"Type", -"Region Name",-"Dwellings", -"Households",- "PR_UID", -"CMA_UID")
+  mutate(household_size = factor(household_size, 
+                            levels =   c("une_personne",
+                                         "deux_personnes" ,
+                                         "trois_personnes",
+                                         "quatre_personnes_plus")))
+
+
+
+#  select(-"Type", -"Region Name",-"Dwellings", -"Households",- "PR_UID", -"CMA_UID")
 
 # Define the colors for each household size category
 # i use a gradient to make it more legible
-household_colors <- c("one_pct" = "#CFFDBC",  
-                      "two_pct" = "#90EE90",  
-                      "three_pct" = "#32CD32",  
-                      "four_more_pct" = "#006400")  
+household_colors <- c("une_personne" = "#CFFDBC",  
+                      "deux_personnes" = "#90EE90",  
+                      "trois_personnes" = "#32CD32",  
+                      "quatre_personnes_plus" = "#006400")  
 
 # Create the line graph with specified colors
 ggplot(long_data, aes(x = year, y = percentage, color = household_size, group = household_size)) +
@@ -1399,24 +1411,23 @@ ggplot(long_data, aes(x = year, y = percentage, color = household_size, group = 
   theme_minimal()
 
 
-
 #evolution of household persons over time
 
 laval_household_persons96 <- 
   laval_household_size96 |> 
-  mutate(one = one,
-         two = two * 2,
-         three = three * 3,
-         four_more = four_five * 4.5 + six_more * 6) |> 
-  mutate(total = sum(c(one, two, three, four_more))) |> 
-  select(GeoUID, total, one, two, three, four_more)
+  mutate(une_personne = one,
+         deux_personnes = two * 2,
+         trois_personnes = three * 3,
+         quatre_personnes_plus = four_five * 4.5 + six_more * 6) |> 
+  mutate(total = sum(c(une_personne, deux_personnes, trois_personnes, quatre_personnes_plus))) |> 
+  select(GeoUID, total, une_personne, deux_personnes, trois_personnes, quatre_personnes_plus)
 
 sort_vect <- 
-  c("one","two" , "three","four_more")
+  c("une_personne","deux_personnes" ,"trois_personnes","quatre_personnes_plus")
 
 laval_household_persons96_long <- 
   laval_household_persons96 |> 
-  pivot_longer(cols = c(one, two, three, four_more),
+  pivot_longer(cols = c(une_personne, deux_personnes, trois_personnes, quatre_personnes_plus),
                names_to = "household_persons",
                values_to = "count") |> 
   mutate(household_persons = factor(household_persons, levels = sort_vect)) 
@@ -1434,7 +1445,7 @@ laval_household_persons_evol <- bind_rows(
 
 laval_household_persons_evol_long <- 
   laval_household_persons_evol |> 
-  pivot_longer(cols = c(one, two, three, four_more),
+  pivot_longer(cols = c(une_personne, deux_personnes, trois_personnes, quatre_personnes_plus),
                names_to = "household_persons",
                values_to = "count") |> 
   mutate(household_persons = factor(household_persons, levels = sort_vect)) 
@@ -1442,38 +1453,38 @@ laval_household_persons_evol_long <-
 # Assuming laval_household_persons_evol_pct is correctly formatted
 laval_household_persons_evol_pct <- 
   laval_household_persons21 |> 
-  mutate(one_evol = ((laval_household_persons21$one - 
-                        laval_household_persons96$one)/
-                       laval_household_persons96$one)*100,
-         two_evol = ((laval_household_persons21$two - 
-                        laval_household_persons96$two)/
-                       laval_household_persons96$two)*100,
-         three_evol = ((laval_household_persons21$three - 
-                          laval_household_persons96$three)/
-                         laval_household_persons96$three)*100,
-         four_more_evol = ((laval_household_persons21$four_more - 
-                              laval_household_persons96$four_more)/
-                             laval_household_persons96$four_more)*100) |> 
-  mutate(one_evol = ifelse(one_evol >= 0, 
-                           paste0("+", round(one_evol, 1), "%"), 
-                           paste0(round(one_evol, 1), "%")),
-         two_evol = ifelse(two_evol >= 0, 
-                           paste0("+", round(two_evol, 1), "%"), 
-                           paste0(round(two_evol, 1), "%")),
-         three_evol = ifelse(three_evol >= 0, 
-                             paste0("+", round(three_evol, 1), "%"), 
-                             paste0(round(three_evol, 1), "%")),
-         four_more_evol = ifelse(four_more_evol >= 0, 
-                                 paste0("+", round(four_more_evol, 1), "%"), 
-                                 paste0(round(four_more_evol, 1), "%"))) |> 
-  pivot_longer(cols = c(one_evol, two_evol, three_evol, four_more_evol),
+  mutate(un_evol = ((laval_household_persons21$une_personne - 
+                        laval_household_persons96$une_personne)/
+                       laval_household_persons96$une_personne)*100,
+         deux_evol = ((laval_household_persons21$deux_personnes - 
+                        laval_household_persons96$deux_personnes)/
+                       laval_household_persons96$deux_personnes)*100,
+         trois_evol = ((laval_household_persons21$trois_personnes - 
+                          laval_household_persons96$trois_personnes)/
+                         laval_household_persons96$trois_personnes)*100,
+         quatre_plus_evol = ((laval_household_persons21$quatre_personnes_plus - 
+                              laval_household_persons96$quatre_personnes_plus)/
+                             laval_household_persons96$quatre_personnes_plus)*100) |> 
+  mutate(un_evol = ifelse(un_evol >= 0, 
+                           paste0("+", round(un_evol, 1), "%"), 
+                           paste0(round(un_evol, 1), "%")),
+         deux_evol = ifelse(deux_evol >= 0, 
+                           paste0("+", round(deux_evol, 1), "%"), 
+                           paste0(round(deux_evol, 1), "%")),
+         trois_evol = ifelse(trois_evol >= 0, 
+                             paste0("+", round(trois_evol, 1), "%"), 
+                             paste0(round(trois_evol, 1), "%")),
+         quatre_plus_evol = ifelse(quatre_plus_evol >= 0, 
+                                 paste0("+", round(quatre_plus_evol, 1), "%"), 
+                                 paste0(round(quatre_plus_evol, 1), "%"))) |> 
+  pivot_longer(cols = c(un_evol, deux_evol, trois_evol, quatre_plus_evol),
                names_to = "household_persons",
                values_to = "percentage") |> 
   mutate(household_persons = recode(household_persons, 
-                                    one_evol = "one",
-                                    two_evol = "two",
-                                    three_evol = "three",
-                                    four_more_evol = "four_more"))
+                                    un_evol = "une_personne",
+                                    deux_evol = "deux_personnes",
+                                    trois_evol = "trois_personnes",
+                                    quatre_plus_evol = "quatre_personnes_plus"))
 
 # Merge percentage change data with the long format data
 laval_household_persons_evol_long <- 
@@ -1492,11 +1503,12 @@ ggplot(laval_household_persons_evol_long, aes(x = household_persons, y = count, 
             size = 4, 
             color = "orange") +
   scale_fill_manual(values = c("1996" = "skyblue", "2021" = "orange"), name = "Year") +
-  labs(title = "Number of Persons in Households by Household Size in Laval (1996 vs 2021)",
-       x = "Household Size",
-       y = "Number of Persons") +
+  labs(title = "Nombre de personnes dans des ménages par taille de leur ménage à Laval (1996 c. 2021)",
+       x = "Taille du ménage de la personne",
+       y = "Nombre de personnes") +
   theme_minimal() +
-  theme(plot.title = element_text(hjust = 0.5))
+  theme(plot.title = element_text(hjust = 0.5),
+        legend.title = element_text("Année"))
 
   
 #VISUALISATION
@@ -1508,12 +1520,13 @@ library(ggplot2)
 # Step 1: Process the 2021 data
 laval_household_persons21 <- 
   laval_household_size21 |> 
-  mutate(one = one,
-         two = two * 2,
-         three = three * 3,
-         four_more = four * 4 + five_more * 5) |> 
-  mutate(total = sum(c(one, two, three, four_more))) |> 
-  select(GeoUID, total, one, two, three, four_more)
+mutate(une_personne = one,
+       deux_personnes = two * 2,
+       trois_personnes = three * 3,
+       quatre_personnes_plus = four * 4 + five_more * 5) |> 
+  mutate(total = sum(c(une_personne, deux_personnes, trois_personnes, quatre_personnes_plus))) |> 
+  select(GeoUID, total, une_personne, deux_personnes, trois_personnes, quatre_personnes_plus)
+
 
 # Step 2: Process the 1996 data
 laval_household_persons96 <- 
@@ -1535,18 +1548,22 @@ laval_household_persons_evol <- bind_rows(
 # Step 4: Pivot to long format
 laval_household_persons_evol_long <- 
   laval_household_persons_evol |> 
-  pivot_longer(cols = c(one, two, three, four_more),
+  pivot_longer(cols = c(une_personne, deux_personnes, trois_personnes, quatre_personnes_plus),
                names_to = "household_persons",
-               values_to = "count") |> 
-  mutate(household_persons = factor(household_persons, levels = c("one", "two", "three", "four_more")))
+               values_to = "count") 
+ 
+laval_household_persons_evol_long |> 
+   mutate(household_persons = factor(household_persons, 
+                                     levels = sort_vect))
+                             
 
 # Step 5: Create the side-by-side bar chart
 ggplot(laval_household_persons_evol_long, aes(x = household_persons, y = count, fill = as.factor(year))) +
   geom_bar(stat = "identity", position = position_dodge()) +
   scale_fill_manual(values = c("1996" = "skyblue", "2021" = "orange"), name = "Year") +
-  labs(title = "Number of Persons in Households by Household Size in Laval (1996 vs 2021)",
-       x = "Household Size",
-       y = "Number of Persons") +
+  labs(title = "Nombre de personnes dans des ménages par taille de leur ménage à Laval (1996 c. 2021)",
+       x = "Taille du ménage",
+       y = "Nombre de personnes") +
   theme_minimal() +
   theme(plot.title = element_text(hjust = 0.5))
 
