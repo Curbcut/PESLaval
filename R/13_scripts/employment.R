@@ -1,6 +1,7 @@
 #Loading libraries
 source("R/01_startup.R")
 library(scales)
+library(readxl)
 
 #Setting CensusMapper API Key because it won't save
 set_cancensus_api_key("CensusMapper_4308d496f011429cf814385050f083dc")
@@ -8,12 +9,15 @@ set_cancensus_api_key("CensusMapper_4308d496f011429cf814385050f083dc")
 #Caching census data to reduce amount of calls and speed up process.
 #Personal use only, change the folder to your own folder if you want to use it
 set_cancensus_cache_path("D:/McGill/can_cache", install = TRUE, overwrite = TRUE)
+set_cancensus_cache_path("/Users/justin/Documents/R/CurbCutSelf")
+
 # Employment Data 2021 ---------------------------------------------------------
 #Vectors for 2021 total population 15+ by labour force (lf) status, employed, and unemployed (25% sample data)
-lf_vectors_21 <- c("lf_pop" = "v_CA21_6492", "tot_empl" = "v_CA21_6498", "tot_unempl" = "v_CA21_6501")
+lf_vectors_21 <- c("tot_pop" = "v_CA21_6492", "lf_pop" = "v_CA21_6495",
+                   "tot_empl" = "v_CA21_6498", "tot_unempl" = "v_CA21_6501")
 
 #Vector with the given CanCensus names from lf_vectors_21
-lf_names_21 <- c("lf_pop", "tot_empl", "tot_unempl")
+lf_names_21 <- c("tot_pop", "lf_pop", "tot_empl", "tot_unempl")
 
 #Grab lf_vectors_21 data for Laval and Montreal and cleans up the table
 lf_lvl_mtl_21  <- get_census(dataset = "CA21", 
@@ -22,15 +26,6 @@ lf_lvl_mtl_21  <- get_census(dataset = "CA21",
                               vectors = lf_vectors_21) |> 
   select(all_of(lf_names_21)) |> 
   mutate(Geography = c("Laval", "Montreal")) |> 
-  select(Geography, everything())
-
-#Grab lf_vectors_21 data for the Montreal CMA and cleans up the table
-lf_mtl_cma_21 <- get_census(dataset = "CA21", 
-                                  regions = list(CMA = 24462), 
-                                  level = "CMA",
-                                  vectors = lf_vectors_21) |> 
-  select(all_of(lf_names_21)) |> 
-  mutate(Geography = "Montreal CMA") |> 
   select(Geography, everything())
 
 #Grab lf_vectors_21 data for the province of Quebec and cleans up the table
@@ -44,7 +39,7 @@ lf_qc_21  <- get_census(dataset = "CA21",
 
 #Combines the data and calculates (un)employment rate, and then cleans up the table
 lf_combined_21 <- bind_rows(lf_lvl_mtl_21, lf_qc_21) |> 
-  mutate(empl_rate_21 = round(tot_empl * 100 / lf_pop, 1),
+  mutate(empl_rate_21 = round(tot_empl * 100 / tot_pop, 1),
          unempl_rate_21 = round(tot_unempl*100 / lf_pop, 1)) |> 
   select(Geography, empl_rate_21, unempl_rate_21)
 
@@ -214,8 +209,8 @@ employment_rate <- lf_combined |>
 #Creating the line graph for employment rate
 ggplot(employment_rate, aes(x = as.factor(Year), y = Value, color = Geography, group = Geography)) +
   geom_line(size = 1.5) +
-  labs(title = "Employment Rate from 2001 to 2021", x = "Year",
-       y = "Employment Rate (%)", color = "Geography") +
+  labs(title = "Taux d'emploi de 2001 à 2021", x = "Année",
+       y = "Taux d'emploi (%)", color = "Geography") +
   theme_minimal() +
   theme(legend.position = "bottom", legend.box = "horizontal",
         legend.title = element_blank(), plot.title = element_text(hjust = 0.5))
@@ -227,11 +222,11 @@ unemployment_rate <- lf_combined |>
   pivot_longer(cols = -Geography, names_to = "Year", values_to = "Value")
 
 
-#Creating the line graph for employment rate
+#Creating the line graph for unemployment rate
 ggplot(unemployment_rate, aes(x = as.factor(Year), y = Value, color = Geography, group = Geography)) +
   geom_line(size = 1.5) +
-  labs(title = "Unemployment Rate from 2001 to 2021", x = "Year",
-       y = "Unemployment Rate (%)", color = "Geography") +
+  labs(title = "Taux de chômage de 2001 à 2021", x = "Année",
+       y = "Taux de chômage (%)", color = "Geography") +
   theme_minimal() +
   theme(legend.position = "bottom", legend.box = "horizontal",
         legend.title = element_blank(), plot.title = element_text(hjust = 0.5))
@@ -456,6 +451,24 @@ noc_women <- c("total" = "v_CA21_6563", "na" = "v_CA21_6566", "all" = "v_CA21_65
                "6" = "v_CA21_6590", "7" = "v_CA21_6593", "8" = "v_CA21_6596",
                "9" = "v_CA21_6599")
 
+
+noc_total16 <- c("total" = "v_CA16_5654", "na" = "v_CA16_5657", "all" = "v_CA16_5660",
+                "0" = "v_CA16_5663", "1" = "v_CA16_5666", "2" = "v_CA16_5669",
+                "3" = "v_CA16_5672", "4" = "v_CA16_5675", "5" = "v_CA16_5678",
+                "6" = "v_CA16_5681", "7" = "v_CA16_5684", "8" = "v_CA16_5687",
+                "9" = "v_CA16_5690")
+noc_men16 <- c("total" = "v_CA16_5655", "na" = "v_CA16_5658", "all" = "v_CA16_5661",
+                "0" = "v_CA16_5664", "1" = "v_CA16_5667", "2" = "v_CA16_5670",
+                "3" = "v_CA16_5673", "4" = "v_CA16_5676", "5" = "v_CA16_5679",
+                "6" = "v_CA16_5682", "7" = "v_CA16_5685", "8" = "v_CA16_5688",
+                "9" = "v_CA16_5691")
+noc_women16 <- c("total" = "v_CA16_5656", "na" = "v_CA16_5659", "all" = "v_CA16_5662",
+                 "0" = "v_CA16_5665", "1" = "v_CA16_5668", "2" = "v_CA16_5671",
+                 "3" = "v_CA16_5674", "4" = "v_CA16_5677", "5" = "v_CA16_5680",
+                 "6" = "v_CA16_5683", "7" = "v_CA16_5686", "8" = "v_CA16_5689",
+                 "9" = "v_CA16_5692")
+
+
 #Vector with the given names for the NOC occupations vectors above
 noc_names <- c("total", "na", "all", "0", "1", "2", "3", "4", "5", "6", "7", "8", "9")
 
@@ -486,8 +499,40 @@ noc_lvl_women  <- get_census(dataset = "CA21",
   mutate(Type = "Women") |> 
   select(Type, everything())
 
+#Grabbing Laval-wide NOC occupations 2016
+noc_lvl_total16 <- get_census(dataset = "CA16", 
+                             regions = list(CSD = 2465005), 
+                             level = "CSD",
+                             vectors = noc_total16) |> 
+  select(all_of(noc_names)) |> 
+  mutate(Type = "Total") |> 
+  select(Type, everything())
+
+#Grabbing men NOC occupations 2016
+noc_lvl_men16 <- get_census(dataset = "CA16", 
+                           regions = list(CSD = 2465005), 
+                           level = "CSD",
+                           vectors = noc_men16) |> 
+  select(all_of(noc_names)) |> 
+  mutate(Type = "Men") |> 
+  select(Type, everything())
+
+#Grabbing women NOC occupations
+noc_lvl_women16 <- get_census(dataset = "CA16", 
+                             regions = list(CSD = 2465005), 
+                             level = "CSD",
+                             vectors = noc_women16) |> 
+  select(all_of(noc_names)) |> 
+  mutate(Type = "Women") |> 
+  select(Type, everything())
+
 #Binding the NOC tables together
 noc_occupation <- bind_rows(noc_lvl_total, noc_lvl_men, noc_lvl_women)
+noc_occupation16 <- bind_rows(noc_lvl_total16, noc_lvl_men16, noc_lvl_women16)
+
+#Exporting the tables so proportion can be calculated using excel
+write.csv(noc_occupation, "D://McGill/can_cache/noc_occupation.csv", row.names = FALSE)
+write.csv(noc_occupation16, "D://McGill/can_cache/noc_occupation16.csv", row.names = FALSE)
 
 #Set up table to create a grouped bar graph
 noc_occupation_table <- noc_occupation |> 
@@ -496,43 +541,32 @@ noc_occupation_table <- noc_occupation |>
   mutate(Type = factor(Type, levels = c("Total", "Men", "Women"))) |> 
   mutate(category = factor(category, levels = c("na", "0", "1", "2", "3", "4", "5", "6", "7", "8", "9")))
 
+noc_occupation_table16 <- noc_occupation16 |> 
+  select(-total, -all) |> 
+  pivot_longer(cols = -Type, names_to = "category", values_to = "count") |> 
+  mutate(Type = factor(Type, levels = c("Total", "Men", "Women"))) |> 
+  mutate(category = factor(category, levels = c("na", "0", "1", "2", "3", "4", "5", "6", "7", "8", "9")))
+
 #Creating the grouped bar graph
 ggplot(noc_occupation_table, aes(x = category, y = count, fill = Type)) +
   geom_bar(stat = "identity", position = "dodge", width = 0.7) +
-  scale_x_discrete(labels = c("Not Applicable", "Legislative and Senior Management",
-                              "Business, Finance and Administration", "Natural and Applied Sciences",
-                              "Healthcare", "Education, Law and Social,\n Community and Government",
-                              "Art, Culture, Recreation and Sport", "Sales and Service",
-                              "Trades, Transport and Equipment Operators",
-                              "Natural Resources, Agriculture and\n Related Production",
-                              "Manufacturing and Utilities")) +
-  labs(title = "National Occupational Classification 2021", x = "", y = "Count") +
+  scale_x_discrete(labels = c("Sans objet", "Membres des corps législatifs et\n cadres supérieurs/cadres supérieures",
+                              "Affaires, finance et administration", "Sciences naturelles et appliquées\n et domaines apparentés",
+                              "Secteur de la santé", "Enseignement, droit et services sociaux,\n communautaires et gouvernementaux",
+                              "Arts, culture, sports et loisirs", "Vente et services",
+                              "Métiers, transport, machinerie et\n domaines apparentés",
+                              "Ressources naturelles, agriculture et\n production connexe",
+                              "Fabrication et services d'utilité publique")) +
+  labs(title = "Classification nationale des professions (CNP) 2021", x = "", y = "Personnes") +
   scale_fill_manual(values = c("Total" = "royalblue2", 
                                "Men" = "indianred", 
                                "Women" = "gold2"),
                     name = "Status",
-  ) +
+                    labels = c("Total" = "Total", "Men" = "Hommes", "Women" = "Femmes")) +
   theme_minimal() +
   theme(legend.position = "bottom", legend.title = element_blank(),
         axis.text.x = element_text(angle = 45, hjust = 1),
         plot.title = element_text(hjust = 0.5))
-
-#Preparing the table to create a pie graph
-noc_occupation_pie <- noc_occupation |> 
-  select(-Type, -total, -all) |> 
-  slice(c(-2, -3)) |> 
-  pivot_longer(cols = everything(), names_to = "category", values_to = "count")
-
-#Pie chart for NOS
-ggplot(noc_occupation_pie, aes(x = "", y = count, fill = category)) +
-  geom_bar(width = 1, stat = "identity") +
-  coord_polar("y", start = 0) +
-  theme_void() +
-  labs(title = "National Occupational Classification 2021") +
-  scale_fill_discrete(labels = c("na" = "Not Applicable")) +
-  theme(
-    legend.position = "right", legend.title = element_blank()
-  )
 
 # North American Industry Classification System ---------------------------
 #Vectors for 2021 NAICS categories
@@ -694,9 +728,9 @@ ggplot(comdes_bar, aes(x = destination, y = count, fill = Type)) +
                     name = "Status",
   ) +
   scale_x_discrete(labels = c(
-    "same_csd" = "Within Laval",
-    "diff_csd" = "Outside Laval within Quebec",
-    "diff_prov" = "Outside Quebec"
+    "same_csd" = "À Laval",
+    "diff_csd" = "Hors de Laval mais au Québec",
+    "diff_prov" = "Hors Québec"
   )) +
   theme_minimal() +
   theme(legend.position = "bottom", legend.title = element_blank())
@@ -734,10 +768,14 @@ commute_dest <- bind_rows(commute21, commute16) |>
 #Creating the bar graph for commute destination
 ggplot(commute_dest, aes(x = destination, y = percentage, fill = factor(Year))) +
   geom_bar(stat = "identity", position = "dodge") +
-  labs(title = "2016 versus 2021 Commute Destinations in Laval",
-       x = "Commuting Destination",
-       y = "Proportion of Commuters (%)",
+  labs(title = "Destinations de déplacement à Laval en 2016 et 2021",
+       x = "Destination de déplacement",
+       y = "Proportion de navetteurs (%)",
        fill = "Year") +
+  scale_x_discrete(labels = c(
+    "Within Laval" = "À Laval",
+    "Outside Laval within Quebec" = "À l'extérieur de Laval au Québec",
+    "Outside Quebec" = "À l'extérieur du Québec")) +
   theme_minimal() +
   theme(legend.position = "bottom", legend.title = element_blank(),
         plot.title = element_text(hjust = 0.5))
@@ -776,10 +814,15 @@ place <- bind_rows(place21, place16) |>
 #Creating the bar graph for place of work
 ggplot(place, aes(x = destination, y = percentage, fill = factor(Year))) +
   geom_bar(stat = "identity", position = "dodge") +
-  labs(title = "2016 versus 2021 Place of Work in Laval",
-       x = "Place of Work",
-       y = "Proportion of Employed Residents (%)",
+  labs(title = "Catégorie du lieu de travail de Laval 2016 et 2021",
+       x = "Catégorie du lieu de travail",
+       y = "Proportion de résidents employés (%)",
        fill = "Year") +
+  scale_x_discrete(labels = c(
+    "Usual Place of Work" = "Lieu habituel de travail",
+    "Work from Home" = "À domicile",
+    "No Fixed Address" = "Sans adresse de travail fixe",
+    "Outside Canada" = "À l'extérieur du Canada")) +
   theme_minimal() +
   theme(legend.position = "bottom", legend.title = element_blank(),
         plot.title = element_text(hjust = 0.5))
@@ -826,9 +869,15 @@ act_prop <- bind_rows(act21, act16, act11, act06, act01) |>
 #Line graph for raw numbers
 ggplot(act_raw, aes(x = as.factor(Year), y = count, color = type, group = type)) +
   geom_line(size = 1.5) +
-  labs(title = "Labour Force Population in Laval 2001-2021", x = "Year",
-       y = "Count (Persons)", color = "Geography") +
-  scale_y_continuous(labels = comma_format()) +
+  labs(title = "Situation d'activité de Laval 2001-2021", x = "Année",
+       y = "Personnes", color = "Geography") +
+  scale_color_manual(labels = c("Total" = "Total", "In Labour Force" = "Population Active",
+                               "Not in Labour Force" = "Population Inactive"),
+                     values = c("Total" = "indianred2",
+                       "In Labour Force" = "royalblue3",
+                       "Not in Labour Force" = "darkgreen"
+                     )) +
+  scale_y_continuous(labels = label_number(big.mark = ".")) +
   theme_minimal() +
   theme(legend.position = "bottom", legend.box = "horizontal",
         legend.title = element_blank(), plot.title = element_text(hjust = 0.5))
@@ -863,3 +912,39 @@ wref_grabber <- function(dyear, cvector, cyear){
 wref21 <- wref_grabber("CA21", wref21v, "2021")
 wref16 <- wref_grabber("CA16", wref16v, "2016")
 wref <- bind_rows(wref21, wref16)
+
+# social assistance rate --------------------------------------------------
+#Pulling a modified version of assistance_sociale_QC_et_Laval.xlsx for social assistance
+#in Quebec and modifying it to be easier to work with
+social_assist_qc <- read_excel("D://Mcgill/can_cache/assistance_sociale_QC_et_Laval.xlsx", sheet = 1) |> 
+  rename(Year = 1) |> 
+  select(Year, Change, `Social Rate`) |> 
+  mutate(across(c(Change, `Social Rate`), ~ . * 100),
+         Geography = "Quebec")
+
+#Pulling a modified version of assistance_sociale_QC_et_Laval.xlsx for social assistance
+#in Laval and modifying it to be easier to work with
+social_assist_lvl <- read_excel("D://Mcgill/can_cache/assistance_sociale_QC_et_Laval.xlsx", sheet = 2) |> 
+  rename(Year = 1) |> 
+  select(Year, Change, `Social Rate`) |> 
+  filter(!is.na(Year)) |> 
+  mutate(
+    Change = as.numeric(Change),
+    `Social Rate` = as.numeric(`Social Rate`)
+  ) |> 
+  mutate(across(c(Change, `Social Rate`), ~ . * 100),
+         Geography = "Laval")
+
+#Binding the data together
+social_assist_rate <- bind_rows(social_assist_qc, social_assist_lvl) |> 
+  select(-Change)
+
+#Graphing the social assistance rate
+ggplot(social_assist_rate, aes(x = Year, y = `Social Rate`, color = Geography, group = Geography)) +
+  geom_line(linewidth = 1.5) +
+  labs(title = "Taux d'assistance sociale de 1993 à 2023", x = "Année",
+       y = "Taux annuel moyen d’aide sociale (%)", color = "Geography") +
+  scale_y_continuous(labels = label_number(decimal.mark = ",")) +
+  theme_minimal() +
+  theme(legend.position = "bottom", legend.box = "horizontal",
+        legend.title = element_blank(), plot.title = element_text(hjust = 0.5))

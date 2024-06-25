@@ -739,8 +739,9 @@ percent_visible_minority_Queb <- visible_minority_Queb |> mutate(PercentVisibleM
 
 
 
-# Annual Growth Rate - Housing--------------------------------------------------
+# Annual Growth Rate - Housing - In Pop Growth Section of Text --------------------------------------------------
 # using Total private dwellings
+## in text = amount of total private dwellings 
 
 PrivateDwellings2021 <- cancensus::get_census(dataset = "CA21",
                                             regions = list(CSD = 2465005), 
@@ -753,6 +754,28 @@ PrivateDwellings2016 <- cancensus::get_census(dataset = "CA16",
                                               regions = list(CSD = 2465005), 
                                               level = "CSD",
                                               vectors = c("Total_Private_Dwellings" = "v_CA16_404"))
+
+# look at 2021 value
+privatedwellingsLaval <- PrivateDwellings2021[1, 'Total_Private_Dwellings']
+
+print(privatedwellingsLaval)
+
+# look at 2016 value
+
+privatedwellingsLaval2016 <- PrivateDwellings2016[1,'Total_Private_Dwellings']
+print(privatedwellingsLaval2016)
+
+#increase in total private dwellings as count
+
+dwellingincrease <- privatedwellingsLaval - privatedwellingsLaval2016
+print(dwellingincrease)
+
+# increase as percent
+
+dwellingincreasepercent <- (privatedwellingsLaval - privatedwellingsLaval2016)/privatedwellingsLaval2016*100
+print(dwellingincreasepercent)
+
+
 
 # compare to Province
 
@@ -770,9 +793,14 @@ PrivateDwellings2016_qc <- cancensus::get_census(dataset = "CA16",
 
 
 
+
+
+
+
+
 ### Population Evolution 1966 - 2041 ----------------------------------------------------------
 
-#insert data set from folder sourced from different census'
+#insert data set from folder sourced from different census' years
 
 pop_evolution <- read.csv("/Users/bridgetbuglioni/Documents/GitHub/PESLaval/data/Population Evolution.csv", skip = 3) |> 
   tibble::as_tibble()
@@ -790,14 +818,15 @@ ggplot(data = pop_evolution_tidy, aes(x = Year, y = Population))+
   ylim(0, max(pop_evolution_tidy$Population))
 
 
+# the last four points need to be distinct because those are the future projections
 pop_evolution_tidy <- pop_evolution_tidy %>%
   mutate(PointType = ifelse(row_number() > n() - 4, "Projection", "Estimate"))
 
-
+# allows for the end of the line to be dotted based on projection points
 solid_data <- pop_evolution_tidy %>% filter(PointType == "Estimate" | row_number() == n() - 4)
 dotted_data <- pop_evolution_tidy %>% filter(PointType == "Projection" | row_number() == n() - 4)
 
-
+# create the visual 
 ggplot(data = pop_evolution_tidy, aes(x = Year, y = Population)) +
   geom_point(aes(color = PointType), size = 3) +
   geom_line(data = solid_data, aes(x = Year, y = Population, group = 1), linetype = "dotted") +  # Solid line for initial points
@@ -805,4 +834,57 @@ ggplot(data = pop_evolution_tidy, aes(x = Year, y = Population)) +
   ylim(0, max(pop_evolution_tidy$Population)) +
   scale_color_manual(values = c("Projection" = "pink", "Estimate" = "black")) +
   labs(color = "Point Type", title = "Evolution of the Laval Population 1966 to 2041")
+
+
+
+
+# Births -----------------------------------------------------------------------
+# this is the data source, filter to just look at Laval
+### https://statistique.quebec.ca/fr/document/naissances-regions-administratives/tableau/naissances-deces-accroissement-naturel-mariages-par-region-administrative-quebec#tri_phe=10&tri_ra=13
+
+#insert downloaded data set from linked source
+
+Laval_Births <- read.csv("/Users/bridgetbuglioni/Documents/GitHub/PESLaval/data/Laval_Births.csv", skip = 5) |> 
+  tibble::as_tibble()
+
+#convert row with data to numeric
+Laval_Births[3, ] <- lapply(Laval_Births[3, ], function(x) as.numeric(as.character(x)))
+
+str(Laval_Births_sliced)
+
+# look at just the birth data
+
+Laval_Births_sliced <- Laval_Births |> 
+  slice(3)
+
+
+Laval_Births_sliced_long <- Laval_Births_sliced |> 
+  pivot_longer(-c(X:Code.RA))
+
+str(Laval_Births_sliced_long$value)
+# Ensure the 'value' column is numeric
+Laval_Births_sliced_long$value <- as.numeric(as.character(Laval_Births_sliced_long$value))
+
+str(Laval_Births_sliced_long)
+
+# Get numbner of births 2023
+births2023 <- Laval_Births_sliced_long[39, 'value']
+
+# see the value 
+print(births2023)
+
+# Inspect the specific rows 35 to 39
+subset_values <- Laval_Births_sliced_long[35:39, 'value']
+print(subset_values)
+
+numeric_values <- as.numeric(subset_values$value)
+print(subset_values)
+
+# Calculate the mean of the numeric vector
+averagebirth_past5yrs <- mean(numeric_values, na.rm = TRUE)
+
+# Print the result - average births over last five years 
+print(averagebirth_past5yrs)
+
+
 

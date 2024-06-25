@@ -35,7 +35,7 @@ allworklanglav_21 <-
   get_census(dataset = "CA21",
              regions = list(CSD = 2465005),
              level = "CSD",
-             vectors = worklang21vector_all)
+             vectors = allworklangvector21)
 
 # get the data for QC in 2021 (all languages used at work)
 allworklangqc_21 <- 
@@ -47,7 +47,7 @@ allworklangqc_21 <-
 # merge the all languages spoken at work datasets 
 allworklang21 <- 
   bind_rows(
-    allworklanglv_21,
+    allworklanglav_21,
     allworklangqc_21) |> 
   mutate(region = c("laval", "quebec"))
 
@@ -84,24 +84,27 @@ testtidyworklang <-
 # test plot 
 
 ggplot(tidyallworklang21, aes(x = region, y = percentage, fill = language)) + 
-  geom_bar(stat = "identity", position = "stack") 
+  geom_bar(stat = "identity", position = "stack") +
+  scale_y_continuous(labels = scales::percent) +
+  geom_text(aes(label = paste0(round(percentage),"%")),
+            position = position_stack(vjust = 0.5),
+            size = 4,
+            color = "white") +
+  labs(y = "percentage", title = "All languages spoken at Work 2021")
 
-ggplot(testtidyworklang, aes(x = region, y = people, fill = language))+
-  geom_bar(stat = "identity", position = "stack")
+# percentages are not showing up correctly so going to do some conversions 
+propworkang21 <- tidyallworklang21 |> 
+  mutate(percentage = percentage/ 100)
 
-# I want to reorder to show french, english, non offical in the stacked bar graph 
-# need to load forcats
-library(forcats)
-
-retidyallworklang21 <- tidyallworklang21 |> 
-  mutate(language = fct_relevel(language, 
-                                "non_official_comb","english_comb","french_comb")) 
-
-# try plotting again
-ggplot(retidyallworklang21, aes(x = region, y = percentage, fill = language)) + 
-  geom_bar(stat = "identity", position = "stack")
-
-# try to label with percentages 
+# try the plot again 
+ggplot(propworkang21, aes(x = region, y = percentage, fill = language)) + 
+  geom_bar(stat = "identity", position = "stack") +
+  scale_y_continuous(labels = scales::percent) +
+  geom_text(aes(label = paste0(round(percentage * 100),"%")),
+            position = position_stack(vjust = 0.5),
+            size = 4,
+            color = "white") +
+  labs(y = "percentage", title = "All languages spoken at Work 2021")
 
 #define the work language variable
 worklang01vector <- c(
@@ -109,43 +112,6 @@ worklang01vector <- c(
   "English" = "v_CA01_227",
   "French" = "v_CA01_228",
   "Non-official" = "v_CA01_229")
-
-# want to look at the top 10 languages used at work in Laval
-# This is the parent vector for language spoken most often at home in Laval in 2016
-worklang_parent21 <- find_census_vectors("Single Responses", "CA21") %>% 
-  filter(vector == "v_CA21_6717") 
-
-#Select all leaf nodes of this vector. The parameter TRUE returns only the finite leaves among child nodes. 
-
-language_children21 <- worklang_parent21 %>%
-  child_census_vectors(TRUE)
-
-# Store the vector list for later
-language_vectors21 <- language_children21 %>% pull(vector)
-View(language_vectors21)
-
-# now I will try to calculate the top 10 languages spoken at work in Laval
-# grab census data for laval 2021
-laval10_21 <- get_census(dataset = "CA21",
-                           regions = list(CSD= 2465005),
-                           level = "CSD",
-                           vectors = c(language_vectors21), 
-                           geo_format = "sf", 
-                           labels = "short")
-
-# now i need to figure out the top 10 languages
-worklaval10_ca21 <- laval10_21 |> 
-  tidyr::gather(key = language, value = lang_count, v_CA21_6867:v_CA21_7341) |> 
-  top_n(10, lang_count) |> 
-  inner_join(list_census_vectors(dataset = "CA21"), by =c("language" = "vector")) |> 
-  select(language, label, lang_count) |> 
-  arrange(desc(lang_count))
-
-#variables
-
-#	v_CA21_6705 - total single responses 
-# v_CA21_6717 - total non-official languages 
-
 
 # Language used most often at work ----------------------------------------
 
@@ -169,7 +135,7 @@ worklanglav_21 <-
              level = "CSD",
              vectors = worklangvector_21)
 
-# get the data for QC in 2021 (all languages used at work)
+# get the data for QC in 2021 (language used most at work)
 
 worklangqc_21 <- 
   get_census(dataset = "CA21",
@@ -198,13 +164,50 @@ tidyworklang21 <-
                names_to = "language", values_to = "percentage")
 
 # test print 
-ggplot(tidyworklang21, aes(x = region, y = percentage, fill = language))+
-geom_bar(stat = "identity", position = "stack")
+ggplot(tidyworklang21, aes(x = region, y = percentage, fill = language)) +
+  geom_bar(stat = "identity", position = "stack") +
+  scale_y_continuous(labels = scales::percent) +
+  geom_text(aes(label = paste0(round(percentage),"%")),
+            position = position_stack(vjust = 0.5),
+            size = 4,
+            color = "white") +
+  labs(y = "percentage", title = "Language spoken most often at Work 2021")
+  
+# percentages are not showing up correctly so going to do some conversions 
+propworkang_21 <- tidyworklang21 |> 
+  mutate(percentage = percentage/ 100)
 
-install.packages("treemap")
-library(treemap)
+# try the plot again 
+ggplot(propworkang_21, aes(x = region, y = percentage, fill = language)) + 
+  geom_bar(stat = "identity", position = "stack") +
+  scale_y_continuous(labels = scales::percent) +
+  geom_text(aes(label = paste0(round(percentage * 100),"%")),
+            position = position_stack(vjust = 0.5),
+            size = 4,
+            color = "white") +
+  labs(y = "percentage", title = "Language used most at Work 2021")  
+
+# going to reorder so french is first 
+library(forcats)
+
+repropworklang21 <- propworkang_21 |> 
+  mutate(language = fct_relevel(language, 
+                                "non_off","english","french"))
+
+# plot 
+ggplot(repropworklang21, aes(x = region, y = percentage, fill = language)) + 
+  geom_bar(stat = "identity", position = "stack") +
+  scale_y_continuous(labels = scales::percent) +
+  geom_text(aes(label = paste0(round(percentage * 100),"%")),
+            position = position_stack(vjust = 0.5),
+            size = 4,
+            color = "white") +
+  labs(y = "percentage", title = "Language used most at Work 2021")
+
 
 #want to try to plot as tree map
+install.packages("treemap")
+library(treemap)
 
 treemap(tidyworklang21, 
         index = "language",
