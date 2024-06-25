@@ -205,10 +205,10 @@ laval_family_size <- bind_rows(
 # Select and rename columns for clarity
 laval_family_size <- laval_family_size %>%
   select(year, family_2_pct, family_3_pct, family_4_pct, family_5_pct) %>%
-  rename(`2 members` = family_2_pct,
-         `3 members` = family_3_pct,
-         `4 members` = family_4_pct,
-         `5+ members` = family_5_pct)
+  rename(`2 membres` = family_2_pct,
+         `3 membres` = family_3_pct,
+         `4 membres` = family_4_pct,
+         `5+ membres` = family_5_pct)
 
 # Convert to long format for plotting
 laval_family_size_long <- laval_family_size %>%
@@ -219,10 +219,10 @@ laval_family_size_long <- laval_family_size %>%
 ggplot(laval_family_size_long, aes(x = year, y = percentage, color = family_size)) +
   geom_line(size = 1.2) +
   geom_point(size = 3) +
-  labs(title = "Family Size in Laval Over Census Years",
-       x = "Census Year",
-       y = "Percentage",
-       color = "Family Size") +
+  labs(title = "Taille des familles lavalloises à travers le temps",
+       x = "Année de recensement",
+       y = "Pourcentage",
+       color = "Taille de la famille") +
   theme_minimal() +
   scale_y_continuous(labels = scales::percent)
 
@@ -729,28 +729,34 @@ single_parent <- laval_household_family_21 %>%
 # Create a data frame for plotting
 #this df creates the categories for the x-axis and groups for children status
 plot_data <- data.frame(
-  category = c("Married", "Common Law", "Single Parent (Woman)", "Single Parent (Man)"),
-  with_children = c(married$married_with_children, 
+  category = c("Mariés", "Union civile", "Mère seule", "Père seul"),
+  avec_enfants = c(married$married_with_children, 
                     common_law$common_law_with_children, 
                     single_parent$single_parent_woman, 
                     single_parent$single_parent_man),
-  without_children = c(married$married_without_children, 
-                       common_law$common_law_without_children, 0, 0))
+  sans_enfants = c(married$married_without_children, 
+                       common_law$common_law_without_children, 0, 0))|> 
+  mutate(category = factor(category, 
+                           levels = c("Mariés", 
+                                      "Union civile", 
+                                      "Mère seule", 
+                                      "Père seul")))
 
 # Reshape the data for stacked bar plot
 plot_data <- plot_data %>%
-  pivot_longer(cols = c(with_children, without_children), 
+  pivot_longer(cols = c(avec_enfants, sans_enfants), 
                names_to = "child_status", 
-               values_to = "percentage")
+               values_to = "percentage") 
+
 
 
 # Create stacked bar plot
 laval_plot <- 
 ggplot(plot_data, aes(x = category, y = percentage, fill = child_status)) +
   geom_bar(stat = "identity", position = "stack") +
-  labs(title = "Household Family Composition in Laval",
-       y = "Percentage",
-       x = "Family Type",
+  labs(title = "Composition des familles à Laval",
+       y = "Pourcentage",
+       x = "Type de famille",
        fill = "Children Status") +
   scale_fill_manual(values = c("with_children" = "blue", "without_children" = "lightblue")) + # Adjust colors
   theme_minimal()+
@@ -829,17 +835,19 @@ single_parent_qc <- qc_household_family %>%
 
 # Create a data frame for plotting
 plot_data_qc <- data.frame(
-  category = c("Married", "Common Law", "Single Parent (Woman)", "Single Parent (Man)"),
-  with_children = c(married_qc$married_with_children, 
+  category = c("Mariés", "Union civile", "Mère seule", "Père seul"),
+  avec_enfants = c(married_qc$married_with_children, 
                     common_law_qc$common_law_with_children, 
                     single_parent_qc$single_parent_woman, 
                     single_parent_qc$single_parent_man),
-  without_children = c(married_qc$married_without_children, 
-                       common_law_qc$common_law_without_children, 0, 0))
+  sans_enfants = c(married_qc$married_without_children, 
+                       common_law_qc$common_law_without_children, 0, 0)) |> 
+  mutate(category = factor(category, levels = c("Mariés", "Union civile", "Mère seule", "Père seul")))
+
 
 # Reshape the data for stacked bar plot
 plot_data_qc <- plot_data_qc %>%
-  pivot_longer(cols = c(with_children, without_children), 
+  pivot_longer(cols = c(avec_enfants, sans_enfants), 
                names_to = "child_status", 
                values_to = "percentage")
 
@@ -851,42 +859,47 @@ plot_data_qc <- plot_data_qc %>%
 #i know from observation that they are the highest values
 max_y <- max(max(laval_household_family_21$couple_fam_married_pct), max(qc_household_family$couple_fam_married_pct))
 
+library(scales)
+
 
 # i make the two plots separately and combine them later. this is laval
 plot_laval <- ggplot(plot_data, aes(x = category, y = percentage, fill = child_status)) +
   geom_bar(stat = "identity", position = "stack") +
-  labs(title = "Household Family Composition in Laval",
-       y = "Percentage",
-       x = "Family Type",
-       fill = "Children Status") +
-  scale_fill_manual(values = c("with_children" = "blue", "without_children" = "lightblue")) + # Adjust colors
+  labs(title = "Composition des familles à Laval",
+       y = "Pourcentage",
+       x = "Type de famille",
+       fill = element_blank()) +
+  scale_fill_manual(values = c("avec_enfants" = "blue", "sans_enfants" = "lightblue")) + # Adjust colors
+  scale_y_continuous(labels = percent_format(accuracy = 1)) + # Format y-axis labels as percentages
   theme_minimal() +
   theme(
     plot.title = element_text(face = "bold", hjust = 0.5),
     axis.text.x = element_text(angle = 45, hjust = 1),
     axis.title.y = element_blank(),  # Remove y-axis label to avoid duplication
     axis.ticks.y = element_blank(),  # Remove y-axis ticks for aesthetic purposes
-    plot.margin = margin(5.5, 5.5, 5.5, 5.5)  # Adjust plot margins for alignment
-  ) +
-  ylim(0, max_y)  # Set the y-axis limit
+    plot.margin = margin(5.5, 5.5, 5.5, 5.5),  # Adjust plot margins for alignment
+      legend.position = "none")
 
 # Create stacked bar plot for Quebec
 plot_qc <- ggplot(plot_data_qc, aes(x = category, y = percentage, fill = child_status)) +
   geom_bar(stat = "identity", position = "stack") +
-  labs(title = "Household Family Composition in Québec",
+  labs(title = "Composition des familles au Québec",
        y = NULL,  # We'll set y-axis label to NULL to avoid duplication
-       x = "Family Type",
-       fill = "Children Status") +
-  scale_fill_manual(values = c("with_children" = "blue", "without_children" = "lightblue")) + # Adjust colors
-  theme_minimal() +
+       x = "Type de famille",
+       fill = "Présence d'enfants") +
+  scale_fill_manual(values = c("avec_enfants" = "blue", "sans_enfants" = "lightblue")) + # Adjust colors
+    theme_minimal() +
   theme(
     plot.title = element_text(face = "bold", hjust = 0.5),
     axis.text.x = element_text(angle = 45, hjust = 1),
+    axis.text.y = element_blank(),  # Remove y-axis numbers
     axis.title.y = element_blank(),  # Remove y-axis label to avoid duplication
     axis.ticks.y = element_blank(),  # Remove y-axis ticks for aesthetic purposes
+    legend.position = "bottom",
     plot.margin = margin(5.5, 5.5, 5.5, 5.5)  # Adjust plot margins for alignment
   ) +
   ylim(0, max_y)  # Set the y-axis limit
+  
 
 
 # Combine both plots
@@ -1080,7 +1093,7 @@ household_size <-  get_census(
 
 household_size |> 
   ggplot()+
-  geom_sf(aes(geometry = geometry, fill = avg_size, scale_) 
+  geom_sf(aes(geometry = geometry, fill = avg_size, scale_))
 
 household_size <- 
   household_size |> 
@@ -1109,10 +1122,10 @@ laval_household_size21 <-  get_census(
 
 laval_household_size21 <- 
   laval_household_size21 |> 
-  mutate(one_pct = one/total,
-         two_pct = two/total,
-         three_pct = three/total,
-         four_more_pct = (four + five_more)/total)
+  mutate(une_personne = one/total,
+         deux_personnes = two/total,
+         trois_personnes = three/total,
+         quatre_personnes_plus = (four + five_more)/total)
 
 #québec 2021
 qc_household_size <-  get_census(
@@ -1131,12 +1144,10 @@ qc_household_size <-  get_census(
 
 qc_household_size <- 
   qc_household_size |> 
-  mutate(one_pct = one/total,
-         two_pct = two/total,
-         three_pct = three/total,
-         four_pct = four/total,
-         five_more_pct = five_more/total)
-
+  mutate(une_personne = one/total,
+         deux_personnes = two/total,
+         trois_personnes = three/total,
+         quatre_personnes_plus = (four + five_more)/total)
 
 ### wrapped plot
 library(dplyr)
@@ -1146,23 +1157,23 @@ library(gridExtra)
 library(sf)
 
 # Select only numeric columns for pivoting
-laval_household_size_numeric <- laval_household_size %>%
-  select(GeoUID, one_pct, two_pct, three_pct, four_pct, five_more_pct) |> 
+laval_household_size_numeric <- laval_household_size21 %>%
+  select(GeoUID, une_personne, deux_personnes, trois_personnes, quatre_personnes_plus) |> 
   st_drop_geometry()
 
 qc_household_size_numeric <- qc_household_size %>%
-  select(GeoUID, one_pct, two_pct, three_pct, four_pct, five_more_pct) |> 
+  select(GeoUID, une_personne, deux_personnes, trois_personnes, quatre_personnes_plus) |> 
   st_drop_geometry()
 
 
 #pivot tables
 laval_household_size_pivot <- laval_household_size_numeric %>%
   pivot_longer(cols = -GeoUID, names_to = "household_size", values_to = "percentage") %>%
-  mutate(household_size = factor(household_size, levels = c("one_pct", "two_pct", "three_pct", "four_pct", "five_more_pct")))
+  mutate(household_size = factor(household_size, levels = c("une_personne", "deux_personnes", "trois_personnes", "quatre_personnes_plus")))
 
 qc_household_size_pivot <- qc_household_size_numeric %>%
   pivot_longer(cols = -GeoUID, names_to = "household_size", values_to = "percentage") %>%
-  mutate(household_size = factor(household_size, levels = c("one_pct", "two_pct", "three_pct", "four_pct", "five_more_pct")))
+  mutate(household_size = factor(household_size, levels = c("une_personne", "deux_personnes", "trois_personnes", "quatre_personnes_plus")))
 
 # Find the maximum count to set the y-axis limit
 max_count <- max(max(laval_household_size_pivot$percentage), max(qc_household_size_pivot$percentage))
@@ -1172,9 +1183,9 @@ plot_laval <- ggplot(data = laval_household_size_pivot, aes(x = household_size, 
   geom_bar(stat = "identity", fill = "skyblue") +
   ylim(0, max_count) +
   labs(
-    title = "Household Size Distribution in Laval",
-    x = "Number of people in Household",
-    y = "Percentage"
+    title = "Taille des ménages lavallois en 2021",
+    x = "Ménages par taille",
+    y = "Pourentage"
   ) +
   theme_minimal() +
 theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
@@ -1188,9 +1199,9 @@ plot_qc <- ggplot(data = qc_household_size_pivot,
   geom_bar(stat = "identity", fill = "skyblue") +
   ylim(0, max_count) +
   labs(
-    title = "Household Size Distribution in Quebec",
-    x = "Number of People in Household",
-    y = "Percentage"
+    title = "Taille des ménages québecois en 2021",
+    x = "Ménages par taille",
+    y = "Pourentage"
   ) +
   theme_minimal()+
   theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
@@ -1200,7 +1211,7 @@ plot_qc <- ggplot(data = qc_household_size_pivot,
 
 
 # Combine plots
-grid.arrange(plot_laval, plot_qc, ncol = 2, top = "Household Size Distribution in Laval and Québec")
+grid.arrange(plot_laval, plot_qc, ncol = 2, top = "Taille des ménages à Laval et au Québec")
 
 
 ### Persons in households by household size
@@ -1262,11 +1273,10 @@ laval_household_size16 <-  get_census(
 
 laval_household_size16 <- 
   laval_household_size16 |> 
-  mutate(one_pct = one/total,
-         two_pct = two/total,
-         three_pct = three/total,
-         four_more_pct = (four+five_more)/total)
-
+  mutate(une_personne = one/total,
+         deux_personnes = two/total,
+         trois_personnes = three/total,
+         quatre_personnes_plus = (four + five_more)/total)
 
 laval_household_size06 <-  get_census(
   dataset = "CA06",
@@ -1285,10 +1295,10 @@ laval_household_size06 <-  get_census(
 
 laval_household_size06 <- 
   laval_household_size06 |> 
-  mutate(one_pct = one/total,
-         two_pct = two/total,
-         three_pct = three/total,
-         four_more_pct = (four_five + six_more) /total)
+  mutate(une_personne = one/total,
+         deux_personnes = two/total,
+         trois_personnes = three/total,
+         quatre_personnes_plus = (four_five + six_more) /total)
 
 
 laval_household_size01 <-  get_census(
@@ -1308,10 +1318,10 @@ laval_household_size01 <-  get_census(
 
 laval_household_size01 <- 
   laval_household_size01 |> 
-  mutate(one_pct = one/total,
-         two_pct = two/total,
-         three_pct = three/total,
-         four_more_pct = (four_five + six_more) /total)
+  mutate(une_personne = one/total,
+         deux_personnes = two/total,
+         trois_personnes = three/total,
+         quatre_personnes_plus = (four_five + six_more) /total)
 
 laval_household_size96 <-  get_census(
   dataset = "CA1996",
@@ -1328,10 +1338,10 @@ laval_household_size96 <-  get_census(
 
 laval_household_size96 <- 
   laval_household_size96 |> 
-  mutate(one_pct = one/total,
-         two_pct = two/total,
-         three_pct = three/total,
-         four_more_pct = (four_five + six_more) /total)
+  mutate(une_personne = one/total,
+         deux_personnes = two/total,
+         trois_personnes = three/total,
+         quatre_personnes_plus = (four_five + six_more) /total)
 
 # graph
 
@@ -1366,7 +1376,8 @@ combined_data <- bind_rows(laval_household_size21, laval_household_size16, laval
 long_data <- combined_data %>%
   pivot_longer(cols = c(one_pct, two_pct, three_pct, four_more_pct),
                names_to = "household_size",
-               values_to = "percentage")
+               values_to = "percentage") |> 
+  select(-"Type", -"Region Name",-"Dwellings", -"Households",- "PR_UID", -"CMA_UID")
 
 # Define the colors for each household size category
 # i use a gradient to make it more legible
@@ -1381,10 +1392,10 @@ ggplot(long_data, aes(x = year, y = percentage, color = household_size, group = 
   geom_point(size = 2) +
   scale_color_manual(values = household_colors) + 
   scale_y_continuous(labels = scales::percent_format()) +
-  labs(title = "Household Size Percentages in Laval Over Time",
-       x = "Year",
-       y = "Percentage of Households",
-       color = "Household Size") +
+  labs(title = "Évolution de la taille des ménages lavallois entre 1996 et 2021",
+       x = "Année de recencement",
+       y = "Pourcentage",
+       color = "Taille des ménages") +
   theme_minimal()
 
 
