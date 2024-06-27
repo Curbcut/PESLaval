@@ -5,17 +5,18 @@ library(readxl)
 library(cmhc)
 library(scales)
 library(raster) #Only load this if you don't need to use select()
+library(terra)
 
-#Setting CensusMapper API Key because it won't save
-set_cancensus_api_key("CensusMapper_4308d496f011429cf814385050f083dc")
+# #Setting CensusMapper API Key because it won't save
+# set_cancensus_api_key("CensusMapper_4308d496f011429cf814385050f083dc")
 
 #Grabbing all cancensus vector
 can21 <- list_census_vectors(dataset = "CA21")
 
-#Caching census and CMHC data to reduce amount of calls and speed up process.
-#Personal use only, change the folder to your own folder if you want to use it
-set_cancensus_cache_path("D:/McGill/can_cache", install = TRUE, overwrite = TRUE)
-set_cmhc_cache_path("D:/McGill/can_cache", install = TRUE, overwrite = TRUE)
+# #Caching census and CMHC data to reduce amount of calls and speed up process.
+# #Personal use only, change the folder to your own folder if you want to use it
+# set_cancensus_cache_path("D:/McGill/can_cache", install = TRUE, overwrite = TRUE)
+# set_cmhc_cache_path("D:/McGill/can_cache", install = TRUE, overwrite = TRUE)
 
 #Reading the Montreal CMA shapefile
 mtlcma_sf <- cancensus::get_census(dataset = "CA21",
@@ -108,31 +109,55 @@ ggplot(data = ouranos_sf) +
                              label.position = "bottom", keywidth = 3, keyheight = 0.5))
 
 # Biodiversity ------------------------------------------------------------
-#Reading greenspace shapefile and canopy .tif
-greenspace_shp <- st_read("/Users/justin/Documents/R/curbcut/parc_espace_vert_20240607_PG.shp")
-canopy_tif <- raster("D://Mcgill/can_cache/treecanopy/treecanopy.tif")
+# #Reading greenspace shapefile and canopy .tif
+# greenspace_shp <- st_read("/Users/justin/Documents/R/curbcut/parc_espace_vert_20240607_PG.shp")
+# canopy_tif <- raster("D://Mcgill/can_cache/treecanopy/treecanopy.tif")
+# 
+# #Adding artificial margins, breaks, and associated colors
+# par(mar = c(0, 0, 0, 0))
+# breaks <- c(0, 1, 2, 3, 4, 5)
+# color_breaks <- c("#feb24c", "#fff7bc", "#e5f5f9", "#99d8c9", "#a6bddb")
+# 
+# #Plotting the .tif file
+# plot(canopy_tif, main = "", breaks = breaks, col = color_breaks,
+#     box = FALSE, axes = FALSE, legend.shrink = 0.3)
+# 
+# #Adding title to the .tif map
+# title(main = "Couverture du Couvert Végétal à Laval 2021", adj = 0.9, line = -2, cex.main = 1.2)
+# 
+# #Mapping out greenspaces (unused)
+# ggplot() +
+#   geom_sf(data = laval_csd, color = "black", fill = "#F8F8F8") +
+#   geom_sf(data = greenspace_shp, color = "darkgreen", fill = "darkgreen") +
+#   theme_minimal() +
+#   theme(axis.line = element_blank(), axis.text = element_blank(),
+#         axis.title = element_blank(), axis.ticks = element_blank(),
+#         panel.grid = element_blank(), plot.title = element_text(hjust = 0.5),
+#         legend.position = "bottom", legend.justification = "center")
 
-#Adding artificial margins, breaks, and associated colors
+## USING CURBCUT DATA
+ndvi <- terra::rast("data/axe1/climaterisk/grd30.tif")
+ndvi <- ndvi[["ndvi_2023"]]
+
+# Specify the file name and dimensions for the output image
+png(filename = "output/axe1/climaterisk/ndvi.png", width = 1000, height = 800)
+
+# Adding artificial margins, breaks, and associated colors
 par(mar = c(0, 0, 0, 0))
-breaks <- c(0, 1, 2, 3, 4, 5)
+breaks <- c(0, 0.2, 0.4, 0.6, 0.8, 1)
 color_breaks <- c("#feb24c", "#fff7bc", "#e5f5f9", "#99d8c9", "#a6bddb")
 
-#Plotting the .tif file
-plot(canopy_tif, main = "", breaks = breaks, col = color_breaks,
-    box = FALSE, axes = FALSE, legend.shrink = 0.3)
+# Plotting the .tif file
+plot(ndvi, main = "", breaks = breaks, col = color_breaks, 
+     box = FALSE, axes = FALSE, legend = FALSE)
 
-#Adding title to the .tif map
-title(main = "Couverture du Couvert Végétal à Laval 2021", adj = 0.9, line = -2, cex.main = 1.2)
+# Adding the legend
+legend("bottomright", legend = c("Très bas", "Bas", "Moyen", "Haut", "Très haut"),
+       fill = color_breaks, cex = 1.75, bty = "n", xpd = TRUE)
 
-#Mapping out greenspaces (unused)
-ggplot() +
-  geom_sf(data = laval_csd, color = "black", fill = "#F8F8F8") +
-  geom_sf(data = greenspace_shp, color = "darkgreen", fill = "darkgreen") +
-  theme_minimal() +
-  theme(axis.line = element_blank(), axis.text = element_blank(),
-        axis.title = element_blank(), axis.ticks = element_blank(),
-        panel.grid = element_blank(), plot.title = element_text(hjust = 0.5),
-        legend.position = "bottom", legend.justification = "center")
+# Close the device to save the plot to the file
+dev.off()
+
 
 # Biodiversity (Curbcut) --------------------------------------------------
 biod_sf <- raster("D://Mcgill/can_cache/ndvi.tif")
