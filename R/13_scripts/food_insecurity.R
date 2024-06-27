@@ -244,8 +244,8 @@ ggplot(rf, aes(x = Year, y = Proportion, color = `Risk Factor`, group = `Risk Fa
   scale_color_manual(values = c("Immigration" = "#66c2a5", "One Parent Families" = "#fc8d62",
                                 "Living Alone" = "#8da0cb", "Older than 75" = "#e78ac3",
                                 "Under-Educated" = "#a6d854", "Low Income*" = "#ffd92f"),
-                     labels = c("Immigrant", "Familles monoparentales", "Vivre seul",
-                                "Plus de 75 ans", "Sous-éduqué", "Faible revenu")) +
+                     labels = c("Immigrant", "Vivre seul", "Faible revenu",
+                                "Plus de 75 ans", "Familles monoparentales", "Sous-éduqué")) +
   labs(title = "Proportion de la population présentant des facteurs de risque\n
                 pour Insécurité alimentaire à Laval 2001-2021",
        x = "Année",

@@ -88,7 +88,8 @@ ouranos_sf <- read_sf("D://McGill/can_cache/heat/ouranosheat.shp") |>
 
 #calculating number of people who are highly vulnerable to heat waves
 vuln_pop <- ouranos_sf |> 
-  filter(N_Vulnre_2 %in% c("Forte vulnérabilité")) |> 
+  filter(N_Vulnre_2 %in% c("Forte vulnérabilité", "Vulnérabilité moyenne")) |> 
+  group_by(N_Vulnre_2) |> 
   summarise(sum_Pop = sum(Pop16_12, na.rm = TRUE))
 
 #Mapping out heat vulnerability
@@ -132,6 +133,9 @@ ggplot() +
         axis.title = element_blank(), axis.ticks = element_blank(),
         panel.grid = element_blank(), plot.title = element_text(hjust = 0.5),
         legend.position = "bottom", legend.justification = "center")
+
+# Biodiversity (Curbcut) --------------------------------------------------
+biod_sf <- raster("D://Mcgill/can_cache/ndvi.tif")
 
 # Flooding ----------------------------------------------------------------
 #Vectors for the flooding

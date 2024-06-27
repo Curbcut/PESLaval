@@ -1,6 +1,8 @@
 #Loading libraries
 source("R/01_startup.R")
 library(cmhc)
+library(sf)
+library(scales)
 
 #Setting CensusMapper API Key because it won't save
 set_cancensus_api_key("CensusMapper_4308d496f011429cf814385050f083dc")
@@ -22,7 +24,22 @@ laval_ct <- cancensus::get_census(dataset = "CA21",
 
 #Using curbcut colors
 curbcut_scale <- c("#C4CDE1", "#98A8CB", "#6C83B5", "#4C5C7F", "#2B3448")
+curbcut_scale_afford <- c("#f9fafc", "#C4CDE1", "#98A8CB", "#6C83B5", "#4C5C7F", "#2B3448")
 
+#Grabbing Montreal CMA shapefile
+mtlcma_sf <- cancensus::get_census(dataset = "CA21",
+                                   regions = list(CMA = 24462),
+                                   level = "CMA",
+                                   geo_format = "sf")
+
+#Grabbing Laval CSD shapefile
+laval_csd <- cancensus::get_census(dataset = "CA21", 
+                                   regions = list(CSD = 2465005), 
+                                   level = "CSD", 
+                                   geo_format = "sf")
+
+#Setting up bounding box
+laval_bbox <- st_bbox(laval_csd)
 # Annual Monthly Tenant Cost (Laval, Montreal, Quebec) ----------------------------
 #Setting the years to pull data from
 years <- 2010:2023
@@ -122,7 +139,7 @@ med_rent_cmhc <- function(geoid, years, geoname) {
   })
 }
 
-#Grabbing annual average rent data from 2010 to 2023
+#Grabbing annual median rent data from 2010 to 2023
 med_rent_lvl <- med_rent_cmhc(2465005, years, "Laval")
 med_rent_mtl <- med_rent_cmhc(2466023, years, "Montreal")
 
@@ -179,14 +196,92 @@ ggplot(med_rent_annual, aes(x = Year, y = `Value`, group = Geography, color = Ge
     legend.title = element_blank(), plot.title = element_text(hjust = 0.5)
   )
 
-ggplot(med_rent_yoy, aes(x = Year, y = Growth, fill = Geography)) +
+ggplot(med_rent_yoy, aes(x = Year, y = Growth)) +
   geom_bar(stat = "identity", position = position_dodge()) +
+  facet_wrap(~Geography) +
   theme_minimal() +
   labs(title = "Variation d’une année sur l’autre du loyer médian 2010-2023",
        x = "Année",
        y = "Variation du loyer médian (%)") +
   theme(legend.position = "bottom", legend.box = "horizontal",
-        legend.title = element_blank(), plot.title = element_text(hjust = 0.5))
+        legend.title = element_blank(), plot.title = element_text(hjust = 0.5),
+        axis.text.x = element_text(angle = 45, hjust = 1))
+
+# Monthly Tenant Cost by Laval Neighborhood -------------------------------
+nbhd_mtlcma <- cmhc::get_cmhc(survey = "Rms", series = "Median Rent", 
+                       dimension = "Bedroom Type", breakdown = "Neighbourhoods", 
+                       geo_uid = 24462, year = 2023)
+
+zones <- cmhc::get_cmhc_geography(level = "NBHD")
+zones <- sf::st_transform(zones, crs = 32618)
+
+laval <- cancensus::get_census("CA21", regions = list(CSD = 2465005), level = "CSD", geo_format = "sf")
+laval <- sf::st_transform(laval, crs = 32618)
+
+laval_zones <- sf::st_filter(zones, laval) |> 
+  select(NBHD_NAME_EN)
+
+med_rent_lvl <- nbhd_mtlcma |> 
+  semi_join(laval_zones, by = join_by("Neighbourhoods" == "NBHD_NAME_EN")) |> 
+  filter(`Bedroom Type` == "2 Bedroom")
+
+med_rent_lvl_sf <- laval_zones |> 
+  left_join(med_rent_lvl, join_by(NBHD_NAME_EN == Neighbourhoods)) |>
+  st_transform(4326)
+
+mtlcma_sf_32618 <- st_transform(mtlcma_sf, 32618)
+laval_csd_32618 <- st_transform(laval_csd, 32618)
+laval_bbox_32618 <- st_bbox(laval_csd_32618)
+
+ggplot(data = med_rent_lvl_sf) +
+  geom_sf(data = mtlcma_sf, fill = "lightgrey") +
+  geom_sf(aes(fill = Value)) +
+  scale_fill_gradientn(colors = curbcut_scale, na.value = "#B3B3BB") +
+  labs(title = "Loyer médian* à Laval 2023",
+       subtitle = "*Loyer médian d'un appartement 2 chambres",
+       fill = "Loyer médian ($)") +
+  theme_minimal() +
+  theme(axis.line = element_blank(), axis.text = element_blank(),
+        axis.title = element_blank(), axis.ticks = element_blank(),
+        panel.grid = element_blank(), legend.position = "bottom",
+        plot.title = element_text(hjust = 0.5), legend.justification = "center",
+        plot.subtitle = element_text(hjust = 0.5),
+        panel.background = element_rect(fill = "lightblue")) +
+  guides(fill = guide_colorbar(title.position = "top", title.hjust = 0.5,
+                               barwidth = 10, barheight = 1)) +
+  coord_sf(xlim = c(laval_bbox$xmin, laval_bbox$xmax),
+           ylim = c(laval_bbox$ymin, laval_bbox$ymax))
+
+nbhd_mtlcma_18 <- cmhc::get_cmhc(survey = "Rms", series = "Median Rent", 
+                                 dimension = "Bedroom Type", breakdown = "Neighbourhoods", 
+                                 geo_uid = 24462, year = 2018) |> 
+  semi_join(laval_zones, by = join_by("Neighbourhoods" == "NBHD_NAME_EN")) |> 
+  filter(`Bedroom Type` == "2 Bedroom") |> 
+  rename(Value2018 = Value) |> 
+  select(Neighbourhoods, Value2018)
+
+med5 <- med_rent_lvl_sf |> 
+  left_join(nbhd_mtlcma_18, by = join_by(NBHD_NAME_EN == `Neighbourhoods`)) |> 
+  mutate(Change = (Value / Value2018 - 1) * 100)
+
+ggplot(data = med5) +
+  geom_sf(data = mtlcma_sf, fill = "lightgrey") +
+  geom_sf(aes(fill = Change)) +
+  scale_fill_gradientn(colors = curbcut_scale, na.value = "#B3B3BB") +
+  labs(title = "Variation en pourcentage du loyer médian* à Laval 2018-2023",
+       subtitle = "*Pour un appartement de deux chambres",
+       fill = "Variation du loyer (%)") +
+  theme_minimal() +
+  theme(axis.line = element_blank(), axis.text = element_blank(),
+        axis.title = element_blank(), axis.ticks = element_blank(),
+        panel.grid = element_blank(), legend.position = "bottom",
+        plot.title = element_text(hjust = 0.5), legend.justification = "center",
+        plot.subtitle = element_text(hjust = 0.5),
+        panel.background = element_rect(fill = "lightblue")) +
+  guides(fill = guide_colorbar(title.position = "top", title.hjust = 0.5,
+                               barwidth = 10, barheight = 1)) +
+  coord_sf(xlim = c(laval_bbox$xmin, laval_bbox$xmax),
+           ylim = c(laval_bbox$ymin, laval_bbox$ymax))
 
 # Monthly Tenant Cost by Laval Zone -----------------------------------------------------
 # CMHC zones
@@ -674,8 +769,9 @@ pto_06_QC <- pto_census_QC("CA06", pto_06v, "2006")
 pto_01_QC <- pto_census_QC("CA01", pto_01v, "2001") |> 
   mutate(total = owner + tenant)
 pto_graph_QC <- bind_rows(pto_21_QC, pto_16_QC, pto_11_QC, pto_06_QC, pto_01_QC) |> 
-  mutate("Owner Households" = owner * 100 / total,
-         "Tenant Households" = tenant * 100 / total)
+  mutate("Owner Households QC" = owner * 100 / total,
+         "Tenant Households QC" = tenant * 100 / total) |> 
+  select(Year, "Owner Households QC", "Tenant Households QC")
 
 pto_21_CA <- pto_census_CA("CA21", pto_21v, "2021")
 pto_16_CA <- pto_census_CA("CA16", pto_16v, "2016")
@@ -685,8 +781,9 @@ pto_06_CA <- pto_census_CA("CA06", pto_06v, "2006")
 pto_01_CA <- pto_census_CA("CA01", pto_01v, "2001") |> 
   mutate(total = owner + tenant)
 pto_graph_CA <- bind_rows(pto_21_CA, pto_16_CA, pto_11_CA, pto_06_CA, pto_01_CA) |> 
-  mutate("Owner Households" = owner * 100 / total,
-         "Tenant Households" = tenant * 100 / total)
+  mutate("Owner Households CA" = owner * 100 / total,
+         "Tenant Households CA" = tenant * 100 / total) |> 
+  select(Year, "Owner Households CA", "Tenant Households CA")
 
 #Grabbing Montreal and Quebec for comparison
 pto_mtl_21 <- get_census(dataset = "CA21",
@@ -706,10 +803,19 @@ pto_qc_21 <- get_census(dataset = "CA21",
 
 #Making the data usable to graph
 pto_graph <- bind_rows(pto_21, pto_16, pto_11, pto_06, pto_01) |> 
+  select(-total) |> 
   pivot_longer(cols = -Year, names_to = "Type", values_to = "Households") |> 
-  mutate(Type = factor(Type, levels = c("total", "owner", "tenant")))
+  group_by(Year) %>%
+  mutate(Proportion = Households / sum(Households) * 100,
+         ProportionLabel = paste0(gsub("\\.", ",", round(Proportion, 1)), "%")) |> 
+  ungroup() |> 
+  mutate(Type = factor(Type, levels = c("owner", "tenant"))) |> 
+  arrange(Year) |> 
+  group_by(Type) |> 
+  mutate(Increase = c(FALSE, diff(Proportion) > 0)) |> 
+  ungroup()
 
-#Proportion Graph
+#Proportion Graph data
 pto_graph_prop <- bind_rows(pto_21, pto_16, pto_11, pto_06, pto_01) |> 
   mutate("Owner Households" = owner * 100 / total,
          "Tenant Households" = tenant * 100 / total) |> 
@@ -720,13 +826,14 @@ pto_graph_prop <- bind_rows(pto_21, pto_16, pto_11, pto_06, pto_01) |>
 #Graphing the data out
 ggplot(pto_graph, aes(x = Year, y = Households, fill = Type)) +
   geom_bar(stat = "identity", position = position_dodge()) +
-  labs(title = "Total, ménages propriétaires et locataires à Laval 2001-2021",
+  geom_text(aes(label = ifelse(Year == min(Year), ProportionLabel, paste0(ProportionLabel, ifelse(Increase, " ▲", " ▼")))),
+            position = position_dodge(width = 0.9), vjust = 1.5, color = "white", size = 4) +
+  labs(title = "Ménages propriétaires et locataires à Laval 2001-2021",
        x = "Année",
        y = "Nombre de ménages",
        fill = "Type of Household") +
-  scale_fill_manual(values = c("total" = "royalblue2", "owner" = "indianred2",
-                               "tenant" = "gold3"),
-                    labels = c("Total", "Propriétaire", "Locataire")) +
+  scale_fill_manual(values = c("owner" = "royalblue2", "tenant" = "indianred2"),
+                    labels = c("Propriétaire", "Locataire")) +
   theme_minimal() +
   theme(legend.position = "bottom", legend.box = "horizontal",
         legend.title = element_blank(), plot.title = element_text(hjust = 0.5))
@@ -843,15 +950,12 @@ ggplot(startsp_lvl, aes(x = Year, y = `Count`, group = Type, color = Type)) +
 
 ggplot(starts_lvl_line, aes(x = Year, y = `Units`, group = `Intended Market`, color = `Intended Market`)) +
   geom_line(size = 1.25) +
-  labs(title = "Mises en chantier à Laval 2010-2023",
+  labs(title = "Housing Starts in Laval 2010-2023",
        x = "Année",
        y = "Nombre de logements") +
   scale_color_manual(values = c("Homeowner Starts" = "#333366",
                                 "Condo Starts" = "#cd5c5c",
-                                "Rental Starts" = "#478547"),
-                     labels = c("Démarrage par le propriétaire",
-                                "Mises en chantier de condos",
-                                "Débuts de location")) +
+                                "Rental Starts" = "#478547")) +
   theme_minimal() +
   theme(
     legend.position = "bottom", legend.box = "horizontal", legend.title = element_blank(),
@@ -875,19 +979,24 @@ completions_lvl_line <- completions_lvl |>
   mutate(`Intended Market` = gsub("Rental", "Rental Completions", `Intended Market`)) |> 
   mutate(`Intended Market` = gsub("Condo", "Condo Completions", `Intended Market`))
 
-starts_completions <- bind_rows(starts_lvl_line, completions_lvl_line)
+starts_completions <- bind_rows(starts_lvl_line, completions_lvl_line) |> 
+  pivot_wider(id_cols = Year, names_from = `Intended Market`, values_from = Units) |> 
+  mutate(`Homeowner Ratio` = `Homeowner Starts` / `Homeowner Completions`,
+         `Condo Ratio` = `Condo Starts` / `Condo Completions`,
+         `Rental Ratio` = `Rental Starts` / `Rental Completions`) |>
+  select(Year, `Homeowner Ratio`, `Condo Ratio`, `Rental Ratio`) |> 
+  pivot_longer(cols = -Year, names_to = "Intended Market", values_to = "Units") |> 
+  mutate(`Intended Market` = factor(`Intended Market`,
+                                    levels = c("Homeowner Ratio", "Condo Ratio", "Rental Ratio")))
 
 ggplot(starts_completions, aes(x = Year, y = `Units`, group = `Intended Market`, color = `Intended Market`)) +
   geom_line(size = 1.25) +
-  labs(title = "Mises en chantier et achèvements d'habitations à Laval 2010-2023",
+  labs(title = "Proportion of Housing Starts/Completions in Laval 2010-2023",
        x = "Année",
-       y = "Nombre de logements") +
-  scale_color_manual(values = c("Homeowner Starts" = "#333366", "Homeowner Completions" = "#707094",
-                                "Condo Starts" = "#cd5c5c", "Condo Completions" = "#dc8d8d",
-                                "Rental Starts" = "#478547", "Rental Completions" = "#77DD77"),
-                     labels = c("Démarrage par le propriétaire", "Achèvements par le propriétaire",
-                                "Mises en chantier de condos", "Achèvements de condos",
-                                "Débuts de location", "Achèvements de location")) +
+       y = "Proportion of Housing Starts/Completions") +
+  scale_color_manual(values = c("Homeowner Ratio" = "royalblue3",
+                                "Condo Ratio" = "indianred2",
+                                "Rental Ratio" = "chartreuse3")) +
   theme_minimal() +
   theme(
     legend.position = "bottom", legend.box = "horizontal", legend.title = element_blank(),
@@ -896,15 +1005,12 @@ ggplot(starts_completions, aes(x = Year, y = `Units`, group = `Intended Market`,
 
 ggplot(completions_lvl_line, aes(x = Year, y = `Units`, group = `Intended Market`, color = `Intended Market`)) +
   geom_line(size = 1.25) +
-  labs(title = "Logements achevés à Laval 2010-2023",
+  labs(title = "Housing Completions in Laval 2010-2023",
        x = "Année",
        y = "Nombre de logements") +
   scale_color_manual(values = c("Homeowner Completions" = "#707094",
                                 "Condo Completions" = "#dc8d8d",
-                                "Rental Completions" = "#77DD77"),
-                     labels = c("Achèvements par le propriétaire",
-                                "Achèvements de condos",
-                                "Achèvements de location")) +
+                                "Rental Completions" = "#77DD77")) +
   theme_minimal() +
   theme(
     legend.position = "bottom", legend.box = "horizontal", legend.title = element_blank(),
@@ -969,6 +1075,7 @@ afford80 <- read_csv("D:/McGill/can_cache/afford80.csv") |>
   mutate(percentage = affordhou_total_sc80_total_total_pct_2021 * 100) |> 
   mutate(name = sprintf("%.2f", as.numeric(name)))
 
+#(OLD) Formatting data to be used to map
 afford30map <- left_join(laval_ct, afford30, join_by("GeoUID" == "name")) |> 
   mutate(percentage_bins = cut(percentage, breaks = c(5, 12.5, 20, 27.5, 35, 42.5)))
 afford50map <- left_join(laval_ct, afford50, join_by("GeoUID" == "name")) |> 
@@ -976,6 +1083,50 @@ afford50map <- left_join(laval_ct, afford50, join_by("GeoUID" == "name")) |>
 afford80map <- left_join(laval_ct, afford80, join_by("GeoUID" == "name")) |> 
   mutate(percentage_bins = cut(percentage, breaks = c(-Inf, 0.75, 1.5, 2.25, 3, Inf)))
 
+#Combining all affordability percentages into one
+afford <- afford30 |> 
+  rename("afford30" = percentage) |> 
+  select(afford30, name) |> 
+  left_join(afford50, by = "name") |> 
+  rename("afford50" = percentage) |> 
+  select(name, afford30, afford50) |> 
+  left_join(afford80, by = "name") |> 
+  rename("afford80" = percentage) |> 
+  select(name, afford30, afford50, afford80)
+
+#Combining it with the CT shapefile
+afford_sf <- laval_ct |> 
+  left_join(afford, by = join_by("GeoUID" == "name")) |> 
+  select(GeoUID, afford30, afford50, afford80) |> 
+  rename("30% ou plus du revenu du ménage" = afford30,
+         "50% ou plus du revenu du ménage" = afford50,
+         "80% ou plus du revenu du ménage" = afford80) |> 
+  pivot_longer(cols = ends_with("ménage"),
+               names_to = "affordability",
+               values_to = "Value")
+
+#Mapping the faceted version of affordability
+ggplot(afford_sf) +
+  geom_sf(data = mtlcma_sf, fill = "lightgrey") +
+  geom_sf(aes(geometry = geometry, fill = Value), color = NA) +
+  geom_sf(data = laval_csd, fill = NA, color = "black") +
+  facet_wrap(~ affordability) +
+  labs(title = "Abordabilité du logement à Laval 2021",
+       fill = "Les ménages en situation d’abordabilité (%)") +
+  scale_fill_gradientn(colors = curbcut_scale_afford, na.value = "#B3B3BB",
+                       limits = c(0, 30), oob = scales::squish,
+                       labels = function(x) ifelse(x == 30, "30+", scales::number_format()(x))) +
+  guides(fill = guide_colourbar(title.position = "top", title.hjust = 0.5)) +
+  theme_minimal() +
+  theme(axis.line = element_blank(), axis.text = element_blank(),
+        axis.title = element_blank(), axis.ticks = element_blank(),
+        panel.grid = element_blank(), legend.position = "bottom",
+        plot.title = element_text(hjust = 0.5), legend.key.width = unit(2, "cm"),
+        panel.background = element_rect(fill = "lightblue")) +
+  coord_sf(xlim = c(laval_bbox$xmin, laval_bbox$xmax),
+           ylim = c(laval_bbox$ymin, laval_bbox$ymax))
+
+#(OLD) 30% affordability map
 ggplot(data = afford30map) +
   geom_sf(aes(fill = percentage_bins)) +
   labs(title = "Abordabilité du logement à Laval 2021 (>30%)",
@@ -990,6 +1141,7 @@ ggplot(data = afford30map) +
         panel.grid = element_blank(), legend.position = "bottom",
         plot.title = element_text(hjust = 0.5))
 
+#(OLD) 50% affordability map
 ggplot(data = afford50map) +
   geom_sf(aes(fill = percentage_bins)) +
   labs(title = "Abordabilité du logement à Laval 2021 (>50%)",
@@ -1004,6 +1156,7 @@ ggplot(data = afford50map) +
         panel.grid = element_blank(), legend.position = "bottom",
         plot.title = element_text(hjust = 0.5))
 
+#(OLD) 80% affordability map
 ggplot(data = afford80map) +
   geom_sf(aes(fill = percentage_bins)) +
   labs(title = "Abordabilité du logement à Laval 2021 (>80%)",
@@ -1020,3 +1173,109 @@ ggplot(data = afford80map) +
 
 # Service aide au logement ----------------------------------------
 #service_aide_au_logement_OMH_laval.pdf in the data folder
+
+
+# Housing Starts/Completions for QC/CA ------------------------------------
+#Grabbing the starts data for QC and CA (by combining all the provinces) and then
+#binding the desired data together
+starts_qc <- get_cmhc(survey = "Scss", series = "Starts", dimension = "Intended Market",
+                       breakdown = "Historical Time Periods", geo_uid = 24, year = 2009) |> 
+  mutate(Date = dmy(paste0("01 ", DateString)), Year = as.factor(year(Date))) |> 
+  select(Year, `Intended Market`, Value) |> 
+  group_by(Year, `Intended Market`) |> 
+  summarize(Units = sum(Value), .groups = "drop") |> 
+  filter(`Intended Market` != "Unknown", `Intended Market` != "Co-Op",
+         Year != "2024", Year != "2009") |> 
+  mutate(`Intended Market` = factor(`Intended Market`, levels = c("All", "Homeowner", "Rental",
+                                                                  "Condo")))
+
+#Formatting data for the graph
+starts_qc_line <- starts_qc |> 
+  filter(`Intended Market` != "All") |> 
+  mutate(`Intended Market` = gsub("Homeowner", "Homeowner Starts", `Intended Market`)) |> 
+  mutate(`Intended Market` = gsub("Rental", "Rental Starts", `Intended Market`)) |> 
+  mutate(`Intended Market` = gsub("Condo", "Condo Starts", `Intended Market`))
+
+#Creating a function to grab starts for provinces
+starts <- function(geouid){
+  get_cmhc(survey = "Scss", series = "Starts", dimension = "Intended Market",
+           breakdown = "Historical Time Periods", geo_uid = geouid, year = 2009) |> 
+    mutate(Date = dmy(paste0("01 ", DateString)), Year = as.factor(year(Date))) |> 
+    select(Year, `Intended Market`, Value) |> 
+    group_by(Year, `Intended Market`) |> 
+    summarize(Units = sum(Value), .groups = "drop") |> 
+    filter(`Intended Market` != "Unknown", `Intended Market` != "Co-Op",
+           Year != "2024", Year != "2009") |> 
+    mutate(`Intended Market` = factor(`Intended Market`, levels = c("All", "Homeowner", "Rental",
+                                                                    "Condo")))
+}
+
+#Creating a function to grab starts for territories
+starts_territory <- function(geouid){
+  get_cmhc(survey = "Scss", series = "Starts", dimension = "Intended Market",
+                      breakdown = "Historical Time Periods", geo_uid = 61, year = 2009) |> 
+  mutate(Year = substr(DateString, 1, 4)) |> 
+  select(Year, `Intended Market`, Value) |> 
+  group_by(Year, `Intended Market`) |> 
+  summarize(Units = sum(Value), .groups = "drop") |> 
+  filter(`Intended Market` != "Unknown", `Intended Market` != "Co-Op",
+         Year != "2024", Year != "2009") |> 
+    mutate(`Intended Market` = factor(`Intended Market`, levels = c("All", "Homeowner", "Rental",
+                                                                    "Condo")))
+  }
+
+#Grabbing the actual data for housing starts for each province and territory
+starts_on <- starts(35)
+starts_bc <- starts(59)
+starts_ab <- starts(48)
+starts_mn <- starts(46)
+starts_sk <- starts(47)
+starts_ns <- starts(12)
+starts_nb <- starts(13)
+starts_nl <- starts(10)
+starts_pe <- starts(11)
+starts_nt <- starts_territory(61)
+starts_yk <- starts_territory(60)
+starts_nu <- starts_territory(62)
+
+#Formatting data for the graph
+starts_ca_line <- bind_rows(starts_on, starts_bc, starts_ab, starts_mn, starts_sk,
+                            starts_ns, starts_nb, starts_nl, starts_pe, starts_qc,
+                            starts_nt, starts_yk, starts_nu) |> 
+  group_by(Year, `Intended Market`) |> 
+  summarize(Count = sum(Units), .groups = "drop") |> 
+  filter(`Intended Market` != "All") |> 
+  mutate(`Intended Market` = gsub("Homeowner", "Homeowner Starts", `Intended Market`)) |> 
+  mutate(`Intended Market` = gsub("Rental", "Rental Starts", `Intended Market`)) |> 
+  mutate(`Intended Market` = gsub("Condo", "Condo Starts", `Intended Market`))
+
+#Graphing the starts for Quebec
+ggplot(starts_qc_line, aes(x = Year, y = `Units`, group = `Intended Market`, color = `Intended Market`)) +
+  geom_line(size = 1.25) +
+  labs(title = "Housing Starts in Québec 2010-2023",
+       x = "Année",
+       y = "Nombre de logements") +
+  scale_color_manual(values = c("Homeowner Starts" = "#333366",
+                                "Condo Starts" = "#cd5c5c",
+                                "Rental Starts" = "#478547")) +
+  theme_minimal() +
+  theme(
+    legend.position = "bottom", legend.box = "horizontal", legend.title = element_blank(),
+    plot.title = element_text(hjust = 0.5), axis.text.x = element_text(angle = 45, hjust = 1)
+  )
+
+#Graphing the housing starts for Canada
+ggplot(starts_ca_line, aes(x = Year, y = `Count`, group = `Intended Market`, color = `Intended Market`)) +
+  geom_line(size = 1.25) +
+  labs(title = "Housing Starts in Canada 2010-2023",
+       x = "Année",
+       y = "Nombre de logements") +
+  scale_color_manual(values = c("Homeowner Starts" = "#333366",
+                                "Condo Starts" = "#cd5c5c",
+                                "Rental Starts" = "#478547")) +
+  scale_y_continuous(labels = comma) +
+  theme_minimal() +
+  theme(
+    legend.position = "bottom", legend.box = "horizontal", legend.title = element_blank(),
+    plot.title = element_text(hjust = 0.5), axis.text.x = element_text(angle = 45, hjust = 1)
+  )

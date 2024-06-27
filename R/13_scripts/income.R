@@ -1,7 +1,9 @@
 #Loading libraries
 source("R/01_startup.R")
 library(sf)
+library(cmhc)
 library(readxl)
+library(sjmisc)
 
 #Setting CensusMapper API Key because it won't save
 set_cancensus_api_key("CensusMapper_4308d496f011429cf814385050f083dc")
@@ -9,9 +11,11 @@ set_cancensus_api_key("CensusMapper_4308d496f011429cf814385050f083dc")
 #Grabbing all cancensus vector
 can21 <- list_census_vectors(dataset = "CA21")
 
-#Caching census data to reduce amount of calls and speed up process.
+#Caching census/CMHC data to reduce amount of calls and speed up process.
 #Personal use only, change the folder to your own folder if you want to use it
 set_cancensus_cache_path("D:/McGill/can_cache", install = TRUE, overwrite = TRUE)
+set_cmhc_cache_path("D:/McGill/can_cache", install = TRUE, overwrite = TRUE)
+cmhc::set_cmhc_cache_path("/Users/justin/Documents/R/CurbCutSelf", install = TRUE, overwrite = TRUE)
 
 #Grabbing Laval's shapefile by census tract
 laval_ct <- cancensus::get_census(dataset = "CA21", 
@@ -96,6 +100,7 @@ ind_total_bar <- ind_total_income |>
                                               "30 à 39.999 $", "40 à 49.999 $", "50 à 59.999 $",
                                               "60 à 69.999 $", "70 à 79.999 $", "80 à 89.999 $",
                                               "90 à 99.999 $", "100 à 150.000 $", "> 150.000 $")))
+
 #Grouped bar graph for individual brackets
 ggplot(ind_total_bar, aes(x = Bracket, y = Value, fill = Geography)) +
   geom_bar(stat = "identity", position = "dodge", width = 0.7) +
@@ -669,14 +674,13 @@ cpi <- data.frame(
   Geography = "CPI",
   Year = c("2000", "2001", "2002", "2003", "2004", "2005", "2006", "2007", "2008",
            "2009", "2010", "2011", "2012", "2013", "2014", "2015", "2016", "2017",
-           "2018", "2019", "2020"),
-  Index = c(100, 102.3, 104.346, 106.95465, 109.093743, 111.6028991,
-            113.5001484, 115.3161507, 117.7377899, 118.4442167, 119.8655473,
-            123.4615137, 126.0542055, 126.9365849, 128.7136971, 130.1295478,
-            131.0404546, 132.3508591, 134.6008237, 137.427441, 138.5268606)
+           "2018", "2019", "2020", "2021", "2022", "2023", "2024"),
+  Index = c(100, 103.8, 104.3, 107.4, 109.9, 111.7, 114.6, 116.4, 119.1, 119.2, 120.4,
+            124.6, 127, 127.8, 129.9, 131.5, 132.4, 133.3, 135.6, 138.8, 138.3, 144,
+            154.8, 160.9, 165.9)
 )
 
-#Creating and binding yoy growth with CPI
+#Creating and binding yoy growth with CPI src:https://www150.statcan.gc.ca/n1/pub/71-607-x/2018016/cpilg-ipcgl-eng.htm
 mii_yoygraph_cpi <- bind_rows(mii_lvl_graph, mii_mtl_graph, mii_qc_graph) |> 
   mutate("2020y" = `2020` / `2015`,
          "2015y" = `2015` / `2010`,
@@ -952,3 +956,50 @@ ggplot(data = socio21map) +
         legend.position = "bottom", legend.justification = "center") +
   guides(fill = guide_colorbar(title.position = "top", title.hjust = 0.5,
                                barwidth = 10, barheight = 1))
+
+# YoY for median individual income ---------------------------------------
+#Grabbing vectors for median individual income
+inc21v <- c("total" = "v_CA21_560", "men" = "v_CA21_561", "women" = "v_CA21_562")
+inc16v <- c("total" = "v_CA16_2207", "men" = "v_CA16_2208", "women" = "v_CA16_2209")
+inc11v <- c("total" = "v_CA11N_2341", "men" = "v_CA11N_2342", "women" = "v_CA11N_2343")
+inc06v <- c("total" = "v_CA06_1583", "men" = "v_CA06_1605", "women" = "v_CA06_1627")
+inc01v <- c("total" = "v_CA01_1449", "men" = "v_CA01_1471", "women" = "v_CA01_1493")
+
+#Creating a function to grab census data
+inc_grabber <- function(dyear, vector, year){
+  get_census(dataset = dyear, 
+             regions = list(CSD = 2465005), 
+             level = "CSD",
+             vectors = vector) |> 
+    mutate(Year = year) |> 
+    select(Year, total, men, women)
+}
+
+inc21 <- inc_grabber("CA21", inc21v, "2021")
+inc16 <- inc_grabber("CA16", inc16v, "2016")
+inc11 <- inc_grabber("CA11", inc11v, "2011")
+inc06 <- inc_grabber("CA06", inc06v, "2006")
+inc01 <- inc_grabber("CA01", inc01v, "2001")
+
+income <- bind_rows(inc01, inc06, inc11, inc16, inc21) |> 
+  arrange(Year) |> 
+  mutate(
+    total_growth = (total / lag(total) - 1) * 100,
+    men_growth = (men / lag(men) - 1) * 100,
+    women_growth = (women / lag(women) - 1) * 100
+  ) |> 
+  select(-total, -men, -women) |> 
+  slice(-1) |> 
+  rename("Laval" = "total_growth", "Hommes" = "men_growth", "Femmes" = "women_growth") |> 
+  pivot_longer(-Year, names_to = "type", values_to = "growth") |> 
+  mutate(type = factor(type, levels = c("Laval", "Hommes", "Femmes")))
+
+ggplot(income, aes(x = Year, y = growth, fill = type)) +
+  geom_bar(stat = "identity", position = "dodge") +
+  facet_wrap(~type) +
+  scale_fill_manual(values = c("Laval" = "chartreuse3", "Hommes" = "royalblue3", "Femmes" = "indianred2")) +
+  labs(title = "Croissance du revenu médian individuel à Laval 2001-2021",
+       x = "Année", y = "Croissance du revenu sur 5 ans (%)") +
+  theme_minimal() +
+  theme(plot.title = element_text(hjust = 0.5), legend.title = element_blank(),
+        legend.position = "bottom", legend.justification = "center")

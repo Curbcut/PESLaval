@@ -747,11 +747,10 @@ commute_grabber <- function(dyear, cvector, cyear){
   get_census(dataset = dyear, 
              regions = list(CSD = 2465005), 
              level = "CSD",
-             vectors = cvector) |>
-    mutate(Year = cyear, "Within Laval" = round(same_csd * 100 / total, 1),
-           "Outside Laval within Quebec" = round(diff_csd * 100 / total, 1),
-           "Outside Quebec" = round(diff_prov * 100 / total, 1)) |> 
-    select(Year, "Within Laval", "Outside Laval within Quebec", "Outside Quebec")
+             vectors = cvector) #|>
+    #mutate(Year = cyear, "Within Laval" = round(same_csd * 100 / total, 1),
+           #"Outside Laval" = round((diff_csd + diff_prov) * 100 / total, 1)) |> 
+    #select(Year, "Within Laval", "Outside Laval")
 }
 
 #Grabbing the data for years 2016 and 2021
@@ -762,8 +761,7 @@ commute16 <- commute_grabber("CA16", commute16v, "2016")
 commute_dest <- bind_rows(commute21, commute16) |> 
   pivot_longer(cols = -Year, names_to = "destination", values_to = "percentage") |> 
   mutate(destination = factor(destination, levels = c("Within Laval",
-                                                      "Outside Laval within Quebec",
-                                                      "Outside Quebec")))
+                                                      "Outside Laval")))
 
 #Creating the bar graph for commute destination
 ggplot(commute_dest, aes(x = destination, y = percentage, fill = factor(Year))) +
@@ -774,8 +772,7 @@ ggplot(commute_dest, aes(x = destination, y = percentage, fill = factor(Year))) 
        fill = "Year") +
   scale_x_discrete(labels = c(
     "Within Laval" = "À Laval",
-    "Outside Laval within Quebec" = "À l'extérieur de Laval au Québec",
-    "Outside Quebec" = "À l'extérieur du Québec")) +
+    "Outside Laval" = "À l'extérieur de Laval")) +
   theme_minimal() +
   theme(legend.position = "bottom", legend.title = element_blank(),
         plot.title = element_text(hjust = 0.5))
@@ -786,6 +783,12 @@ place21v <- c("total" = "v_CA21_7602", "wfh" = "v_CA21_7605", "outside_ca" = "v_
               "no_fix" = "v_CA21_7611", "usual" = "v_CA21_7614")
 place16v <- c("total" = "v_CA16_5762", "wfh" = "v_CA16_5765", "outside_ca" = "v_CA16_5768",
               "no_fix" = "v_CA16_5771", "usual" = "v_CA16_5774")
+place11v <- c("total" = "v_CA11N_2176", "wfh" = "v_CA11N_2179", "outside_ca" = "v_CA11N_2182",
+              "no_fix" = "v_CA11N_2185", "usual" = "v_CA11N_2188")
+place06v <- c("total" = "v_CA06_1076", "wfh" = "v_CA06_1081", "outside_ca" = "v_CA06_1082",
+              "no_fix" = "v_CA06_1083", "usual" = "v_CA06_1077")
+place01v <- c("total" = "v_CA06_1076", "wfh" = "v_CA06_1081", "outside_ca" = "v_CA06_1082",
+              "no_fix" = "v_CA06_1083", "usual" = "v_CA06_1077")
 
 #Function to grab the data from the census and to calculate new vectors to be used
 place_grabber <- function(dyear, cvector, cyear){
@@ -796,7 +799,7 @@ place_grabber <- function(dyear, cvector, cyear){
     mutate(Year = cyear, "Work from Home" = round(wfh * 100 / total, 1),
            "Outside Canada" = round(outside_ca * 100 / total, 1),
            "No Fixed Address" = round(no_fix * 100 / total, 1),
-           "Usual Place of Work" = round(no_fix * 100 / total, 1)) |> 
+           "Usual Place of Work" = round(usual * 100 / total, 1)) |> 
     select(Year, "Usual Place of Work", "Work from Home",
            "No Fixed Address", "Outside Canada")
 }
@@ -804,9 +807,24 @@ place_grabber <- function(dyear, cvector, cyear){
 #grabbing the census data
 place21 <- place_grabber("CA21", place21v, "2021")
 place16 <- place_grabber("CA16", place16v, "2016")
+place11 <- place_grabber("CA11", place11v, "2011")
+place06 <- place_grabber("CA06", place11v, "2006")
+place01 <- get_census(dataset = "CA01", 
+                      regions = list(CSD = 2465005), 
+                      level = "CSD",
+                      vectors = c("total" = "v_CA01_1236", "wfh_m" = "v_CA01_1242",
+                                  "wfh_f" = "v_CA01_1250", "outside_ca_m" = "v_CA01_1243",
+                                  "outside_ca_f" = "v_CA01_1251", "no_fix_m" = "v_CA01_1244",
+                                  "no_fix_f" = "v_CA01_1252", "usual_m" = "v_CA01_1238",
+                                  "usual_f" = "v_CA01_1246")) |> 
+  mutate(Year = "2001", "Usual Place of Work" = (usual_m + usual_f) * 100 / total,
+         "Work from Home" = (wfh_m + wfh_f) * 100 / total,
+         "No Fixed Address" = (no_fix_m + no_fix_f) * 100 / total,
+         "Outside Canada" = (outside_ca_m + outside_ca_f) * 100 / total) |> 
+  select(Year, "Usual Place of Work", "Work from Home", "No Fixed Address", "Outside Canada")
 
 #Prepping the data to be made into a graph
-place <- bind_rows(place21, place16) |> 
+place <- bind_rows(place21, place16, place11, place06, place01) |> 
   pivot_longer(cols = -Year, names_to = "destination", values_to = "percentage") |> 
   mutate(destination = factor(destination, levels = c("Usual Place of Work", "Work from Home",
                                                       "No Fixed Address", "Outside Canada")))
@@ -826,6 +844,15 @@ ggplot(place, aes(x = destination, y = percentage, fill = factor(Year))) +
   theme_minimal() +
   theme(legend.position = "bottom", legend.title = element_blank(),
         plot.title = element_text(hjust = 0.5))
+
+#Line graph for place of work
+ggplot(place, aes(x = Year, y = percentage, color = destination, group = destination)) +
+  geom_line(linewidth = 1.5) +
+  labs(title = "Catégorie de lieu de travail à Laval de 2001 à 2021", x = "Année",
+       y = "Proportion de résidents employés (%)") +
+  theme_minimal() +
+  theme(legend.position = "bottom", legend.box = "horizontal",
+        legend.title = element_blank(), plot.title = element_text(hjust = 0.5))
 
 # Activity Situation Historical -------------------------------------------
 #Grabbing vectors for activity situation
