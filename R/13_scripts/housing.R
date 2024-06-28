@@ -521,6 +521,61 @@ ggplot(osc_avg_graph, aes(x = Year, y = `Rent`, group = Geography, color = Geogr
     legend.title = element_blank(), plot.title = element_text(hjust = 0.5)
   )
 
+#Grabbing 2016 data for later comparison
+osc_16_change <- get_census(dataset = "CA16",
+                            regions = list(CSD = 2465005),
+                            level = "CT",
+                            vectors = c("med_owner_16" = "v_CA16_4893")) |> 
+  select(GeoUID, med_owner_16)
+
+#Grabbing median owner shelter costs for Laval and calculating change
+osc_21_sf <- get_census(dataset = "CA21",
+                         regions = list(CSD = 2465005),
+                         level = "CT",
+                         vectors = c("med_owner" = "v_CA21_4309"),
+                         geo_format = "sf") |> 
+  left_join(osc_16_change, join_by(GeoUID)) |> 
+  mutate(change = (med_owner / med_owner_16 - 1) * 100)
+
+#Mapping median owner shelter cost
+ggplot(data = osc_21_sf) +
+  geom_sf(data = mtlcma_sf, fill = "lightgrey") +
+  geom_sf(aes(fill = med_owner), color = NA) +
+  geom_sf(data = laval_csd, fill = NA, color = "black") +
+  labs(title = "Coût de logement médian pour les ménages propriétaires 2021",
+       fill = "Coût médian du logement ($)") +
+  scale_fill_gradientn(colors = curbcut_scale, na.value = "#B3B3BB",
+                       guide = guide_colorbar(barheight = 1, barwidth = 10,
+                                              title.position = "top",
+                                              title.hjust = 0.5)) +
+  theme_minimal() +
+  theme(axis.line = element_blank(), axis.text = element_blank(),
+        axis.title = element_blank(), axis.ticks = element_blank(),
+        panel.grid = element_blank(), legend.position = "bottom",
+        plot.title = element_text(hjust = 0.5), panel.background = element_rect(fill = "lightblue")) +
+  coord_sf(xlim = c(laval_bbox$xmin, laval_bbox$xmax),
+           ylim = c(laval_bbox$ymin, laval_bbox$ymax))
+
+#Mapping median owner shelter cost
+ggplot(data = osc_21_sf) +
+  geom_sf(data = mtlcma_sf, fill = "lightgrey") +
+  geom_sf(aes(fill = change), color = NA) +
+  geom_sf(data = laval_csd, fill = NA, color = "black") +
+  labs(title = "Variation du coût de logement mensuel médian pour\n les ménages propriétaires 2016-2021",
+       fill = "Variation du coût mensuel du logement (%)") +
+  scale_fill_gradientn(colors = curbcut_scale, na.value = "#B3B3BB",
+                       limits = c(0, 40), oob = scales::squish,
+                       labels = c("< 0", "10", "20", "30", "> 40"),
+                       guide = guide_colorbar(barheight = 1, barwidth = 15,
+                                              title.position = "top", title.hjust = 0.5)) +
+  theme_minimal() +
+  theme(axis.line = element_blank(), axis.text = element_blank(),
+        axis.title = element_blank(), axis.ticks = element_blank(),
+        panel.grid = element_blank(), legend.position = "bottom",
+        plot.title = element_text(hjust = 0.5), panel.background = element_rect(fill = "lightblue")) +
+  coord_sf(xlim = c(laval_bbox$xmin, laval_bbox$xmax),
+           ylim = c(laval_bbox$ymin, laval_bbox$ymax))
+
 # Affordability 30% -------------------------------------------------------
 #Grabbing vectors for total, owner, and tenants spending >30% on shelter costs for 2001-2021
 aff_21v <- c("total" = "v_CA21_4288", "total_30" = "v_CA21_4290",
@@ -1103,25 +1158,32 @@ afford_sf <- laval_ct |>
          "80% ou plus du revenu du ménage" = afford80) |> 
   pivot_longer(cols = ends_with("ménage"),
                names_to = "affordability",
-               values_to = "Value")
+               values_to = "Value") |> 
+  mutate(Value_bin = cut(Value,
+                         breaks = c(-Inf, 5, 10, 15, 20, 25, Inf),
+                         labels = c("<5%", "5-10%", "10-15%", "15-20%", "20-25%", "25+%"))) |> 
+  mutate(Value_bin = as.factor(Value_bin))
 
 #Mapping the faceted version of affordability
 ggplot(afford_sf) +
   geom_sf(data = mtlcma_sf, fill = "lightgrey") +
-  geom_sf(aes(geometry = geometry, fill = Value), color = NA) +
+  geom_sf(aes(geometry = geometry, fill = Value_bin, color = Value_bin), size = 0.5) +
   geom_sf(data = laval_csd, fill = NA, color = "black") +
   facet_wrap(~ affordability) +
   labs(title = "Abordabilité du logement à Laval 2021",
-       fill = "Les ménages en situation d’abordabilité (%)") +
-  scale_fill_gradientn(colors = curbcut_scale_afford, na.value = "#B3B3BB",
-                       limits = c(0, 30), oob = scales::squish,
-                       labels = function(x) ifelse(x == 30, "30+", scales::number_format()(x))) +
-  guides(fill = guide_colourbar(title.position = "top", title.hjust = 0.5)) +
+       fill = "Ménages en situation d'inabordabilité (%)") +
+  scale_fill_manual(values = curbcut_scale_afford, na.value = "#B3B3BB") +
+  scale_color_manual(values = curbcut_scale_afford, guide = "none") +  # Remove legend for color outline
+  guides(fill = guide_legend(title.position = "top", title.hjust = 0.5,
+                             label.theme = element_text(size = 8, margin = margin(2, 2, 2, 2, "mm"),
+                                                        hjust = 0, color = "black"),
+                             override.aes = list(color = "black", size = 1),
+                             nrow = 1, byrow = TRUE)) +  # Place items on one row
   theme_minimal() +
   theme(axis.line = element_blank(), axis.text = element_blank(),
         axis.title = element_blank(), axis.ticks = element_blank(),
         panel.grid = element_blank(), legend.position = "bottom",
-        plot.title = element_text(hjust = 0.5), legend.key.width = unit(2, "cm"),
+        plot.title = element_text(hjust = 0.5),
         panel.background = element_rect(fill = "lightblue")) +
   coord_sf(xlim = c(laval_bbox$xmin, laval_bbox$xmax),
            ylim = c(laval_bbox$ymin, laval_bbox$ymax))
