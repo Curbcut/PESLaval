@@ -6,7 +6,6 @@ library(tidytransit)
 library(osmdata)
 library(tidygeocoder)
 
-
 #Setting up the cancensus api key
 set_cancensus_api_key("CensusMapper_4308d496f011429cf814385050f083dc", install = TRUE)
 
@@ -24,10 +23,14 @@ laval_ct <- cancensus::get_census(dataset = "CA21",
                                   level = "CT", 
                                   geo_format = "sf")
 
+#Grabbing the shapefile for the Montreal CMA
 mtlcma_sf <- cancensus::get_census(dataset = "CA21", 
                                 regions = list(CSD = 24462), 
                                 level = "CMA", 
                                 geo_format = "sf")
+
+#Setting the Laval bound box for maps
+laval_bbox <- st_bbox(laval_ct)
 
 # Bus Stop Location -------------------------------------------------------
 #Grabbing GTFS data from the STL
@@ -38,8 +41,6 @@ stl_gtfs <- read_gtfs("https://translate.google.com/website?sl=fr&tl=en&hl=en&pr
 #two stops at one intersection, but makes map readability significantly better
 bus_stops <- st_as_sf(stl_gtfs$stops, coords = c("stop_lon", "stop_lat"), crs = 4326) |> 
   distinct(stop_name, .keep_all = TRUE)
-
-laval_bbox <- st_bbox(laval_ct)
 
 #Plotting the bus stops
 ggplot() +
@@ -55,15 +56,16 @@ ggplot() +
            ylim = c(laval_bbox$ymin, laval_bbox$ymax))
 
 # Cycle Paths -------------------------------------------------------------
-laval_bbox <- st_bbox(laval_ct)
-
+#Grabbing all bike lanes within the Laval bound box
 cycle_osm <- opq(bbox = laval_bbox, timeout = 300) |> 
   add_osm_feature(key = "highway", value = "cycleway") |> 
   osmdata_sf()
 
+#Keeping only the bike lanes within Laval
 cycle_lvl <- cycle_osm$osm_lines |> 
   st_intersection(laval_ct)
 
+#Mapping out the bike lanes
 ggplot() +
   geom_sf(data = mtlcma_sf, fill = "lightgrey", color = "black") +
   geom_sf(data = laval_csd, fill = "white", color = "black") +
@@ -76,6 +78,7 @@ ggplot() +
         panel.grid = element_blank(), panel.background = element_rect(fill = "lightblue")) +
   coord_sf(xlim = c(laval_bbox$xmin, laval_bbox$xmax),
            ylim = c(laval_bbox$ymin, laval_bbox$ymax))
+
 # Bixi Stations -----------------------------------------------------------
 #Grabbing all Bixi station information
 bixi_stations <- get_station_information(city = "Montreal")
@@ -102,58 +105,50 @@ ggplot() +
            ylim = c(laval_bbox$ymin, laval_bbox$ymax))
 
 # Points de vente (transport collectif) -----------------------------------
-vending_locations <- tibble::tribble(
-  ~name, ~latitude, ~longitude, ~accessible,
-  "IGA Extra Auteuil", 45.6282351, -73.7530393, "Partiellement accessible",
-  "Marché Métro Plus Messier Auteuil", 45.6197691, -73.7457887, "Partiellement accessible",
-  "Pharmaprix Vimont", 45.6123331, -73.7379836, "Accessible",
-  "Boni-Soir Chomedey", 45.5356598, -73.7356945, "Non accessible",
-  "Dépanneur Samson", 45.5329987, -73.7515077, "Partiellement accessible",
-  "Pharmaprix Samson", 45.5291308, -73.7564682, "Partiellement accessible",
-  "Dépanneur Ultra SHPD", 45.5400341, -73.7676854, "Partiellement accessible",
-  "Uniprix Saint-Martin", 45.5465966, -73.7756677, "Partiellement accessible",
-  "Tabagie Chomedey", 45.5593529, -73.7669883, "Partiellement accessible",
-  "Distributrice automatique de titres au terminus Le Carrefour", 45.5679670, -73.7500224, "Partiellement accessible",
-  "Uniprix Chomedey", 45.5443549, -73.7413382, "Accessible",
-  "Pharmaprix Centre Saint-Martin", 45.5434702, -73.7499175, "Partiellement accessible",
-  "Jean Coutu Jacques Bourget", 45.59221, -73.66986, "Partiellement accessible",
-  "Uniprix Santé Chantal Zeidan", 45.5938495, -73.6642460, "Non accessible",
-  "Dépanneur O'Choix", 45.5660860, -73.8466308, "Partiellement accessible",
-  "Jean Coutu Nicolas Rompré", 45.5779977, -73.8096451, "Partiellement accessible",
-  "Dépanneur Guillemette", 45.58345,-73.79055, "Non accessible",
-  "Billetterie métropolitaine et distributrice automatique de titres au terminus Montmorency", 45.5580379, -73.7211826, "Partiellement accessible",
-  "COOP Cégep Montmorency", 45.5599827, -73.7193324, "Accessible",
-  "Jean Coutu Jacques Bourget et Serge Dupras", 45.56603, -73.70100, "Partiellement accessible",
-  "Dépanneur Maximax", 45.5582818, -73.6968398, "Non accessible",
-  "Billetterie métropolitaine et distributrice automatique de titres au terminus Cartier", 45.5607445, -73.6816115, "Partiellement accessible",
-  "Jean Coutu Jacques Bourget et Nick Campanelli", 45.5601260, -73.7125456, "Partiellement accessible",
-  "Proxim Laval-des-Rapides", 45.549125843978764, -73.71375164102292, "Partiellement accessible",
-  "Boni-Soir JR", 45.542120929401854, -73.87510982720579, "Partiellement accessible",
-  "Dépanneur Wilson", 45.55120877457926, -73.87157585421808, "Non accessible",
-  "Métro Plus Laval-Ouest", 45.54846742538103, -73.86429331386367, "Partiellement accessible",
-  "Marché Belle-Rive", 45.56238800338405, -73.68066488793866, "Non accessible",
-  "Métro Plus de la Concorde", 45.57380752195818, -73.6850926485661, "Partiellement accessible",
-  "Jean Coutu Kahwati et Khoukaz", 45.56841020226774, -73.68940960995434, "Partiellement accessible",
-  "Jean Coutu Benoit Desmarais et Alicia Desmarais", 45.6695431085693, -73.57593584525262, "Accessible",
-  "Dépanneur de la Fabrique", 45.61345621105629, -73.64897271410416, "Non accessible",
-  "Jean Coutu Véronique Paquet", 45.604684359931746, -73.64999792330536, "Partiellement accessible",
-  "Dépanneur Principale", 45.52879786092138, -73.82162478860103, "Partiellement accessible",
-  "Métro Denigil", 45.52695412693936, -73.812016200656, "Partiellement accessible",
-  "Via Cassia Café et marché", 45.52389441549621, -73.85219401923001, "Partiellement accessible",
-  "Jean Coutu Jean Perreault et Nicolas Rompré", 45.59065807446514, -73.78530505222554, "Partiellement accessible",
-  "Dépanneur Sainte-Rose", 45.62803859980775, -73.78249583406077, "Partiellement accessible",
-  "Dépanneur 7 jours", 45.606939603115535, -73.79145585771093, "Accessible",
-  "Boni-Soir Vimont", 45.62091412987006, -73.72439105305266, "Non accessible"
-)
+#Using the shapefile below and STL_accessibilite-points-vente.pdf and
+#the STL website to determine the level of accessibility
+full_acc <- c("475, boul. de l'Avenir", "600, montée du Moulin", "800b, boul. Chomedey (160)",
+              "275, boul. Samson", "2500, boul. Saint-Martin Est", "165, boul. Curé-Labelle",
+              "2220, boul. des Laurentides")
+partial_acc <- c("10B, rue Dufferin", "555, boul. Samson", "650, rue Principale",
+                 "1263, boul. Jolibourg", "155, boul. de La Concorde Est",
+                 "2397, boul. Curé-Labelle", "4600, boul. Samson", "4650, boul. du Souvenir",
+                 "4219, boul. Samson", "965, boul. Curé-Labelle", "5000, boul. des Laurentides",
+                 "1690, boul. Sainte-Rose", "4425, boul. de La Concorde", "3475, boul. Dagenais",
+                 "5680, boul. des Laurentides", "255, boul. de La Concorde Ouest", "430, boul. Cartier",
+                 "44, boul. des Laurentides", "545, rue Lucien-Paiement", "3000, boul. Le Carrefour",
+                 "580,  boul. Curé-Labelle (suite 10)", "4672, boul. Saint-Martin",
+                 "2955, boul. de La Concorde", "1295, boul. de la Concorde O.", "405, boul. des Laurentides",
+                 "6155, boul. Arthur-Sauvé", "4347, boul. Ste-Rose")
+no_acc <- c("3875, boul. Sainte-Rose", "501, rue Guillemette", "265, 15e Rue",
+            "3667, boul. Lévesque Ouest", "45, boul. Lévesque Est", "3323, boul. de la Concorde E.",
+            "2795, boul. René-Laennec", "5162, de la Fabrique")
+unknown <- c("2250, avenue Francis-Hughes", "308, Bd Cartier O.", "1859, boul. René-Laennec",
+             "705, chemin du Trait Carré")
 
-ggplot(vending_locations) +
+#Importing GEOADMIN_POINT_VENTE.shp from the data folder and 
+#assigning each row their accessibility value
+vending_sf <- st_read("/Users/justin/Documents/R/curbcut/Points_de_vente_shp/GEOADMIN_POINT_VENTE.shp") |> 
+  st_transform(crs = 4326) |> 
+  mutate(accessible = case_when(
+    ADRESSE %in% full_acc ~ "Accessible",
+    ADRESSE %in% partial_acc ~ "Partiellement accessible",
+    ADRESSE %in% no_acc ~ "Non accessible",
+    ADRESSE %in% unknown ~ "Accessibilité inconnue",
+    TRUE ~ NA_character_)) |> 
+  mutate(accessible = factor(accessible, levels = c("Accessible", "Partiellement accessible",
+                                                    "Non accessible", "Accessibilité inconnue")))
+
+#Mapping out the point of sale data
+ggplot(vending_sf) + 
   geom_sf(data = mtlcma_sf, fill = "lightgrey") +
   geom_sf(data = laval_csd, fill = "white", color = "black") +
-  geom_point(aes(x = longitude, y = latitude, color = accessible)) +
-  scale_color_manual(values = c("Accessible" = "springgreen3", 
-                                "Partiellement accessible" = "darkorange",
-                                "Non accessible" = "firebrick3")) +
-  labs(title = "Points de vente STL") +
+  geom_sf(aes(color = accessible)) +
+  labs(title = "Point de vente de la Société de transport de Laval") +
+  scale_color_manual(values = c("Accessible" = "#648FFF", 
+                                "Partiellement accessible" = "#FFB000", 
+                                "Non accessible" = "#DC267F",
+                                "Accessibilité inconnue" = "grey")) +
   theme_minimal() +
   theme(plot.title = element_text(hjust = 0.5), axis.text = element_blank(),
         axis.title = element_blank(), axis.ticks = element_blank(),
