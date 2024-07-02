@@ -317,6 +317,20 @@ ethnic_origin_immigrants_categorised_percent <- ethnic_origin_immigrants_categor
          `perOceania and Other` = `Oceania and Other`/Total*100)
 
 
+#numbers in report
+immigrants_AsianOrigin <- ethnic_origin_immigrants_categorised_percent[10, "value"]
+pull(immigrants_AsianOrigin)
+
+immigrants_AfricanOrigin <- ethnic_origin_immigrants_categorised_percent[12, "value"]
+pull(immigrants_AfricanOrigin)
+
+immigrants_EuropeanOrigin <- ethnic_origin_immigrants_categorised_percent[11, "value"]
+pull(immigrants_EuropeanOrigin)
+
+immigrant_CCSLAOrigin <- ethnic_origin_immigrants_categorised_percent[9, "value"]
+pull(immigrant_CCSLAOrigin)
+
+
 #ethnic origin of RECENT immigrant pop (Place of Birth) -----------------------------------------------
 # using 6 categories: North America USA); 
 #Europe; 
@@ -381,6 +395,14 @@ recentim_ethnic_origin_percent <- recentim_ethnic_origin|>
          `perOceania and Other` = `Oceania and Other`/Total*100)
 
 
+# numbers for report
+
+recentimmigrant_AsianOrigin <- recentim_ethnic_origin_percent[10, "value"]
+pull(recentimmigrant_AsianOrigin)
+
+recentimmigrant_AfricanOrigin <- recentim_ethnic_origin_percent[12, "value"]
+pull(recentimmigrant_AfricanOrigin)
+
 
 # put the data together 
 # make a plot of origins of recent immigrant vs total immigrants as percents 
@@ -411,16 +433,13 @@ rows_to_plot <- combined_immigrantorigin_data %>%
   slice(c(8:13, 21:26))
 
 
-
+# plot of Recent vs Total Immigrant Population Origins -- Used in Text 
 ggplot(data = rows_to_plot, aes(x = name, y = value, fill = Year)) +
   geom_bar(stat = "identity", position = position_dodge()) +
   labs(x = "Origin", y = "Percent", title = "Recent vs Total Immigrant Population Origins") +
   scale_y_continuous(labels = scales::comma) +
   scale_fill_manual(values = c("All Immigrants" = "skyblue", "Recent Immigrants" = "lightgreen")) +
   theme_minimal()
-
-
-
 
 
 
