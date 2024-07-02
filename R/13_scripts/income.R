@@ -4,6 +4,7 @@ library(sf)
 library(cmhc)
 library(readxl)
 library(sjmisc)
+library(classInt)
 
 #Setting CensusMapper API Key because it won't save
 set_cancensus_api_key("CensusMapper_4308d496f011429cf814385050f083dc")
@@ -15,6 +16,7 @@ can21 <- list_census_vectors(dataset = "CA21")
 #Personal use only, change the folder to your own folder if you want to use it
 set_cancensus_cache_path("D:/McGill/can_cache", install = TRUE, overwrite = TRUE)
 set_cmhc_cache_path("D:/McGill/can_cache", install = TRUE, overwrite = TRUE)
+set_cancensus_cache_path("/Users/justin/Documents/R/CurbCutSelf", install = TRUE, overwrite = TRUE)
 cmhc::set_cmhc_cache_path("/Users/justin/Documents/R/CurbCutSelf", install = TRUE, overwrite = TRUE)
 
 #Grabbing Laval's shapefile by census tract
@@ -30,6 +32,7 @@ laval_da <- cancensus::get_census(dataset = "CA21",
                                   geo_format = "sf")
 
 curbcut_scale <- c("#C4CDE1", "#98A8CB", "#6C83B5", "#4C5C7F", "#2B3448")
+curbcut_scale_dep <- c("#dce1ed","#C4CDE1", "#98A8CB", "#6C83B5", "#4C5C7F", "#2B3448")
 curbcut_na <- "#B3B3BB"
 # Personal Income Brackets ---------------------------------------------------------
 #Pulling all vectors for total individual income
@@ -918,20 +921,34 @@ effort_rate <- read_csv("D://Mcgill/can_cache/tx.csv")
 # Écarts socioéconomiques entre les quartiers -----------------------------
 #Grabbing data and cleaning it up. 
 #src = https://www.inspq.qc.ca/defavorisation/indice-de-defavorisation-materielle-et-sociale
-socio21vmap <- read_xlsx("D://Mcgill/can_cache/socio21.xlsx") |> 
+socio21vmap <- read_xlsx("/Users/justin/Documents/R/curbcut/socio21.xlsx") |> 
   filter(MUNIC == 2465005) |> 
   na.omit() |> 
-  select(DA, SCOREMAT, SCORESOC) |> 
-  mutate(DA = as.character(DA))
+  select(AD, NOTEMAT, NOTESOC) |> 
+  mutate(AD = as.character(AD))
 socio21 <- read_xlsx("D://Mcgill/can_cache/socio21.xlsx")
 socio16 <- read_xlsx("D://Mcgill/can_cache/socio16.xlsx", sheet = 2)
 
 #Joining the dissemination area data with socio21vmap
-socio21map <- left_join(laval_da, socio21vmap, join_by("name" == "DA"))
+socio21map <- left_join(laval_da, socio21vmap, join_by("name" == "AD"))
 
-#Plotting material deprivation
+#Finding the Jenks breaks for the binned maps
+material_jenks <- classInt::classIntervals(socio21map$NOTEMAT, n = 5, style = "jenks")$brks
+social_jenks <- classInt::classIntervals(socio21map$NOTESOC, n = 5, style = "jenks")$brks
+
+#Creating own breaks for binned maps
+material_breaks <- c(-Inf, -0.034, -0.005, 0.019, 0.049, Inf)
+social_breaks <- c(-Inf, -0.072, -0.035, -0.001, 0.038, Inf)
+
+#Labels for binned material map
+material_labels <- c("< -0,034", "-0,034 à -0,005", "-0,005 à 0,019",
+                     "0,019 à 0,049", "> 0,049")
+social_labels <- c("< -0,072", "-0,072 à -0,035", "-0,035 à -0,001",
+                   "-0,001 à 0,038", "> 0,154")
+
+#Plotting material deprivation (continuous)
 ggplot(data = socio21map) +
-  geom_sf(aes(fill = SCOREMAT), color = NA) +
+  geom_sf(aes(fill = NOTEMAT), color = NA) +
   labs(title = "La défavorisation matérielle à Laval 2021",
        fill = "Score de défavorisation matérielle") +
   scale_fill_gradientn(colors = curbcut_scale, na.value = curbcut_na) +
@@ -942,6 +959,20 @@ ggplot(data = socio21map) +
         legend.position = "bottom", legend.justification = "center") +
   guides(fill = guide_colorbar(title.position = "top", title.hjust = 0.5,
                                barwidth = 10, barheight = 1))
+
+#Binned material deprivation map
+ggplot(data = socio21map) +
+  geom_sf(aes(fill = cut(NOTEMAT, breaks = material_breaks, labels = material_labels)), color = NA) +
+  labs(title = "La défavorisation matérielle à Laval 2021",
+       fill = "Score de défavorisation matérielle") +
+  scale_fill_manual(values = curbcut_scale, na.value = curbcut_na) +
+  theme_minimal() +
+  theme(axis.line = element_blank(), axis.text = element_blank(),
+        axis.title = element_blank(), axis.ticks = element_blank(),
+        panel.grid = element_blank(), plot.title = element_text(hjust = 0.5),
+        legend.position = "bottom", legend.justification = "center") +
+  guides(fill = guide_legend(title.position = "top", title.hjust = 0.5,
+                             barwidth = 1, barheight = 1, nrow = 1))
 
 #Mapping social deprivation
 ggplot(data = socio21map) +
@@ -956,6 +987,20 @@ ggplot(data = socio21map) +
         legend.position = "bottom", legend.justification = "center") +
   guides(fill = guide_colorbar(title.position = "top", title.hjust = 0.5,
                                barwidth = 10, barheight = 1))
+
+#Social deprivation binned
+ggplot(data = socio21map) +
+  geom_sf(aes(fill = cut(NOTESOC, breaks = social_breaks, labels = social_labels)), color = NA) +
+  labs(title = "La défavorisation sociale à Laval 2021",
+       fill = "Score de défavorisation sociale") +
+  scale_fill_manual(values = curbcut_scale, na.value = curbcut_na) + # Use custom palette
+  theme_minimal() +
+  theme(axis.line = element_blank(), axis.text = element_blank(),
+        axis.title = element_blank(), axis.ticks = element_blank(),
+        panel.grid = element_blank(), plot.title = element_text(hjust = 0.5),
+        legend.position = "bottom", legend.justification = "center") +
+  guides(fill = guide_legend(title.position = "top", title.hjust = 0.5,
+                             barwidth = 1, barheight = 1, nrow = 1))
 
 # YoY for median individual income ---------------------------------------
 #Grabbing vectors for median individual income

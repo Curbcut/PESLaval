@@ -156,3 +156,14 @@ ggplot(vending_sf) +
         panel.grid = element_blank(), panel.background = element_rect(fill = "lightblue")) +
   coord_sf(xlim = c(laval_bbox$xmin, laval_bbox$xmax),
            ylim = c(laval_bbox$ymin, laval_bbox$ymax))
+
+# Bus Stop Data -----------------------------------------------------------
+#Use stl_gtfs above
+bus_stops <- st_as_sf(stl_gtfs$stops, coords = c("stop_lon", "stop_lat"), crs = 4326)
+stl_stoptimes <- stl_gtfs$stop_times
+combined_stl <- bus_stops |> 
+  select(-location_type, -stop_display, -stop_abribus) |> 
+  left_join(headways_count, join_by("stop_id" == "Var1"))
+
+
+headways_count <- as.data.frame(table(stl_stoptimes$stop_id))
