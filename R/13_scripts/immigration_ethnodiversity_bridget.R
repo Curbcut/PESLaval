@@ -5,39 +5,8 @@ library(tidyr)
 library(dplyr)
 library(stringr)
 library(gridExtra)
-
-# Canadian Citizens -----------------------------------------------------
-
-Citizenship <- cancensus::get_census(dataset = "CA21", 
-                                       regions = list(CSD = 2465005), 
-                                       level = "CSD",
-                                       vectors = c("Total" = "v_CA21_4389",
-                                                   "Canadian" = "v_CA21_4392",
-                                                   "NotCanadian" = "v_CA21_4401"))
-
-Citizenship <- Citizenship |> mutate(PercentCanadian = Canadian/Total)
-
-# compare to Quebec 
-
-Citizenship_Quebec <- cancensus::get_census(dataset = "CA21", 
-                                            regions = list(PR = 24), 
-                                            level = "PR",
-                                            vectors = c("Total" = "v_CA21_4389",
-                                                        "Canadian" = "v_CA21_4392",
-                                                        "NotCanadian" = "v_CA21_4401"))
-
-Citizenship_Quebec <- Citizenship_Quebec |> mutate(PercentCanadian = Canadian/Total)
-
-
-# compare to mtl 
-
-Citizenship_mtl <- cancensus::get_census(dataset = "CA21", 
-                                     regions = list(CSD = 2466023), 
-                                     level = "CSD",
-                                     vectors = c("Total" = "v_CA21_4389",
-                                                 "Canadian" = "v_CA21_4392",
-                                                 "NotCanadian" = "v_CA21_4401"))
-Citizenship_mtl <- Citizenship_mtl |> mutate(PercentCanadian = Canadian/Total)
+library(cancensus)
+library(readr)
 
 #ethnic origin ----------------------------------------------
 
@@ -60,26 +29,20 @@ ethnic_origin_Laval <- ethnic_origin_Laval |>
 # Remove commas and convert to numeric
 ethnic_origin_Laval$total <- as.numeric(gsub(",", "", ethnic_origin_Laval$total))
 
-
-ethnic_origin_Laval_long <- ethnic_origin_Laval |> 
-  pivot_longer(cols = -ethnic_or_cultural)
- 
-
  
 # Subset rows 2 to 10
 selected_rows <- ethnic_origin_Laval_long[3:10, ]
 
 unique(selected_rows$value)
 
-
-
-# Plot using ggplot2
+# Plot count data
 ggplot(data = selected_rows, aes(x = ethnic_or_cultural, y = value)) +
   geom_col() +
   labs(title = "Ethnic or Cultural Origins of Laval Population")
 
+#instead plot percent and combine oceania with all other origins
 
-
+# I'm sure there is a way to calculate percents without creating a new df with the data from above but I can't figure out how so this is my work around
 # make my own df to plot as percents -- using 2021 census data counts 
 
 ethnic_origin <- data.frame(
@@ -106,6 +69,46 @@ ggplot(ethnic_origin_long, aes(x = origin, y = percent)) +
   theme_minimal() +
   theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
   geom_text(aes(label = round(percent, 2)), position = position_dodge(width = 0.9), vjust = -0.5)
+
+
+# numbers from text for bookdown:
+EuropeanOrigin <- ethnic_origin_long[2, "percent"]
+pull(EuropeanOrigin)
+
+
+
+# Canadian Citizens -----------------------------------------------------
+
+Citizenship <- cancensus::get_census(dataset = "CA21", 
+                                     regions = list(CSD = 2465005), 
+                                     level = "CSD",
+                                     vectors = c("Total" = "v_CA21_4389",
+                                                 "Canadian" = "v_CA21_4392",
+                                                 "NotCanadian" = "v_CA21_4401"))
+
+Citizenship <- Citizenship |> mutate(PercentCanadian = Canadian/Total)
+
+# compare to Quebec 
+
+Citizenship_Quebec <- cancensus::get_census(dataset = "CA21", 
+                                            regions = list(PR = 24), 
+                                            level = "PR",
+                                            vectors = c("Total" = "v_CA21_4389",
+                                                        "Canadian" = "v_CA21_4392",
+                                                        "NotCanadian" = "v_CA21_4401"))
+
+Citizenship_Quebec <- Citizenship_Quebec |> mutate(PercentCanadian = Canadian/Total)
+
+
+# compare to mtl 
+
+Citizenship_mtl <- cancensus::get_census(dataset = "CA21", 
+                                         regions = list(CSD = 2466023), 
+                                         level = "CSD",
+                                         vectors = c("Total" = "v_CA21_4389",
+                                                     "Canadian" = "v_CA21_4392",
+                                                     "NotCanadian" = "v_CA21_4401"))
+Citizenship_mtl <- Citizenship_mtl |> mutate(PercentCanadian = Canadian/Total)
 
 
 
