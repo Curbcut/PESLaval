@@ -75,6 +75,131 @@ ggplot(ethnic_origin_long, aes(x = origin, y = percent)) +
 EuropeanOrigin <- ethnic_origin_long[2, "percent"]
 pull(EuropeanOrigin)
 
+NorthAmericanOrigin <- ethnic_origin_long[1, "percent"]
+pull(NorthAmericanOrigin)
+
+AsianOrigin <- ethnic_origin_long[3, "percent"]
+pull(AsianOrigin)
+
+
+# Religion ---------------------------------------------------------------------
+
+religion <- cancensus::get_census(dataset = "CA21", 
+                                  regions = list(CSD = 2465005), 
+                                  level = "CSD",
+                                  vectors = c("Total" = "v_CA21_5670",
+                                              "Buddhist" = "v_CA21_5673",
+                                              "Christian" = "v_CA21_5676",
+                                              "Hindu" = "v_CA21_5724",
+                                              "Jewish" = "v_CA21_5727",
+                                              "Muslim" = "v_CA21_5730",
+                                              "Sikh" = "v_CA21_5733",
+                                              "Traditional (North American Indigenous) spirituality" = "v_CA21_5736",
+                                              "Other religion" = "v_CA21_5739",
+                                              "No Religion and Secular" = "v_CA21_5742"))
+
+
+
+religion_percentages <- religion |> 
+  mutate(`perBuddhist` = `Buddhist` / Total * 100,
+         `perChristian` = `Christian` / Total * 100,
+         `perHindu` = `Hindu` / Total * 100,
+         `perJewish` = `Jewish` / Total * 100,
+         `perMuslim` = `Muslim` / Total * 100,
+         `perSikh` = `Sikh` / Total * 100,
+         `perIndigenous` = `Traditional (North American Indigenous) spirituality` / Total * 100,
+         `perOther` = `Other religion` / Total * 100,
+         `perNoReligion` = `No Religion and Secular` / Total * 100)
+
+
+religion_long <- religion_percentages %>%
+  select(GeoUID, `Region Name`, perBuddhist, perChristian, perHindu, perJewish, perMuslim, perSikh, perIndigenous, perOther, perNoReligion) %>%
+  pivot_longer(cols = starts_with("per"), names_to = "Religion", values_to = "Percentage")
+
+# plot to view the distribution -- 
+ggplot(religion_long, aes(x = Religion, y = Percentage, fill = Religion)) +
+  geom_bar(stat = "identity") +
+  labs(title = "Percentage of Different Religions", x = "Religion", y = "Percentage") +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
+  guides(fill = FALSE)
+
+# Create the pie chart to view the data 
+ggplot(religion_long, aes(x = "", y = Percentage, fill = Religion)) +
+  geom_bar(width = 1, stat = "identity") +
+  coord_polar(theta = "y") +
+  labs(title = "Percentage of Different Religions") +
+  theme_void() +  # Use a void theme to remove axes and background
+  theme(legend.position = "right") +
+  guides(fill = guide_legend(title = "Religion"))  +
+  geom_text(aes(y = Percentage, label = sprintf("%.2f%%", Percentage)), color = "white")
+
+# numbers for text
+
+SecularLaval <- religion_long[9, "Percentage"]
+pull(SecularLaval)
+
+MuslimLaval <- religion_long[5, "Percentage"]
+pull(MuslimLaval)
+
+ChristianLaval <- religion_long[2, "Percentage"]
+pull(ChristianLaval)
+
+
+# compare to Quebec
+
+religion_queb <- cancensus::get_census(dataset = "CA21", 
+                                       regions = list(PR = 24), 
+                                       level = "PR",
+                                       vectors = c("Total" = "v_CA21_5670",
+                                                   "Buddhist" = "v_CA21_5673",
+                                                   "Christian" = "v_CA21_5676",
+                                                   "Hindu" = "v_CA21_5724",
+                                                   "Jewish" = "v_CA21_5727",
+                                                   "Muslim" = "v_CA21_5730",
+                                                   "Sikh" = "v_CA21_5733",
+                                                   "Traditional (North American Indigenous) spirituality" = "v_CA21_5736",
+                                                   "Other religion" = "v_CA21_5739",
+                                                   "No Religion and Secular" = "v_CA21_5742"))
+
+religion_queb_percentages <- religion_queb |> 
+  mutate(`perBuddhist` = `Buddhist` / Total * 100,
+         `perChristian` = `Christian` / Total * 100,
+         `perHindu` = `Hindu` / Total * 100,
+         `perJewish` = `Jewish` / Total * 100,
+         `perMuslim` = `Muslim` / Total * 100,
+         `perSikh` = `Sikh` / Total * 100,
+         `perIndigenous` = `Traditional (North American Indigenous) spirituality` / Total * 100,
+         `perOther` = `Other religion` / Total * 100,
+         `perNoReligion` = `No Religion and Secular` / Total * 100)
+
+
+religion_queb_long <- religion_queb_percentages %>%
+  select(GeoUID, `Region Name`, perBuddhist, perChristian, perHindu, perJewish, perMuslim, perSikh, perIndigenous, perOther, perNoReligion) %>%
+  pivot_longer(cols = starts_with("per"), names_to = "Religion", values_to = "Percentage")
+
+# numbers for report text
+SecularQc <- religion_queb_long[9, "Percentage"]
+pull(SecularQc)
+
+MuslimQc <- religion_queb_long[5, "Percentage"]
+pull(MuslimQc)
+
+ChristianQc <- religion_queb_long[2, "Percentage"]
+pull(ChristianQc)
+
+
+
+
+# plot to view if you want
+ggplot(religion_queb_long, aes(x = "", y = Percentage, fill = Religion)) +
+  geom_bar(width = 1, stat = "identity") +
+  coord_polar(theta = "y") +
+  labs(title = "Percentage of Different Religions") +
+  theme_void() +  # Use a void theme to remove axes and background
+  theme(legend.position = "right") +
+  guides(fill = guide_legend(title = "Religion"))
+
 
 
 # Canadian Citizens -----------------------------------------------------
@@ -86,7 +211,11 @@ Citizenship <- cancensus::get_census(dataset = "CA21",
                                                  "Canadian" = "v_CA21_4392",
                                                  "NotCanadian" = "v_CA21_4401"))
 
-Citizenship <- Citizenship |> mutate(PercentCanadian = Canadian/Total)
+Citizenship <- Citizenship |> mutate(PercentCanadian = Canadian/Total*100)
+
+# numbers for report
+CanadianCitizensLaval <- Citizenship[1,"PercentCanadian"]
+pull(CanadianCitizensLaval)
 
 # compare to Quebec 
 
@@ -97,8 +226,11 @@ Citizenship_Quebec <- cancensus::get_census(dataset = "CA21",
                                                         "Canadian" = "v_CA21_4392",
                                                         "NotCanadian" = "v_CA21_4401"))
 
-Citizenship_Quebec <- Citizenship_Quebec |> mutate(PercentCanadian = Canadian/Total)
+Citizenship_Quebec <- Citizenship_Quebec |> mutate(PercentCanadian = Canadian/Total*100)
 
+#numbers for report
+CanadianCitizensQc <- Citizenship_Quebec[1, "PercentCanadian"]
+pull(CanadianCitizensQc)
 
 # compare to mtl 
 
@@ -108,7 +240,11 @@ Citizenship_mtl <- cancensus::get_census(dataset = "CA21",
                                          vectors = c("Total" = "v_CA21_4389",
                                                      "Canadian" = "v_CA21_4392",
                                                      "NotCanadian" = "v_CA21_4401"))
-Citizenship_mtl <- Citizenship_mtl |> mutate(PercentCanadian = Canadian/Total)
+Citizenship_mtl <- Citizenship_mtl |> mutate(PercentCanadian = Canadian/Total*100)
+
+#numbers for report
+CanadianCitizensMtl <- Citizenship_mtl[1, "PercentCanadian"]
+pull(CanadianCitizensMtl)
 
 
 
@@ -891,105 +1027,6 @@ ggplot(data = immigrant_experience_queb_subgrouped, aes(x = constant_value, y = 
   theme(axis.text.x = element_blank())
 
 
-
-
-
-
-# Religion ---------------------------------------------------------------------
-
-religion <- cancensus::get_census(dataset = "CA21", 
-                                  regions = list(CSD = 2465005), 
-                                  level = "CSD",
-                                  vectors = c("Total" = "v_CA21_5670",
-                                              "Buddhist" = "v_CA21_5673",
-                                              "Christian" = "v_CA21_5676",
-                                              "Hindu" = "v_CA21_5724",
-                                              "Jewish" = "v_CA21_5727",
-                                              "Muslim" = "v_CA21_5730",
-                                              "Sikh" = "v_CA21_5733",
-                                              "Traditional (North American Indigenous) spirituality" = "v_CA21_5736",
-                                              "Other religion" = "v_CA21_5739",
-                                              "No Religion and Secular" = "v_CA21_5742"))
-
-
-
-religion_percentages <- religion |> 
-  mutate(`perBuddhist` = `Buddhist` / Total * 100,
-         `perChristian` = `Christian` / Total * 100,
-         `perHindu` = `Hindu` / Total * 100,
-         `perJewish` = `Jewish` / Total * 100,
-         `perMuslim` = `Muslim` / Total * 100,
-         `perSikh` = `Sikh` / Total * 100,
-        `perIndigenous` = `Traditional (North American Indigenous) spirituality` / Total * 100,
-         `perOther` = `Other religion` / Total * 100,
-         `perNoReligion` = `No Religion and Secular` / Total * 100)
-
-
-religion_long <- religion_percentages %>%
-  select(GeoUID, `Region Name`, perBuddhist, perChristian, perHindu, perJewish, perMuslim, perSikh, perIndigenous, perOther, perNoReligion) %>%
-  pivot_longer(cols = starts_with("per"), names_to = "Religion", values_to = "Percentage")
-  
-
-ggplot(religion_long, aes(x = Religion, y = Percentage, fill = Religion)) +
-  geom_bar(stat = "identity") +
-  labs(title = "Percentage of Different Religions", x = "Religion", y = "Percentage") +
-  theme_minimal() +
-  theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
-  guides(fill = FALSE)
-
-# Create the pie chart
-ggplot(religion_long, aes(x = "", y = Percentage, fill = Religion)) +
-  geom_bar(width = 1, stat = "identity") +
-  coord_polar(theta = "y") +
-  labs(title = "Percentage of Different Religions") +
-  theme_void() +  # Use a void theme to remove axes and background
-  theme(legend.position = "right") +
-  guides(fill = guide_legend(title = "Religion"))  +
-  geom_text(aes(y = Percentage, label = sprintf("%.2f%%", Percentage)), color = "white")
-  
-
-
-
-
-# compare to Quebec
-
-religion_queb <- cancensus::get_census(dataset = "CA21", 
-                                  regions = list(PR = 24), 
-                                  level = "PR",
-                                  vectors = c("Total" = "v_CA21_5670",
-                                              "Buddhist" = "v_CA21_5673",
-                                              "Christian" = "v_CA21_5676",
-                                              "Hindu" = "v_CA21_5724",
-                                              "Jewish" = "v_CA21_5727",
-                                              "Muslim" = "v_CA21_5730",
-                                              "Sikh" = "v_CA21_5733",
-                                              "Traditional (North American Indigenous) spirituality" = "v_CA21_5736",
-                                              "Other religion" = "v_CA21_5739",
-                                              "No Religion and Secular" = "v_CA21_5742"))
-
-religion_queb_percentages <- religion_queb |> 
-  mutate(`perBuddhist` = `Buddhist` / Total * 100,
-         `perChristian` = `Christian` / Total * 100,
-         `perHindu` = `Hindu` / Total * 100,
-         `perJewish` = `Jewish` / Total * 100,
-         `perMuslim` = `Muslim` / Total * 100,
-         `perSikh` = `Sikh` / Total * 100,
-         `perIndigenous` = `Traditional (North American Indigenous) spirituality` / Total * 100,
-         `perOther` = `Other religion` / Total * 100,
-         `perNoReligion` = `No Religion and Secular` / Total * 100)
-  
-
-religion_queb_long <- religion_queb_percentages %>%
-  select(GeoUID, `Region Name`, perBuddhist, perChristian, perHindu, perJewish, perMuslim, perSikh, perIndigenous, perOther, perNoReligion) %>%
-  pivot_longer(cols = starts_with("per"), names_to = "Religion", values_to = "Percentage")
-
-ggplot(religion_queb_long, aes(x = "", y = Percentage, fill = Religion)) +
-  geom_bar(width = 1, stat = "identity") +
-  coord_polar(theta = "y") +
-  labs(title = "Percentage of Different Religions") +
-  theme_void() +  # Use a void theme to remove axes and background
-  theme(legend.position = "right") +
-  guides(fill = guide_legend(title = "Religion"))
 
 
 
