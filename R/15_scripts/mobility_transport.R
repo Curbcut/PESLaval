@@ -5,6 +5,8 @@ library(sf)
 library(tidytransit)
 library(osmdata)
 library(tidygeocoder)
+library(RMySQL)
+library(classInt)
 
 #Setting up the cancensus api key
 set_cancensus_api_key("CensusMapper_4308d496f011429cf814385050f083dc", install = TRUE)
@@ -23,6 +25,16 @@ laval_ct <- cancensus::get_census(dataset = "CA21",
                                   level = "CT", 
                                   geo_format = "sf")
 
+laval_da <- cancensus::get_census(dataset = "CA21", 
+                                  regions = list(CSD = 2465005), 
+                                  level = "DA", 
+                                  geo_format = "sf")
+
+laval_db <- cancensus::get_census(dataset = "CA21", 
+                                  regions = list(CSD = 2465005), 
+                                  level = "DB", 
+                                  geo_format = "sf")
+
 #Grabbing the shapefile for the Montreal CMA
 mtlcma_sf <- cancensus::get_census(dataset = "CA21", 
                                 regions = list(CSD = 24462), 
@@ -32,9 +44,17 @@ mtlcma_sf <- cancensus::get_census(dataset = "CA21",
 #Setting the Laval bound box for maps
 laval_bbox <- st_bbox(laval_ct)
 
+#Grabbing username and password from .Renviron
+username <- Sys.getenv("DBI_USERNAME")
+password <- Sys.getenv("DBI_PASSWORD")
+
+#Setting up the curbcut scale
+curbcut_scale <- c("#C4CDE1", "#98A8CB", "#6C83B5", "#4C5C7F", "#2B3448")
+curbcut_na <- "#B3B3BB"
+
 # Bus Stop Location -------------------------------------------------------
-#Grabbing GTFS data from the STL
-stl_gtfs <- read_gtfs("https://translate.google.com/website?sl=fr&tl=en&hl=en&prev=search&u=https://www.stlaval.ca/datas/opendata/GTF_STL.zip")
+#Importing GTFS data. Available in the data folder under justin
+stl_gtfs <- read_gtfs("D://McGill/can_cache/GTF_STL.zip")
 
 #Grabbing bus stops, converting it to be usable to plot, and removing duplicates
 #Removing duplicates doesn't necessarily reflect real life as there are usually
@@ -158,12 +178,211 @@ ggplot(vending_sf) +
            ylim = c(laval_bbox$ymin, laval_bbox$ymax))
 
 # Bus Stop Data -----------------------------------------------------------
-#Use stl_gtfs above
-bus_stops <- st_as_sf(stl_gtfs$stops, coords = c("stop_lon", "stop_lat"), crs = 4326)
+#Use stl_gtfs above. Vector names are self explanatory
+stl_stops <- stl_gtfs$stops
 stl_stoptimes <- stl_gtfs$stop_times
-combined_stl <- bus_stops |> 
-  select(-location_type, -stop_display, -stop_abribus) |> 
-  left_join(headways_count, join_by("stop_id" == "Var1"))
+stl_trips <- stl_gtfs$trips
+stl_routes <- stl_gtfs$routes
 
+#Filtering only for weekday trips
+weekday_trips <- stl_stoptimes |> 
+  filter(trip_id %in% (stl_trips |> 
+                         filter(service_id == "JUIN24SEM") |> 
+                         pull(trip_id)))
 
-headways_count <- as.data.frame(table(stl_stoptimes$stop_id))
+#Finding the number of lines per stop on a weekday
+weekday_lines <- weekday_trips |> 
+  rowwise() |> 
+  mutate(route_id = str_extract(trip_id, paste(stl_routes$route_id, collapse = "|"))) |> 
+  filter(!is.na(route_id)) |> 
+  distinct(route_id, stop_id) |> 
+  group_by(stop_id) |> 
+  summarize(weekday_lines = n())
+
+#Number of vehicle stops per stop on a weekday
+weekday_headways <- weekday_trips |> 
+  group_by(stop_id) |> 
+  summarize(weekday_headways = n())
+
+#Filtering only for saturday trips
+saturday_trips <- stl_stoptimes |> 
+  filter(trip_id %in% (stl_trips |> 
+                         filter(service_id == "JUIN24SAM") |> 
+                         pull(trip_id)))
+
+#Finding the number of lines per stop on a saturday
+saturday_lines <- saturday_trips |> 
+  rowwise() |> 
+  mutate(route_id = str_extract(trip_id, paste(stl_routes$route_id, collapse = "|"))) |> 
+  filter(!is.na(route_id)) |> 
+  distinct(route_id, stop_id) |> 
+  group_by(stop_id) |> 
+  summarize(saturday_lines = n())
+
+#Number of vehicle stops per stop on a saturday
+saturday_headways <- saturday_trips |> 
+  group_by(stop_id) |> 
+  summarize(saturday_headways = n())
+
+#Filtering only for sunday trips
+sunday_trips <- stl_stoptimes |> 
+  filter(trip_id %in% (stl_trips |> 
+                         filter(service_id == "JUIN24DIM") |> 
+                         pull(trip_id)))
+
+#Finding the number of lines per stop on a sunday
+sunday_lines <- sunday_trips |> 
+  rowwise() |> 
+  mutate(route_id = str_extract(trip_id, paste(stl_routes$route_id, collapse = "|"))) |> 
+  filter(!is.na(route_id)) |> 
+  distinct(route_id, stop_id) |> 
+  group_by(stop_id) |> 
+  summarize(sunday_lines = n())
+
+#Number of vehicle stops per stop on a sunday
+sunday_headways <- sunday_trips |> 
+  group_by(stop_id) |> 
+  summarize(sunday_headways = n())
+
+#Combining all the data together in one master file
+combined_stl <- stl_stops |> 
+  select(-location_type, -stop_display, -stop_abribus, -stop_code) |> 
+  left_join(weekday_lines, by = "stop_id") |> 
+  left_join(weekday_headways, by = "stop_id") |> 
+  left_join(saturday_lines, by = "stop_id") |> 
+  left_join(saturday_headways, by = "stop_id") |> 
+  left_join(sunday_lines, by = "stop_id") |> 
+  left_join(sunday_headways, by = "stop_id") |> 
+  replace_na(list(
+    weekday_lines = 0, weekday_headways = 0,
+    saturday_lines = 0, saturday_headways = 0,
+    sunday_lines = 0, sunday_headways = 0
+  )) |> 
+  mutate(bus_stop = 1) |> 
+  st_as_sf(coords = c("stop_lon", "stop_lat"), crs = 4326)
+
+#Prepping join with DB by combining the data together and summarizing the counts
+laval_bus_pre <- st_join(combined_stl, laval_db, join = st_within) |> 
+  filter(!is.na(GeoUID)) |> 
+  group_by(GeoUID) |> 
+  summarize(
+    wd_headways = sum(weekday_headways, na.rm = TRUE), wd_lines = sum(weekday_lines, na.rm = TRUE),
+    sat_headways = sum(saturday_headways, na.rm = TRUE), sat_lines = sum(saturday_lines, na.rm = TRUE),
+    sun_headways = sum(sunday_headways, na.rm = TRUE), sun_lines = sum(sunday_lines, na.rm = TRUE),
+    bus_stops = sum(bus_stop, na.rm = TRUE), .groups = 'drop')
+
+#Combining the data and cleaning it up with the shapefile
+laval_bus <- laval_db |> 
+  st_join(laval_bus_pre) |> 
+  select(GeoUID.x, Population, wd_headways, wd_lines, sat_headways, sat_lines,
+         sun_headways, sun_lines, bus_stops) |> 
+  rename("GeoUID" = "GeoUID.x") |> 
+  replace_na(list(
+    wd_lines = 0, wd_headways = 0, sat_lines = 0, sat_headways = 0,
+    sun_lines = 0, sun_headways = 0, bus_stops = 0
+  ))
+
+#Grabbing the travel time matrix data
+connection <- DBI::dbConnect(
+  drv = RMySQL::MySQL(),
+  username = username,
+  password = password,
+  host = "ccdb-instance-1.cplnwzthenux.us-east-1.rds.amazonaws.com",
+  port = 3306,
+  dbname = "ccdb"
+)
+ids <- paste0(paste0("'", laval_db$GeoUID, "'"), collapse = ", ")
+ttm <- DBI::dbGetQuery(connection, sprintf("SELECT * FROM ttm_foot_DB WHERE `from` IN (%s)", ids))
+DBI::dbDisconnect(connection)
+
+#Filtering for under 7 minutes
+ttm_7 <- ttm |> 
+  filter(travel_seconds <= 420)
+
+#Preparing extra rows for the combined data
+laval_pre_ttm <- laval_bus |> 
+  distinct(GeoUID) |> 
+  mutate(to = GeoUID)
+
+#Joining and summarizing the data
+laval_ttm <- laval_bus |> 
+  left_join(ttm_7, by = c("GeoUID" = "from")) |> 
+  bind_rows(laval_pre_ttm) |> 
+  select(-Population, -wd_headways, -wd_lines, -sat_headways, -sat_lines,
+         -sun_headways, -sun_lines, -bus_stops, -travel_seconds) |> 
+  left_join(as.data.frame(laval_bus), by = c("to" = "GeoUID")) |> 
+  select(-geometry.y) |> 
+  rename("geometry" = "geometry.x") |> 
+  group_by(GeoUID) |> 
+  summarize(weekday_headways = sum(wd_headways, na.rm = TRUE),
+            weekday_lines = sum(wd_lines, na.rm = TRUE),
+            satday_headways = sum(sat_headways, na.rm = TRUE),
+            satday_lines = sum(sat_lines, na.rm = TRUE),
+            sunday_headways = sum(sun_headways, na.rm = TRUE),
+            sunday_lines = sum(sun_lines, na.rm = TRUE),
+            bus_stop = sum(bus_stops, na.rm = TRUE))
+
+#Finding proper breaks
+list(classInt::classIntervals(laval_ttm$weekday_headways, n = 5, style = "jenks")$brks)
+list(classInt::classIntervals(laval_ttm$weekday_lines, n = 5, style = "jenks")$brks)
+list(classInt::classIntervals(laval_ttm$bus_stop, n = 5, style = "jenks")$brks)
+
+#Mapping frequency for weekdays
+ggplot(data = laval_ttm) +
+  geom_sf(data = mtlcma_sf, color = "black", fill = "#FCFCFC") +
+  geom_sf(aes(fill = cut(weekday_headways, breaks = c(0, 258, 590, 1105, 1996, 3785),
+                         labels = c("< 258", "258-590", "590-1105", "1105-1996", "> 1996"))), color = NA) +
+  geom_sf(data = laval_csd, color = "black", fill = NA) +
+  scale_fill_manual(values = curbcut_scale, na.value = curbcut_na) +
+  labs(title = "STL fréquence des passages d'autobus 2024",
+       fill = "Fréquence totale des passages de bus") +
+  theme_minimal() +
+  theme(axis.line = element_blank(), axis.text = element_blank(),
+        axis.title = element_blank(), axis.ticks = element_blank(),
+        panel.grid = element_blank(), plot.title = element_text(hjust = 0.5),
+        legend.position = "bottom", legend.justification = "center",
+        panel.background = element_rect(fill = "#525252")) +
+  guides(fill = guide_legend(title.position = "top", title.hjust = 0.5,
+                             barwidth = 1, barheight = 1, nrow = 1)) +
+  coord_sf(xlim = c(laval_bbox$xmin, laval_bbox$xmax),
+           ylim = c(laval_bbox$ymin, laval_bbox$ymax))
+
+#Mapping line density for weekdays
+ggplot(data = laval_ttm) +
+  geom_sf(data = mtlcma_sf, color = "black", fill = "#FCFCFC") +
+  geom_sf(aes(fill = cut(weekday_lines, breaks = c(0, 9, 22, 45, 86, 150),
+                         labels = c("< 9", "9-22", "22-45", "45-86", "> 86"))), color = NA) +
+  geom_sf(data = laval_csd, color = "black", fill = NA) +
+  scale_fill_manual(values = curbcut_scale, na.value = curbcut_na) +
+  labs(title = "STL densité du nombre de lignes d'autobus 2024",
+       fill = "Densité du nombre de lignes d'autobus") +
+  theme_minimal() +
+  theme(axis.line = element_blank(), axis.text = element_blank(),
+        axis.title = element_blank(), axis.ticks = element_blank(),
+        panel.grid = element_blank(), plot.title = element_text(hjust = 0.5),
+        legend.position = "bottom", legend.justification = "center",
+        panel.background = element_rect(fill = "#525252")) +
+  guides(fill = guide_legend(title.position = "top", title.hjust = 0.5,
+                             barwidth = 1, barheight = 1, nrow = 1)) +
+  coord_sf(xlim = c(laval_bbox$xmin, laval_bbox$xmax),
+           ylim = c(laval_bbox$ymin, laval_bbox$ymax))
+
+#Mapping bus stops
+ggplot(data = laval_ttm) +
+  geom_sf(data = mtlcma_sf, color = "black", fill = "#FCFCFC") +
+  geom_sf(aes(fill = cut(bus_stop, breaks = c(0, 4, 8, 13, 32, 64),
+                         labels = c("< 4", "4-8", "8-13", "13-32", "> 32"))), color = NA) +
+  geom_sf(data = laval_csd, color = "black", fill = NA) +
+  scale_fill_manual(values = curbcut_scale, na.value = curbcut_na) +
+  labs(title = "Nombre d'arrêts de bus accessibles 2024",
+       fill = "Nombre d'arrêts de bus accessibles") +
+  theme_minimal() +
+  theme(axis.line = element_blank(), axis.text = element_blank(),
+        axis.title = element_blank(), axis.ticks = element_blank(),
+        panel.grid = element_blank(), plot.title = element_text(hjust = 0.5),
+        legend.position = "bottom", legend.justification = "center",
+        panel.background = element_rect(fill = "#525252")) +
+  guides(fill = guide_legend(title.position = "top", title.hjust = 0.5,
+                             barwidth = 1, barheight = 1, nrow = 1)) +
+  coord_sf(xlim = c(laval_bbox$xmin, laval_bbox$xmax),
+           ylim = c(laval_bbox$ymin, laval_bbox$ymax))
