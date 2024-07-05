@@ -184,11 +184,13 @@ stl_stoptimes <- stl_gtfs$stop_times
 stl_trips <- stl_gtfs$trips
 stl_routes <- stl_gtfs$routes
 
-#Filtering only for weekday trips
+#Filtering only for weekday trips between 7 and 9 AM
 weekday_trips <- stl_stoptimes |> 
   filter(trip_id %in% (stl_trips |> 
                          filter(service_id == "JUIN24SEM") |> 
-                         pull(trip_id)))
+                         pull(trip_id))) |> 
+  mutate(arrival_time = hms(arrival_time)) |> 
+  filter(arrival_time >= hms("07:00:00") & arrival_time <= hms("09:00:00"))
 
 #Number of vehicle stops per stop on a weekday
 weekday_headways <- weekday_trips |> 
@@ -203,8 +205,14 @@ weekday_lines <- weekday_trips |>
   distinct(route_id, stop_id) |> 
   select(stop_id, route_id)
 
+#Weekday stops between 7 and 9 AM
+weekday_stops <- weekday_trips |> 
+  distinct(stop_id, .keep_all = TRUE) |> 
+  select(stop_id) |> 
+  left_join(stl_stops, by = "stop_id")
+
 #Binding the weekday data together with bus stops and converting it into a shapefile
-lvl_stops_sf <- stl_stops |> 
+lvl_stops_sf <- weekday_stops |> 
   select(stop_id, stop_lon, stop_lat) |> 
   left_join(weekday_lines, by = "stop_id") |> 
   left_join(weekday_headways, by = "stop_id") |> 
@@ -298,15 +306,17 @@ list(classInt::classIntervals(laval_accessibility$headway_count, n = 5, style = 
 #Mapping out bus stops
 ggplot(data = laval_accessibility) +
   geom_sf(data = mtlcma_sf, color = "black", fill = "#FCFCFC") +
-  geom_sf(aes(fill = cut(stop_count, breaks = c(0, 9, 22, 45, 86, 150),
-                         labels = c("< 9", "9-22", "22-45", "45-86", "> 86"))), color = NA) +
+  geom_sf(aes(fill = cut(stop_count, breaks = c(0, 7, 17, 34, 68, 123),
+                         labels = c("< 7", "7-17", "17-34", "34-68", "> 68"))), color = NA) +
   geom_sf(data = laval_csd, color = "black", fill = NA) +
   scale_fill_manual(values = curbcut_scale, na.value = curbcut_na) +
-  labs(title = "Nombre d'arrêts de bus accessibles à moins de 7 minutes à pied",
+  labs(title = "Nombre d’arrêts d’autobus STL accessibles à Laval*",
+       subtitle = "*À moins de 7 minutes à pied entre 7h et 9h en semaine",
        fill = "Nombre total d'arrêts de bus accessibles") +
   theme_minimal() +
   theme(axis.line = element_blank(), axis.text = element_blank(),
         axis.title = element_blank(), axis.ticks = element_blank(),
+        plot.subtitle = element_text(hjust = 0.5),
         panel.grid = element_blank(), plot.title = element_text(hjust = 0.5),
         legend.position = "bottom", legend.justification = "center",
         panel.background = element_rect(fill = "#525252")) +
@@ -318,15 +328,17 @@ ggplot(data = laval_accessibility) +
 #Mapping out route accessibility
 ggplot(data = laval_accessibility) +
   geom_sf(data = mtlcma_sf, color = "black", fill = "#FCFCFC") +
-  geom_sf(aes(fill = cut(route_count, breaks = c(0, 3, 8, 19, 35, 45),
-                         labels = c("< 3", "3-8", "8-19", "19-35", "> 35"))), color = NA) +
+  geom_sf(aes(fill = cut(route_count, breaks = c(0, 3, 7, 16, 29, 38),
+                         labels = c("< 3", "3-7", "7-16", "16-29", "> 29"))), color = NA) +
   geom_sf(data = laval_csd, color = "black", fill = NA) +
   scale_fill_manual(values = curbcut_scale, na.value = curbcut_na) +
-  labs(title = "Nombre de lignes de bus accessibles à moins de 7 minutes à pied",
+  labs(title = "Nombre de lignes d'autobus STL accessibles à Laval 2024*",
+       subtitle = "*À moins de 7 minutes à pied entre 7h et 9h en semaine",
        fill = "Nombre total de lignes de bus accessibles") +
   theme_minimal() +
   theme(axis.line = element_blank(), axis.text = element_blank(),
         axis.title = element_blank(), axis.ticks = element_blank(),
+        plot.subtitle = element_text(hjust = 0.5),
         panel.grid = element_blank(), plot.title = element_text(hjust = 0.5),
         legend.position = "bottom", legend.justification = "center",
         panel.background = element_rect(fill = "#525252")) +
@@ -338,15 +350,17 @@ ggplot(data = laval_accessibility) +
 #Mapping out bus runs accessibility
 ggplot(data = laval_accessibility) +
   geom_sf(data = mtlcma_sf, color = "black", fill = "#FCFCFC") +
-  geom_sf(aes(fill = cut(headway_count, breaks = c(0, 1202, 3601, 10715, 21869, 39934),
-                         labels = c("< 1202", "1202-3601", "3601-10715", "10715-21869", "> 21869"))), color = NA) +
+  geom_sf(aes(fill = cut(headway_count, breaks = c(0, 141, 420, 1231, 2424, 4317),
+                         labels = c("< 141", "141-420", "420-1231", "1231-2424", "> 2424"))), color = NA) +
   geom_sf(data = laval_csd, color = "black", fill = NA) +
   scale_fill_manual(values = curbcut_scale, na.value = curbcut_na) +
-  labs(title = "Nombre de trajets de bus accessibles à moins de 7 minutes à pied",
+  labs(title = "Nombre de parcours d'autobus STL accessibles à Laval 2024*",
+       subtitle = "*À moins de 7 minutes à pied entre 7h et 9h en semaine",
        fill = "Nombre total de parcours d'autobus accessibles") +
   theme_minimal() +
   theme(axis.line = element_blank(), axis.text = element_blank(),
         axis.title = element_blank(), axis.ticks = element_blank(),
+        plot.subtitle = element_text(hjust = 0.5),
         panel.grid = element_blank(), plot.title = element_text(hjust = 0.5),
         legend.position = "bottom", legend.justification = "center",
         panel.background = element_rect(fill = "#525252")) +
@@ -354,3 +368,4 @@ ggplot(data = laval_accessibility) +
                              barwidth = 1, barheight = 1, nrow = 1)) +
   coord_sf(xlim = c(laval_bbox$xmin, laval_bbox$xmax),
            ylim = c(laval_bbox$ymin, laval_bbox$ymax))
+
