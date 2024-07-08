@@ -10,8 +10,48 @@ https://numerique.banq.qc.ca/patrimoine/details/52327/2773091
 knitr::opts_chunk$set(echo = FALSE)
 ```
 
-## Les services de proximité et les équipements collectifs 
+## Les services de proximité et les équipements collectifs
+
+### Accès aux places en garderie
+
+### Accès aux établissements d'éducation
+
+### Accès aux installations du réseau de la santé et des services sociaux
+
+### Accès aux lieux et édifices municipaux
+
+#### Bibliothèques
+
+#### Centres communautaires
+
+#### Places publiques
+
+#### Centres sportifs
+
+#### Piscines
+
+#### Parcs
+
+#### Lieux culturels non-institutionnels
 
 ## La mobilité et le transport
+
+### Accès au réseau d'autobus
+
+#### Densité de trajets disponibles
+
+#### Fréquence du nombre de véhicules accessibles
+
+#### Points de vente pour le transport collectif
+
+### Réseau cyclable
+
+### Système de vélos en libre-service et service d'autoapartage
+
+#### Bixi
+
+#### Communauto
+
+### Bornes de recharge pour véhicules électriques
 
 ## Les ressources de soutien et la concertation de quartier
