@@ -7,12 +7,17 @@ library(osmdata)
 library(tidygeocoder)
 library(RMySQL)
 library(classInt)
+library(extrafont)
 
 #Setting up the cancensus api key
 set_cancensus_api_key("CensusMapper_4308d496f011429cf814385050f083dc", install = TRUE)
 
 #Setting up cache path for faster loading (edit for your own folder)
 set_cancensus_cache_path("D:/McGill/can_cache", install = TRUE, overwrite = TRUE)
+
+#Importing Fonts
+font_import()
+loadfonts(device = "win")
 
 #Grabbing the Laval shapefiles
 laval_csd <- cancensus::get_census(dataset = "CA21", 
@@ -43,10 +48,6 @@ mtlcma_sf <- cancensus::get_census(dataset = "CA21",
 
 #Setting the Laval bound box for maps
 laval_bbox <- st_bbox(laval_ct)
-
-#Grabbing username and password from .Renviron
-username <- Sys.getenv("DBI_USERNAME")
-password <- Sys.getenv("DBI_PASSWORD")
 
 #Setting up the curbcut scale
 curbcut_scale <- c("#C4CDE1", "#98A8CB", "#6C83B5", "#4C5C7F", "#2B3448")
@@ -96,6 +97,28 @@ ggplot() +
   theme(plot.title = element_text(hjust = 0.5), axis.text = element_blank(),
         axis.title = element_blank(), axis.ticks = element_blank(),
         panel.grid = element_blank(), panel.background = element_rect(fill = "lightblue")) +
+  coord_sf(xlim = c(laval_bbox$xmin, laval_bbox$xmax),
+           ylim = c(laval_bbox$ymin, laval_bbox$ymax))
+
+# Charging Stations -------------------------------------------------------
+charging_osm <- opq(bbox = laval_bbox, timeout = 300) |> 
+  add_osm_feature(key = "amenity", value = "charging_station") |> 
+  osmdata_sf()
+
+charging_lvl <- charging_osm$osm_points |> 
+  st_intersection(laval_ct)
+
+ggplot() +
+  geom_sf(data = mtlcma_sf, color = "black", fill = "#FCFCFC") +
+  geom_sf(data = laval_csd, color = "black", fill = NA) +
+  geom_sf(data = charging_lvl, color = "darkred", size = 1) +
+  coord_sf() +
+  theme_minimal() +
+  labs(title = "Bornes de recharge pour véhicules électriques à Laval 2024") +
+  theme(plot.title = element_text(hjust = 0.5),
+        axis.text = element_blank(),
+        axis.title = element_blank(), axis.ticks = element_blank(),
+        panel.grid = element_blank(), panel.background = element_rect(fill = "#525252")) +
   coord_sf(xlim = c(laval_bbox$xmin, laval_bbox$xmax),
            ylim = c(laval_bbox$ymin, laval_bbox$ymax))
 
@@ -242,8 +265,8 @@ laval_bus <- laval_db |>
 #Grabbing the travel time matrix data and filtering for under 7 minutes
 connection <- DBI::dbConnect(
   drv = RMySQL::MySQL(),
-  username = username,
-  password = password,
+  username = Sys.getenv("DBI_USERNAME"),
+  password = Sys.getenv("DBI_PASSWORD"),
   host = "ccdb-instance-1.cplnwzthenux.us-east-1.rds.amazonaws.com",
   port = 3306,
   dbname = "ccdb"
