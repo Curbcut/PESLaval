@@ -21,3 +21,24 @@ ttm <- function(mode = "foot", under_x_minutes = 15) {
   
 }
 
+ttm_DA <- function(mode = "car") {
+  # Connect to the database
+  conn <- cc.data::db_connect()
+  DAs <- cancensus::get_census("CA21", regions = list(CSD = 2465005), level = "DA")
+  
+  matrix <- purrr::map_dfr(DAs$GeoUID, \(ID) {
+    DBI::dbGetQuery(conn, sprintf("SELECT * FROM ttm_car_%s", ID))
+  })
+  
+  DBI::dbDisconnect(conn) 
+  
+  return(matrix)
+}
+
+
+
+
+
+
+
+
