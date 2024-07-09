@@ -25,6 +25,7 @@
 # 
 # qs::qsave(daycares, "data/axe3/locations/daycares.qs")
 daycares <- qs::qread("data/axe3/locations/daycares.qs")
+source("R/utils/tt_fun.R")
 tt <- ttm()
 
 
@@ -45,11 +46,12 @@ access_spots <- tibble::as_tibble(access_spots)
 # How many daycare-aged children per DBs? ---------------------------------
 
 DAs <- cancensus::get_census("CA21", regions = list(CSD = 2465005), level = "DA",
-                             vectors = c("v_CA21_23", "v_CA21_26", "v_CA21_29", "v_CA21_35"))
-DAs <- DAs[c(1, 5,  12:15)]
+                             vectors = c("v_CA21_23", "v_CA21_26", "v_CA21_29", "v_CA21_35"),
+                             geo_format = "sf")
+DAs <- DAs[c(3, 8,  15:18)]
 DAs$children <- DAs$`v_CA21_23: 2` + DAs$`v_CA21_26: 3` + DAs$`v_CA21_29: 4` + DAs$`v_CA21_35: 5`
 DAs <- DAs[c("GeoUID", "Population", "children")]
-names(DAs) <- c("DA_UID", "DA_pop", "children")
+names(DAs) <- c("DA_UID", "DA_pop", "children", "geometry")
 
 DB_children <- cc.buildr::merge(DBs[c("GeoUID", "DA_UID", "Population")], DAs, by = "DA_UID")
 DB_children$pop_ratio <- DB_children$Population / DB_children$DA_pop
@@ -84,7 +86,10 @@ spots_per_child <- lapply(seq_along(daycares$geometry), \(x) {
     # this proportion is the same as the number of children served by every daycare
     children * dc$PLACE_TOTAL / spots
     
-  }) |> sum()
+  }) |> sum(na.rm = TRUE)
+  
+  # If there are no children deserved by the daycare, ignore the daycare
+  if (nb_children_served == 0) return(NULL)
   
   # Ratio of the number of children the daycare is supposed to serve, and the
   # actual number of spots
@@ -93,28 +98,54 @@ spots_per_child <- lapply(seq_along(daycares$geometry), \(x) {
   return(dc)
 })
 
-children_per_spot <- children_per_spot[!sapply(children_per_spot, is.null)]
-Reduce(rbind, children_per_spot)["children_per_spot"] |> .mv()
+spots_per_child <- spots_per_child[!sapply(spots_per_child, is.null)]
+spots_per_child <- Reduce(rbind, spots_per_child)
 
 
+# Access to spots per child -----------------------------------------------
 
-lapply()
-
-# One daycare spot = one point
-progressr::with_progress({
-  pb <- progressr::progressor(steps = nrow(daycares))
-  daycares_spots <-
-    future.apply::future_lapply(seq_len(nrow(daycares)), \(r) {
-      pb()
-      row <- daycares[r, ]
-      Reduce(rbind, lapply(seq_len(row$PLACE_TOTAL), \(x) row))["geometry"]
-    })
-  pb <- progressr::progressor(steps = length(daycares))
-  daycares_spots <-
-    Reduce(\(a, b) {
-      pb()
-      rbind(a, b)
-    }, daycares_spots)
+# Loop over all DBs. Look at all the daycares they can access. What are their
+# ratio? Can they meet demand?
+daycare_access_comp <- purrr::map_dfr(DBs$GeoUID, \(DB_ID) {
+  accessible_DBs <- tt$to[tt$from == DB_ID]
+  
+  accessible_daycares <- spots_per_child[spots_per_child$GeoUID %in% accessible_DBs, ]
+  
+  # If no daycare, worst score
+  if (nrow(accessible_daycares) == 0) 
+    return(tibble::tibble(DB = DB_ID, daycare_comp_access = 0))
+  
+  spots_p_child_weighted_by_spots <- 
+    weighted.mean(accessible_daycares$spots_per_child, w = accessible_daycares$PLACE_TOTAL)
+  
+  tibble::tibble(DB = DB_ID, daycare_comp_access = spots_p_child_weighted_by_spots)
+  
 })
 
-daycares_spots
+daycare_access_comp <- cc.buildr::merge(DBs, daycare_access_comp, 
+                                        by.x = "GeoUID", by.y = "DB")[
+                                          c("GeoUID", "daycare_comp_access")]
+
+library(ggplot2)
+
+# Setting up the curbcut scale
+curbcut_scale <- c("#C4CDE1", "#98A8CB", "#6C83B5", "#4C5C7F", "#2B3448")
+curbcut_na <- "#B3B3BB"
+
+# Custom breaks for 5 bins
+breaks <- seq(0, 2, length.out = 5)
+
+ggplot(daycare_access_comp) +
+  geom_sf(aes(fill = daycare_comp_access), color = "transparent") + 
+  scale_fill_stepsn(colors = curbcut_scale, limits = c(0, 2), na.value = curbcut_na, breaks = breaks) +
+  labs(fill = "Daycare Access") +
+  theme_minimal()
+
+breaks <- seq(0, 60, length.out = 5)
+
+ggplot(DAs) +
+  geom_sf(aes(fill = children), color = "transparent") + 
+  scale_fill_stepsn(colors = curbcut_scale, limits = c(0, 50), na.value = curbcut_na, breaks = breaks) +
+  labs(fill = "Daycare Access") +
+  theme_minimal()
+
