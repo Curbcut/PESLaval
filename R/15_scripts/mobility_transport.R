@@ -7,6 +7,8 @@ library(osmdata)
 library(tidygeocoder)
 library(RMySQL)
 library(classInt)
+library(ggnewscale)
+library(cowplot)
 library(extrafont)
 
 #Setting up the cancensus api key
@@ -53,6 +55,17 @@ laval_bbox <- st_bbox(laval_ct)
 curbcut_scale <- c("#C4CDE1", "#98A8CB", "#6C83B5", "#4C5C7F", "#2B3448")
 curbcut_na <- "#B3B3BB"
 
+#Import 15 minute walking TTM and modifying it with necessary rows
+ttm_walk_15_p <- read.csv("D://McGill/can_cache/walk15.csv") |> 
+  select(-X, -travel_seconds) |> 
+  mutate(across(everything(), as.character)) |> 
+  rename("GeoUID" = "from")
+
+ttm_walk_15 <- ttm_walk_15_p |> 
+  distinct(GeoUID) |> 
+  mutate(to = GeoUID) |> 
+  bind_rows(ttm_walk_15_p) |> 
+  arrange(GeoUID)
 # Bus Stop Location -------------------------------------------------------
 #Importing GTFS data. Available in the data folder under justin
 stl_gtfs <- read_gtfs("D://McGill/can_cache/GTF_STL.zip")
@@ -76,7 +89,7 @@ ggplot() +
   coord_sf(xlim = c(laval_bbox$xmin, laval_bbox$xmax),
            ylim = c(laval_bbox$ymin, laval_bbox$ymax))
 
-# Cycle Paths -------------------------------------------------------------
+# Bike Map -------------------------------------------------------------
 #Grabbing all bike lanes within the Laval bound box
 cycle_osm <- opq(bbox = laval_bbox, timeout = 300) |> 
   add_osm_feature(key = "highway", value = "cycleway") |> 
@@ -86,19 +99,53 @@ cycle_osm <- opq(bbox = laval_bbox, timeout = 300) |>
 cycle_lvl <- cycle_osm$osm_lines |> 
   st_intersection(laval_ct)
 
-#Mapping out the bike lanes
-ggplot() +
-  geom_sf(data = mtlcma_sf, fill = "lightgrey", color = "black") +
-  geom_sf(data = laval_csd, fill = "white", color = "black") +
-  geom_sf(data = cycle_lvl, color = "darkred", size = 5) +
-  coord_sf() +
+#Grabbing all Bixi station information
+bixi_stations <- get_station_information(city = "Montreal")
+
+#Converting the bixi station information into a usable coordinate system
+bixi_sf <- st_as_sf(bixi_stations, coords = c("lon", "lat"), crs = 4326) |> 
+  filter(name != "cpatel") |> 
+  st_intersection(laval_ct)
+
+#Importing bike comfort csv
+bics <- read.csv("D://McGill/can_cache/CAN_BICS_metric_Jan_2022.csv") |> 
+  mutate("dauid" = as.character(dauid))
+
+#Binding can-BICs score to Laval DAs
+bike_comfort <- laval_da |> 
+  left_join(bics, by = join_by("GeoUID" == "dauid"))
+
+# Mapping out the bike map
+ggplot(data = bike_comfort) +
+  geom_sf(data = mtlcma_sf, aes(fill = "mtlcma_sf"), color = "#525252", fill = "#FCFCFC") +
+  geom_sf(data = laval_csd, aes(fill = NA), color = "#525252") +
+  geom_sf(data = bike_comfort, aes(fill = cut(CBICS_cat, breaks = c(0, 1, 2, 3, 4, 5),
+                                              labels = c("Low", "2", "3", "4", "High"))), color = NA) +
+  geom_sf(data = cycle_lvl, aes(color = "cycle_lvl"), size = 1.5) +
+  geom_sf(data = bixi_sf, aes(color = "bixi_sf"), shape = 15, size = 2) +
+  scale_fill_manual(name = "Confort et sécurité des pistes cyclables",
+                    values = c("Low" = curbcut_scale[1], "2" = curbcut_scale[2],
+                               "3" = curbcut_scale[3], "4" = curbcut_scale[4], 
+                               "High" = curbcut_scale[5]),
+                    labels = c("Low", "", "", "", "High"),
+                    na.value = curbcut_na,
+                    guide = guide_legend(label.position = "bottom", title.position = "top", nrow = 1)) +
+  scale_color_manual(name = "",
+                     values = c("cycle_lvl" = "white", "bixi_sf" = "black"),
+                     labels = c("Stations Bixi", "Piste cyclable"),
+                     guide = guide_legend(label.position = "bottom", title.position = "top", nrow = 1)) +
+  labs(title = "Carte et score vélo de Laval 2024") +
   theme_minimal() +
-  labs(title = "Pistes cyclables à Laval 2024") +
   theme(plot.title = element_text(hjust = 0.5), axis.text = element_blank(),
         axis.title = element_blank(), axis.ticks = element_blank(),
-        panel.grid = element_blank(), panel.background = element_rect(fill = "lightblue")) +
+        legend.position = "bottom", panel.grid = element_blank(),
+        panel.background = element_rect(fill = "#525252"), legend.spacing.x = unit(-0.05, "cm"),
+        legend.key.width = unit(1.95, "cm"), legend.background = element_blank(),
+        legend.box.background = element_blank()) +
   coord_sf(xlim = c(laval_bbox$xmin, laval_bbox$xmax),
-           ylim = c(laval_bbox$ymin, laval_bbox$ymax))
+           ylim = c(laval_bbox$ymin, laval_bbox$ymax)) +
+  guides(fill = guide_legend(order = 1, label.position = "bottom", title.position = "top", nrow = 1),
+    color = guide_legend(order = 2, label.position = "bottom", title.position = "top", nrow = 1))
 
 # Charging Stations -------------------------------------------------------
 charging_osm <- opq(bbox = laval_bbox, timeout = 300) |> 
@@ -122,31 +169,6 @@ ggplot() +
   coord_sf(xlim = c(laval_bbox$xmin, laval_bbox$xmax),
            ylim = c(laval_bbox$ymin, laval_bbox$ymax))
 
-# Bixi Stations -----------------------------------------------------------
-#Grabbing all Bixi station information
-bixi_stations <- get_station_information(city = "Montreal")
-
-#Converting the bixi station information into a usable coordinate system
-bixi_sf <- st_as_sf(bixi_stations, coords = c("lon", "lat"), crs = 4326) |> 
-  filter(name != "cpatel") |> 
-  st_intersection(laval_ct)
-
-#Mapping out the stations onto the city of Laval
-ggplot() +
-  geom_sf(data = mtlcma_sf, fill = "lightgrey", color = "black") +
-  geom_sf(data = laval_ct, fill = "white", color = "black") +
-  geom_sf(data = bixi_sf, color = "red", size = 1) +
-  theme_minimal() +
-  labs(title = "Stations Bixi à Laval 2024") +
-  theme(plot.title = element_text(hjust = 0.5),
-        axis.text = element_blank(),
-        axis.title = element_blank(),
-        axis.ticks = element_blank(),
-        panel.grid = element_blank(),
-        panel.background = element_rect(fill = "lightblue")) +
-  coord_sf(xlim = c(laval_bbox$xmin, laval_bbox$xmax),
-           ylim = c(laval_bbox$ymin, laval_bbox$ymax))
-
 # Points de vente (transport collectif) -----------------------------------
 #Using the shapefile below and STL_accessibilite-points-vente.pdf and
 #the STL website to determine the level of accessibility
@@ -166,37 +188,81 @@ partial_acc <- c("10B, rue Dufferin", "555, boul. Samson", "650, rue Principale"
 no_acc <- c("3875, boul. Sainte-Rose", "501, rue Guillemette", "265, 15e Rue",
             "3667, boul. Lévesque Ouest", "45, boul. Lévesque Est", "3323, boul. de la Concorde E.",
             "2795, boul. René-Laennec", "5162, de la Fabrique")
-unknown <- c("2250, avenue Francis-Hughes", "308, Bd Cartier O.", "1859, boul. René-Laennec",
-             "705, chemin du Trait Carré")
 
 #Importing GEOADMIN_POINT_VENTE.shp from the data folder and 
 #assigning each row their accessibility value
-vending_sf <- st_read("/Users/justin/Documents/R/curbcut/Points_de_vente_shp/GEOADMIN_POINT_VENTE.shp") |> 
+vending_sf <- st_read("D://McGill/can_cache/Points_de_vente_shp/GEOADMIN_POINT_VENTE.shp") |> 
   st_transform(crs = 4326) |> 
   mutate(accessible = case_when(
     ADRESSE %in% full_acc ~ "Accessible",
     ADRESSE %in% partial_acc ~ "Partiellement accessible",
     ADRESSE %in% no_acc ~ "Non accessible",
-    ADRESSE %in% unknown ~ "Accessibilité inconnue",
     TRUE ~ NA_character_)) |> 
+  select(NOM, accessible) |> 
+  drop_na() |> 
   mutate(accessible = factor(accessible, levels = c("Accessible", "Partiellement accessible",
-                                                    "Non accessible", "Accessibilité inconnue")))
+                                                    "Non accessible")))
 
-#Mapping out the point of sale data
-ggplot(vending_sf) + 
-  geom_sf(data = mtlcma_sf, fill = "lightgrey") +
-  geom_sf(data = laval_csd, fill = "white", color = "black") +
-  geom_sf(aes(color = accessible)) +
-  labs(title = "Point de vente de la Société de transport de Laval") +
-  scale_color_manual(values = c("Accessible" = "#648FFF", 
+#Converting vending points to shapefile and then joining
+vending_join <- st_join(laval_db, vending_sf) |> 
+  st_drop_geometry() |> 
+  select(GeoUID, accessible) |> 
+  mutate(accessible = ifelse(is.na(accessible), NA, 1)) |> 
+  filter(accessible == 1)
+
+#Joining the 15 minute TTM with the data
+vending_walk <- ttm_walk_15 |> 
+  left_join(vending_join, by = join_by("to" == "GeoUID")) |> 
+  filter(accessible == 1) |> 
+  group_by(GeoUID) |> 
+  summarize(sum_accessible = sum(accessible, na.rm = TRUE)) |> 
+  rename("accessible" = "sum_accessible")
+  #mutate(accessible = replace_na(accessible, 0))
+
+#Calculating accessibility to vending locations by DB
+vending_accessibility <- laval_db |> 
+  left_join(vending_walk, by = "GeoUID") |> 
+  mutate(accessible = replace_na(accessible, 0)) |> 
+  mutate(accessible_cat = factor(case_when(
+    accessible == 0 ~ "0",
+    accessible == 1 ~ "1",
+    accessible >= 2 ~ "2+"
+  )))
+
+ggplot() + 
+  geom_sf(data = mtlcma_sf, fill = "#FCFCFC", color = NA) +
+  geom_sf(data = vending_accessibility, aes(fill = factor(accessible_cat)), color = NA) +
+  scale_fill_manual(values = c("0" = "#C4CDE1", 
+                               "1" = "#6C83B5",
+                               "2+" = "#2B3448"),
+                    na.value = curbcut_na,
+                    name = "Nombre de points de vente accessibles") +
+  labs(title = "Accessibilité aux points de vente STL 2024") +
+  new_scale_color() +
+  geom_sf(data = vending_sf, aes(color = accessible)) +
+  scale_color_manual(values = c("Accessible" = "#0096FF", 
                                 "Partiellement accessible" = "#FFB000", 
                                 "Non accessible" = "#DC267F",
-                                "Accessibilité inconnue" = "grey")) +
+                                "Accessibilité inconnue" = "grey"),
+                     name = "Points de vente") +
   theme_minimal() +
   theme(plot.title = element_text(hjust = 0.5), axis.text = element_blank(),
         axis.title = element_blank(), axis.ticks = element_blank(),
-        legend.title = element_blank(), legend.position = "bottom",
-        panel.grid = element_blank(), panel.background = element_rect(fill = "lightblue")) +
+        legend.position = "bottom", panel.grid = element_blank(),
+        panel.background = element_rect(fill = "#525252"),
+        legend.direction = "vertical",  # Vertical orientation for legends
+        legend.box = "vertical",        # Stack legends vertically
+        legend.key.height = unit(1.25, "lines"),  # Adjust key height for both legends
+        legend.key.width = unit(1.25, "lines"),   # Adjust key width for both legends
+        legend.title.align = 0.5,
+        legend.spacing.y = unit(0.1, "cm")) +
+  guides(
+    fill = guide_legend(order = 1, ncol = 3, title.position = "top",
+                        title.hjust = 0.5,
+                        label.position = "bottom",
+                        label.hjust = 0.5),
+    color = guide_legend(order = 2, ncol = 3)
+  ) +
   coord_sf(xlim = c(laval_bbox$xmin, laval_bbox$xmax),
            ylim = c(laval_bbox$ymin, laval_bbox$ymax))
 
@@ -269,15 +335,17 @@ connection <- DBI::dbConnect(
   password = Sys.getenv("DBI_PASSWORD"),
   host = "ccdb-instance-1.cplnwzthenux.us-east-1.rds.amazonaws.com",
   port = 3306,
-  dbname = "ccdb"
-)
+  dbname = "ccdb")
 ids <- paste0(paste0("'", laval_db$GeoUID, "'"), collapse = ", ")
 ttm_7 <- DBI::dbGetQuery(connection, sprintf("SELECT * FROM ttm_foot_DB WHERE `from` IN (%s)", ids)) |> 
   filter(travel_seconds <= 420)
+ttm_walk_15 <- DBI::dbGetQuery(connection, sprintf("SELECT * FROM ttm_foot_DB WHERE `from` IN (%s)", ids)) |> 
+  filter(travel_seconds <= 900)
 DBI::dbDisconnect(connection)
 
-#Writing and importing the ttm_7 data so we don't have to call from the API every time
+#Writing and importing the ttm data so we don't have to call from the API every time
 write.csv(ttm_7, "D://McGill/can_cache/ttm.csv")
+write.csv(ttm_walk_15, "D://McGill/can_cache/walk15.csv")
 ttm_7 <- read.csv("D://McGill/can_cache/ttm.csv") |> 
   select(-X, -travel_seconds) |> 
   mutate(across(everything(), as.character)) |> 
@@ -392,3 +460,4 @@ ggplot(data = laval_accessibility) +
   coord_sf(xlim = c(laval_bbox$xmin, laval_bbox$xmax),
            ylim = c(laval_bbox$ymin, laval_bbox$ymax))
 
+test <- filter(laval_accessibility, laval_accessibility$stop_count == 0)
