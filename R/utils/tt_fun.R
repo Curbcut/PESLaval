@@ -34,11 +34,3 @@ ttm_DA <- function(mode = "car") {
   
   return(matrix)
 }
-
-
-
-
-
-
-
-

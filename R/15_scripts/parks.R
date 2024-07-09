@@ -21,4 +21,5 @@ parks_access <- tibble::tibble(GeoUID = names(which_have_access),
                                parks = as.vector(which_have_access))
 
 parks_access <- cc.buildr::merge(parks_access, DBs[c("GeoUID", "geometry")])
-parks_access["parks"] |> plot()
+parks_access["parks"]
+
