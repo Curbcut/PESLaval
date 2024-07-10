@@ -25,26 +25,22 @@
 # 
 # qs::qsave(daycares, "data/axe3/locations/daycares.qs")
 daycares <- qs::qread("data/axe3/locations/daycares.qs")
+daycares$ID <- paste0("dc_", seq_along(daycares$ADRESSE))
+daycares <- daycares[!sf::st_is_empty(daycares), ]
+
+daycares$geometry[daycares$ADRESSE == "4900, boulevard Arthur-Sauvé, Laval, QC"] <- 
+  sf::st_point(c(-73.86935399443338, 45.551787504432596))
+daycares$geometry[daycares$ADRESSE == "7200, boulevard Arthur-Sauvé, Laval, QC"] <- 
+  sf::st_point(c(-73.86317703857166, 45.545715882910066))
+daycares$geometry[daycares$ADRESSE == "6900, boulevard Arthur-Sauvé, Laval, QC"] <- 
+  sf::st_point(c(-73.86412498973674, 45.54661464213342))
+daycares$geometry[daycares$ADRESSE == "6250, boulevard Arthur-Sauvé, Laval, QC"] <- 
+  sf::st_point(c(-73.86559083688283, 45.54676511457266))
+
 source("R/utils/tt_fun.R")
 tt <- ttm()
-
-
-# How many daycare spots accessible in 15 minutes walk? -------------------
-
 DBs <- cancensus::get_census("CA21", regions = list(CSD = 2465005), level = "DB",
                              geo_format = "sf")
-daycares <- sf::st_transform(daycares, crs = sf::st_crs(DBs))
-daycares <- sf::st_intersection(daycares, DBs["GeoUID"])
-
-access_spots <- cc.buildr::merge(tt, sf::st_drop_geometry(daycares), by.x = "to", by.y = "GeoUID")
-access_spots <- aggregate(PLACE_TOTAL ~ from, data = access_spots, sum)
-no_spots <- DBs$GeoUID[!DBs$GeoUID %in% access_spots$from]
-access_spots <- rbind(access_spots, tibble::tibble(from = no_spots, PLACE_TOTAL = 0))
-access_spots <- tibble::as_tibble(access_spots)
-
-
-# How many daycare-aged children per DBs? ---------------------------------
-
 DAs <- cancensus::get_census("CA21", regions = list(CSD = 2465005), level = "DA",
                              vectors = c("v_CA21_23", "v_CA21_26", "v_CA21_29", "v_CA21_35"),
                              geo_format = "sf")
@@ -53,10 +49,144 @@ DAs$children <- DAs$`v_CA21_23: 2` + DAs$`v_CA21_26: 3` + DAs$`v_CA21_29: 4` + D
 DAs <- DAs[c("GeoUID", "Population", "children")]
 names(DAs) <- c("DA_UID", "DA_pop", "children", "geometry")
 
-DB_children <- cc.buildr::merge(DBs[c("GeoUID", "DA_UID", "Population")], DAs, by = "DA_UID")
+
+
+# Relevant digits ---------------------------------------------------------
+
+# Number of places
+places_garderie <- sum(daycares$PLACE_TOTAL)
+
+# Number of children in age of kindergarden (projections ISQ)
+inage <- 17650
+
+places_garderie/inage
+
+
+# Rework a travel time matrix which is really from X daycare to Y  --------
+
+# cc.data::tt_local_osrm("foot")
+
+travel_time <- function(FROMs, TOs, routing_server = "http://localhost:5001/",
+                        max_dist = 3000) {
+  if (sf::st_crs(FROMs)$input != "EPSG:4326") {
+    FROMs <- suppressWarnings(sf::st_transform(FROMs, 4326))
+  }
+  if (sf::st_crs(TOs)$input != "EPSG:4326") {
+    TOs <- suppressWarnings(sf::st_transform(TOs, 4326))
+  }
+
+  # Split the FROM for each entry
+  splitted_froms <- split(FROMs, seq_along(FROMs[[1]]))
+  
+  # Split the TOs in smaller dataframes for faster paralleled calculations
+  list_centroids <- split(TOs, seq_len(nrow(TOs) / min(nrow(TOs), 100))) |>
+    suppressWarnings()
+  
+  progressr::with_progress({
+    pb <- progressr::progressor(steps = length(splitted_froms))
+    out <- future.apply::future_lapply(splitted_froms, \(dc) {
+      
+      first_coords <- sf::st_coordinates(dc) |>
+        tibble::as_tibble()
+      first_coords <- paste0(first_coords$X, ",", first_coords$Y)
+      
+      it <- lapply(list_centroids, \(df) {
+        
+        dist <- nngeo::st_nn(dc,
+                             df,
+                             k = nrow(df),
+                             maxdist = max_dist,
+                             progress = FALSE) |>
+          suppressMessages()
+        near_df <- df[unlist(dist), ]
+        
+        # if (nrow(near_df) == 0) return(NULL)
+        # near_df <- near_df[near_df$ID != id, ]
+        if (nrow(near_df) == 0) return(NULL)
+        
+        samp <- sf::st_coordinates(near_df) |>
+          tibble::as_tibble()
+        
+        coords <- paste0(mapply(paste0, samp$X, ",", samp$Y), collapse = ";")
+        coords <- paste0(first_coords, ";", coords)
+        
+        time <- httr::GET(paste0(routing_server, "table/v1/mode/",
+                                 coords, "?sources=0")) |>
+          httr::content()
+        time <- unlist(time$durations)
+        
+        tryCatch({
+          out <- tibble::tibble(DB_ID = near_df$GeoUID)
+          out$time_seconds <- time[2:length(time)]
+          out}, error = function(e) NULL)
+        
+      })
+      
+      pb()
+      
+      it[!sapply(it, is.null)] |>
+        data.table::rbindlist(fill = TRUE) |>
+        tibble::as_tibble()
+      
+    })
+  })
+  
+  # Return
+  out <- out[!sapply(out, \(x) nrow(x) == 0)]
+  return(out)
+  
+}
+
+daycares_to_DBs <- travel_time(daycares, sf::st_centroid(DBs))
+names(daycares_to_DBs) <- daycares$ID
+
+
+daycares_to_DBs <- mapply(\(n, df) {
+  df$ID <- n
+  df
+}, names(daycares_to_DBs), daycares_to_DBs, SIMPLIFY = FALSE)
+
+daycares_to_DBs <- Reduce(rbind, daycares_to_DBs)
+
+# Accessible in 15 minutes
+daycares_to_DBs <- daycares_to_DBs[daycares_to_DBs$time_seconds <= 15*60, ]
+daycares_to_DBs <- merge(daycares_to_DBs, sf::st_drop_geometry(daycares[c("ID", "PLACE_TOTAL")]),
+      by = "ID")
+
+# How many daycare spots accessible in 15 minutes walk? -------------------
+
+# daycares <- sf::st_transform(daycares, crs = sf::st_crs(DBs))
+# daycares <- sf::st_intersection(daycares, DBs["GeoUID"])
+# 
+# access_spots <- cc.buildr::merge(tt, sf::st_drop_geometry(daycares), by.x = "to", by.y = "GeoUID")
+# access_spots <- aggregate(PLACE_TOTAL ~ from, data = access_spots, sum)
+# no_spots <- DBs$GeoUID[!DBs$GeoUID %in% access_spots$from]
+# access_spots <- rbind(access_spots, tibble::tibble(from = no_spots, PLACE_TOTAL = 0))
+# access_spots <- tibble::as_tibble(access_spots)
+
+access_spots <- aggregate(PLACE_TOTAL ~ DB_ID, data = daycares_to_DBs, sum)
+no_spots <- DBs$GeoUID[!DBs$GeoUID %in% access_spots$DB_ID]
+access_spots <- rbind(access_spots, tibble::tibble(DB_ID = no_spots, PLACE_TOTAL = 0))
+access_spots <- tibble::as_tibble(access_spots)
+
+
+
+# How many daycare-aged children per DBs? ---------------------------------
+
+DB_children <- cc.buildr::merge(DBs[c("GeoUID", "DA_UID", "Population")], 
+                                sf::st_drop_geometry(DAs), by = "DA_UID")
 DB_children$pop_ratio <- DB_children$Population / DB_children$DA_pop
 DB_children$children <- DB_children$children * DB_children$pop_ratio
 DB_children <- DB_children[c("GeoUID", "children")]
+
+
+# How many children can reach them? ---------------------------------------
+
+children_cant_reach <- 
+  DB_children$children[!DB_children$GeoUID %in% daycares_to_DBs$DB_ID] |> 
+  sum(na.rm = TRUE)
+
+children_cant_reach / inage
 
 
 # Population deserved by every daycare ------------------------------------
@@ -64,14 +194,16 @@ DB_children <- DB_children[c("GeoUID", "children")]
 spots_per_child <- lapply(seq_along(daycares$geometry), \(x) {
   dc <- daycares[x, ]
   
-  served_pop <- tt$from[tt$to == dc$GeoUID]
+  # served_pop <- tt$from[tt$to == dc$GeoUID]
+  
+  served_pop <- daycares_to_DBs$DB_ID[daycares_to_DBs$ID == dc$ID]
   
   # If there is no entry in the traveltime matrix, then it's not serving anyone
   if (length(served_pop) == 0) return(NULL)
   
   nb_children_served <- sapply(served_pop, \(served_ID) {
     # Spots accessible from that DB
-    spots <- access_spots$PLACE_TOTAL[access_spots$from == served_ID]
+    spots <- access_spots$PLACE_TOTAL[access_spots$DB_ID == served_ID]
     
     # Children in that DB
     children <- DB_children$children[DB_children$GeoUID == served_ID]
@@ -81,7 +213,7 @@ spots_per_child <- lapply(seq_along(daycares$geometry), \(x) {
     # one daycare
     if (spots == dc$PLACE_TOTAL) return(children)
     
-    # If not, how many spots are accessible by the DB? Do a ration between the
+    # If not, how many spots are accessible by the DB? Do a ratio between the
     # spots available in that daycare vs all of them accessible, and assume
     # this proportion is the same as the number of children served by every daycare
     children * dc$PLACE_TOTAL / spots
@@ -101,22 +233,24 @@ spots_per_child <- lapply(seq_along(daycares$geometry), \(x) {
 spots_per_child <- spots_per_child[!sapply(spots_per_child, is.null)]
 spots_per_child <- Reduce(rbind, spots_per_child)
 
+# spots_per_child <- sf::st_intersection(spots_per_child, DBs["GeoUID"])
 
 # Access to spots per child -----------------------------------------------
 
 # Loop over all DBs. Look at all the daycares they can access. What are their
 # ratio? Can they meet demand?
 daycare_access_comp <- purrr::map_dfr(DBs$GeoUID, \(DB_ID) {
-  accessible_DBs <- tt$to[tt$from == DB_ID]
   
-  accessible_daycares <- spots_per_child[spots_per_child$GeoUID %in% accessible_DBs, ]
+  dc_ID <- daycares_to_DBs$ID[daycares_to_DBs$DB_ID == DB_ID]
+  
+  accessible_daycares <- spots_per_child[spots_per_child$ID %in% dc_ID, ]
   
   # If no daycare, worst score
   if (nrow(accessible_daycares) == 0) 
     return(tibble::tibble(DB = DB_ID, daycare_comp_access = 0))
   
   spots_p_child_weighted_by_spots <- 
-    weighted.mean(accessible_daycares$spots_per_child, w = accessible_daycares$PLACE_TOTAL)
+    sum(accessible_daycares$spots_per_child)
   
   tibble::tibble(DB = DB_ID, daycare_comp_access = spots_p_child_weighted_by_spots)
   
@@ -126,26 +260,140 @@ daycare_access_comp <- cc.buildr::merge(DBs, daycare_access_comp,
                                         by.x = "GeoUID", by.y = "DB")[
                                           c("GeoUID", "daycare_comp_access")]
 
+# Plot the accessibility measure ------------------------------------------
+
 library(ggplot2)
 
 # Setting up the curbcut scale
 curbcut_scale <- c("#C4CDE1", "#98A8CB", "#6C83B5", "#4C5C7F", "#2B3448")
 curbcut_na <- "#B3B3BB"
+laval_sectors <- qs::qread("data/geom_context/secteur.qs")
 
-# Custom breaks for 5 bins
-breaks <- seq(0, 2, length.out = 5)
+t <- daycare_access_comp
 
-ggplot(daycare_access_comp) +
-  geom_sf(aes(fill = daycare_comp_access), color = "transparent") + 
-  scale_fill_stepsn(colors = curbcut_scale, limits = c(0, 2), na.value = curbcut_na, breaks = breaks) +
-  labs(fill = "Daycare Access") +
-  theme_minimal()
+# Define your breaks
+breaks <- c(-Inf, 0.00000000000000000000000000001, quantile(t$daycare_comp_access, probs = c(.25, .50, .75)), Inf) # Add more breaks as needed
 
-breaks <- seq(0, 60, length.out = 5)
+# Use cut to create the binned variable
+t$binned_variable <- cut(t$daycare_comp_access, 
+                               breaks = breaks, 
+                               include.lowest = TRUE, 
+                               right = FALSE)
+
+# Define the labels for your bins
+labels <- c("Aucun accès", "Un peu", "a", "b", "Bon accès")
+
+# Assign the labels to the binned variable
+t$binned_variable <- factor(t$binned_variable, 
+                                  labels = labels)
+labels <- c("Aucun accès", "Un peu", "", "", "Bon accès")
+
+# Define the color gradient
+color_start <- "#FFFFFF"
+color_end <- "#E08565" # Gradient to white or any other color you prefer
+
+# # Union the features so the polygons don't show their borders. Might revisit
+# # with the addition of streets!
+# t <- Reduce(rbind,
+#        split(t, t$binned_variable) |>
+#          lapply(\(x) {
+#            out <- tibble::tibble(x$binned_variable)
+#            out$geometry <- sf::st_union(x)
+#            sf::st_as_sf(out, crs = 4326)[1, ]
+#          })
+# ) |> sf::st_as_sf()
+# names(t)[1] <- "binned_variable"
+
+# Bin the PLACE_TOTAL variable
+daycares$binned_PLACE_TOTAL <- cut(daycares$PLACE_TOTAL, 
+                                   breaks = c(-Inf, 20, 40, 60, 80, Inf), 
+                                   labels = c("0-20", "21-40", "41-60", "61-80", "80+"))
+place_colors <- c("0-20" = "#fee5e9", "21-40" = "#fbccce", "41-60" = "#f6b3af", 
+                  "61-80" = "#ed9c8c", "80+" = "#e08767")
+# Get the bounding box of 't'
+bbox <- sf::st_bbox(t)
+
+map_token <- 
+  "pk.eyJ1IjoiY3VyYmN1dCIsImEiOiJjbGprYnVwOTQwaDAzM2xwaWdjbTB6bzdlIn0.Ks1cOI6v2i8jiIjk38s_kg"
+
+
+# Plotting the sf map with custom bins
+z <- 
+  ggplot(t) +
+  mapboxapi::get_static_tiles(location = sf::st_bbox(bbox),
+                              username = "curbcut",
+                              zoom = 11,
+                              style_id = "cljkciic3002h01qveq5z1wrp",
+                              access_token = map_token) |> 
+  ggspatial::layer_spatial(alpha = 0.7) +
+  geom_sf(aes(fill = binned_variable), color = "transparent", lwd = 0) +
+  scale_fill_manual(values = curbcut_scale,
+                    name = "Accessibilité (concurrence)",
+                    labels = labels,
+                    guide = guide_legend(title.position = "top", label.position = "bottom", nrow = 1)) +
+  geom_sf(data = daycares, aes(color = binned_PLACE_TOTAL), size = 0.8, alpha = 0.8) +
+  scale_color_manual(values = place_colors, 
+                     name = "Places par garderie", 
+                     guide = guide_legend(title.position = "top", label.position = "bottom", nrow = 1,
+                                          override.aes = list(size = 5, stroke = 0.5))) +
+  geom_sf(data = laval_sectors, fill = "transparent", color = "black")+
+  coord_sf(xlim = c(bbox["xmin"], bbox["xmax"]), ylim = c(bbox["ymin"], bbox["ymax"])) +
+  theme_void() +
+  theme(legend.position = "bottom",
+        legend.box = "horizontal",
+        legend.spacing.x = unit(2, 'cm'),
+        legend.spacing.y = unit(1, 'cm'))
+
+
+
+# How many children in the first bins? ------------------------------------
+
+low <- t$GeoUID[t$binned_variable %in% c("Aucun accès", "Un peu")]
+combien_pas_peu <- sum(DB_children$children[DB_children$GeoUID %in% low])
+
+high <- t$GeoUID[t$binned_variable %in% c("Bon accès")]
+combien_haut <- sum(DB_children$children[DB_children$GeoUID %in% high], na.rm = TRUE)
+
+
+
+
+# Plot the number of children ---------------------------------------------
+
+curbcut_green_scale <- c("#C7DFCC", "#9DC6A6", "#73AE80", "#517A5A", "#2E4633")
+
+DAs$area <- cc.buildr::get_area(DAs) / 1e6
+DAs$children_density <- DAs$children / DAs$area
+
+# Define your breaks
+breaks <- c(-Inf, 50, 100, 200, 400, Inf) # Add more breaks as needed
+
+# Use cut to create the binned variable
+DAs$binned_variable <- cut(DAs$children_density, 
+                           breaks = breaks, 
+                           labels = c("0-50", "50-100", "100-200", "200-400", "400+"))
+
+children_colors <- curbcut_green_scale
+names(children_colors) <- c("0-50", "50-100", "100-200", "200-400", "400+")
+
+
 
 ggplot(DAs) +
-  geom_sf(aes(fill = children), color = "transparent") + 
-  scale_fill_stepsn(colors = curbcut_scale, limits = c(0, 50), na.value = curbcut_na, breaks = breaks) +
-  labs(fill = "Daycare Access") +
-  theme_minimal()
+  mapboxapi::get_static_tiles(location = sf::st_bbox(bbox),
+                              username = "curbcut",
+                              zoom = 11,
+                              style_id = "cljkciic3002h01qveq5z1wrp",
+                              access_token = map_token) |> 
+  ggspatial::layer_spatial(alpha = 0.7) +
+  geom_sf(aes(fill = binned_variable), color = NA) +
+  scale_fill_manual(values = children_colors, 
+                    name = "Densité d'enfants (/km^2)", 
+                    guide = guide_legend(title.position = "top", 
+                                         label.position = "bottom", 
+                                         nrow = 1,
+                                         override.aes = list(size = 5, stroke = 0.5))) +
+  geom_sf(data = laval_sectors, fill = "transparent", color = "black")+
+  coord_sf(xlim = c(bbox["xmin"], bbox["xmax"]), ylim = c(bbox["ymin"], bbox["ymax"])) +
+  theme_void() +
+  theme(legend.position = "bottom",
+        legend.box = "horizontal")
 
