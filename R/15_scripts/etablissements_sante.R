@@ -115,7 +115,6 @@ sante_laval <- sante[sante$RSS_NOM == "Laval", ] |> sf::st_drop_geometry()
 sante_laval[sante_laval == "Oui"] <- "1"
 sante_laval[sante_laval == "Non"] <- "0"
 sante_laval <- sante_laval[cr]
-rowSums(sante_laval)
 
 sante_laval[] <- lapply(sante_laval, as.numeric)
 

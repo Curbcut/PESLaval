@@ -64,3 +64,11 @@ add_bins <- function(df, variable, breaks, labels) {
 color_theme <- function(theme) {
   curbcut_colors$brandbook$color[curbcut_colors$brandbook$theme == theme]
 }
+
+convert_hundreds <- function(x) {
+  curbcut:::round_big_marks(
+    x = x,
+    min_dig = 5,
+    scale_fun = scales::comma
+  )
+}
