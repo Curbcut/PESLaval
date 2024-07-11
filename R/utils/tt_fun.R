@@ -2,6 +2,12 @@
 
 ttm <- function(mode = "foot", under_x_minutes = 15) {
   
+  # File name
+  file_name <- sprintf("data/ttm_%s_%s.qs", mode, under_x_minutes)
+  
+  # If it already exists, just grab it
+  if (file.exists(file_name)) return(qs::qread(file_name))
+  
   # Connect to the database
   conn <- cc.data::db_connect()
   
@@ -14,8 +20,17 @@ ttm <- function(mode = "foot", under_x_minutes = 15) {
   matrix <- DBI::dbGetQuery(conn, 
                             sprintf("SELECT * FROM ttm_%s_DB WHERE `from` IN (%s) AND travel_seconds < %s", 
                                     mode, ids, travel_seconds))
+  # Add self
+  self <- tibble::tibble(from = tt$from,
+                         to = tt$from,
+                         travel_seconds = 0)
+  matrix <- rbind(matrix, self)
   
+  # Disconnect
   DBI::dbDisconnect(conn)
+  
+  # Save it, similar as a cache
+  qs::qsave(matrix, file_name)
   
   return(matrix)
   

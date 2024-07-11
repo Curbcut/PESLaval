@@ -1,3 +1,7 @@
+
+source("R/01_startup.R")
+
+
 # ## DAYCARE
 # daycares <- tempfile(fileext = ".csv")
 # download.file("https://www.donneesquebec.ca/recherche/dataset/be36f85e-e419-4978-9c34-cb5795622595/resource/89af3537-4506-488c-8d0e-6d85b4033a0e/download/repertoire-installation.csv",
@@ -37,7 +41,6 @@ daycares$geometry[daycares$ADRESSE == "6900, boulevard Arthur-Sauvé, Laval, QC"
 daycares$geometry[daycares$ADRESSE == "6250, boulevard Arthur-Sauvé, Laval, QC"] <- 
   sf::st_point(c(-73.86559083688283, 45.54676511457266))
 
-source("R/utils/tt_fun.R")
 tt <- ttm()
 DBs <- cancensus::get_census("CA21", regions = list(CSD = 2465005), level = "DB",
                              geo_format = "sf")
@@ -262,35 +265,16 @@ daycare_access_comp <- cc.buildr::merge(DBs, daycare_access_comp,
 
 # Plot the accessibility measure ------------------------------------------
 
-library(ggplot2)
-
-# Setting up the curbcut scale
-curbcut_scale <- c("#C4CDE1", "#98A8CB", "#6C83B5", "#4C5C7F", "#2B3448")
-curbcut_na <- "#B3B3BB"
-laval_sectors <- qs::qread("data/geom_context/secteur.qs")
-
 t <- daycare_access_comp
 
-# Define your breaks
-breaks <- c(-Inf, 0.00000000000000000000000000001, quantile(t$daycare_comp_access, probs = c(.25, .50, .75)), Inf) # Add more breaks as needed
-
-# Use cut to create the binned variable
-t$binned_variable <- cut(t$daycare_comp_access, 
-                               breaks = breaks, 
-                               include.lowest = TRUE, 
-                               right = FALSE)
-
-# Define the labels for your bins
-labels <- c("Aucun accès", "Un peu", "a", "b", "Bon accès")
-
-# Assign the labels to the binned variable
-t$binned_variable <- factor(t$binned_variable, 
-                                  labels = labels)
+add_bins(df = t,
+         breaks = c(-Inf, 
+                    0.00000000000000000000000000001, 
+                    quantile(t$daycare_comp_access, probs = c(.25, .50, .75)), 
+                    Inf),
+         labels = c("Aucun accès", "Un peu", "a", "b", "Bon accès")
+)
 labels <- c("Aucun accès", "Un peu", "", "", "Bon accès")
-
-# Define the color gradient
-color_start <- "#FFFFFF"
-color_end <- "#E08565" # Gradient to white or any other color you prefer
 
 # # Union the features so the polygons don't show their borders. Might revisit
 # # with the addition of streets!
@@ -309,25 +293,15 @@ daycares$binned_PLACE_TOTAL <- cut(daycares$PLACE_TOTAL,
                                    breaks = c(-Inf, 20, 40, 60, 80, Inf), 
                                    labels = c("0-20", "21-40", "41-60", "61-80", "80+"))
 place_colors <- c("0-20" = "#fee5e9", "21-40" = "#fbccce", "41-60" = "#f6b3af", 
-                  "61-80" = "#ed9c8c", "80+" = "#e08767")
-# Get the bounding box of 't'
-bbox <- sf::st_bbox(t)
-
-map_token <- 
-  "pk.eyJ1IjoiY3VyYmN1dCIsImEiOiJjbGprYnVwOTQwaDAzM2xwaWdjbTB6bzdlIn0.Ks1cOI6v2i8jiIjk38s_kg"
-
+                  "61-80" = "#ed9c8c", 
+                  "80+" = curbcut_colors$brandbook$color[curbcut_colors$brandbook$theme == "redhousing"])
 
 # Plotting the sf map with custom bins
 z <- 
   ggplot(t) +
-  mapboxapi::get_static_tiles(location = sf::st_bbox(bbox),
-                              username = "curbcut",
-                              zoom = 11,
-                              style_id = "cljkciic3002h01qveq5z1wrp",
-                              access_token = map_token) |> 
-  ggspatial::layer_spatial(alpha = 0.7) +
+  gg_cc_tiles +
   geom_sf(aes(fill = binned_variable), color = "transparent", lwd = 0) +
-  scale_fill_manual(values = curbcut_scale,
+  scale_fill_manual(values = curbcut_colors$left_5$fill[2:6],
                     name = "Accessibilité (concurrence)",
                     labels = labels,
                     guide = guide_legend(title.position = "top", label.position = "bottom", nrow = 1)) +
@@ -336,12 +310,8 @@ z <-
                      name = "Places par garderie", 
                      guide = guide_legend(title.position = "top", label.position = "bottom", nrow = 1,
                                           override.aes = list(size = 5, stroke = 0.5))) +
-  geom_sf(data = laval_sectors, fill = "transparent", color = "black")+
-  coord_sf(xlim = c(bbox["xmin"], bbox["xmax"]), ylim = c(bbox["ymin"], bbox["ymax"])) +
-  theme_void() +
-  theme(legend.position = "bottom",
-        legend.box = "horizontal",
-        legend.spacing.x = unit(2, 'cm'),
+  gg_cc_theme +
+  theme(legend.spacing.x = unit(2, 'cm'),
         legend.spacing.y = unit(1, 'cm'))
 
 
