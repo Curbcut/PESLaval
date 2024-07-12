@@ -267,7 +267,8 @@ daycare_access_comp <- cc.buildr::merge(DBs, daycare_access_comp,
 
 t <- daycare_access_comp
 
-add_bins(df = t,
+t <- add_bins(df = t,
+         variable = "daycare_comp_access",
          breaks = c(-Inf, 
                     0.00000000000000000000000000001, 
                     quantile(t$daycare_comp_access, probs = c(.25, .50, .75)), 
@@ -276,17 +277,17 @@ add_bins(df = t,
 )
 labels <- c("Aucun accès", "Un peu", "", "", "Bon accès")
 
-# # Union the features so the polygons don't show their borders. Might revisit
-# # with the addition of streets!
-# t <- Reduce(rbind,
-#        split(t, t$binned_variable) |>
-#          lapply(\(x) {
-#            out <- tibble::tibble(x$binned_variable)
-#            out$geometry <- sf::st_union(x)
-#            sf::st_as_sf(out, crs = 4326)[1, ]
-#          })
-# ) |> sf::st_as_sf()
-# names(t)[1] <- "binned_variable"
+# Union the features so the polygons don't show their borders. Might revisit
+# with the addition of streets!
+t <- Reduce(rbind,
+       split(t, t$binned_variable) |>
+         lapply(\(x) {
+           out <- tibble::tibble(x$binned_variable)
+           out$geometry <- sf::st_union(x)
+           sf::st_as_sf(out, crs = 4326)[1, ]
+         })
+) |> sf::st_as_sf()
+names(t)[1] <- "binned_variable"
 
 # Bin the PLACE_TOTAL variable
 daycares$binned_PLACE_TOTAL <- cut(daycares$PLACE_TOTAL, 
@@ -297,8 +298,7 @@ place_colors <- c("0-20" = "#fee5e9", "21-40" = "#fbccce", "41-60" = "#f6b3af",
                   "80+" = curbcut_colors$brandbook$color[curbcut_colors$brandbook$theme == "redhousing"])
 
 # Plotting the sf map with custom bins
-z <- 
-  ggplot(t) +
+ggplot(t) +
   gg_cc_tiles +
   geom_sf(aes(fill = binned_variable), color = "transparent", lwd = 0) +
   scale_fill_manual(values = curbcut_colors$left_5$fill[2:6],
@@ -345,15 +345,8 @@ DAs$binned_variable <- cut(DAs$children_density,
 children_colors <- curbcut_green_scale
 names(children_colors) <- c("0-50", "50-100", "100-200", "200-400", "400+")
 
-
-
 ggplot(DAs) +
-  mapboxapi::get_static_tiles(location = sf::st_bbox(bbox),
-                              username = "curbcut",
-                              zoom = 11,
-                              style_id = "cljkciic3002h01qveq5z1wrp",
-                              access_token = map_token) |> 
-  ggspatial::layer_spatial(alpha = 0.7) +
+  gg_cc_tiles +
   geom_sf(aes(fill = binned_variable), color = NA) +
   scale_fill_manual(values = children_colors, 
                     name = "Densité d'enfants (/km^2)", 
@@ -361,9 +354,5 @@ ggplot(DAs) +
                                          label.position = "bottom", 
                                          nrow = 1,
                                          override.aes = list(size = 5, stroke = 0.5))) +
-  geom_sf(data = laval_sectors, fill = "transparent", color = "black")+
-  coord_sf(xlim = c(bbox["xmin"], bbox["xmax"]), ylim = c(bbox["ymin"], bbox["ymax"])) +
-  theme_void() +
-  theme(legend.position = "bottom",
-        legend.box = "horizontal")
+  gg_cc_theme
 

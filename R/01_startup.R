@@ -42,7 +42,8 @@ gg_cc_theme <- list(
   theme(legend.position = "bottom",
         legend.box = "horizontal",
         legend.title.align = 0.5,
-        legend.text.align = 0.5)
+        legend.text.align = 0.5,
+        text=element_text(family="KMR Apparat Regular"))
 )
 
 # Helper function to make binned variables

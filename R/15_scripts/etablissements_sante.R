@@ -85,7 +85,18 @@ general_soins <- dplyr::filter(sante, CLSC == "Oui" | CHSGS == "Oui")
 general_soins <- general_soins |> 
   mutate(centre = case_when(CLSC == "Oui" ~ "CSLS", .default = "CHSGS"))
 
-access_sante |> 
+t <- access_sante
+t <- Reduce(rbind,
+            split(t, t$binned_variable) |>
+              lapply(\(x) {
+                out <- tibble::tibble(x$binned_variable)
+                out$geometry <- sf::st_union(x)
+                sf::st_as_sf(out, crs = 4326)[1, ]
+              })
+) |> sf::st_as_sf()
+names(t)[1] <- "binned_variable"
+
+t |> 
   ggplot() +
   gg_cc_tiles +
   geom_sf(aes(fill = binned_variable), color = "transparent") +
