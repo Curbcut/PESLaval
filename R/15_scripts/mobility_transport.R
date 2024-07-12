@@ -1,7 +1,6 @@
 #Loading up libraries
 source("R/01_startup.R")
 library(gbfs)
-library(sf)
 library(tidytransit)
 library(osmdata)
 library(tidygeocoder)
@@ -9,23 +8,13 @@ library(RMySQL)
 library(classInt)
 library(ggnewscale)
 library(cowplot)
-library(extrafont)
 
-#Setting up the cancensus api key
-set_cancensus_api_key("CensusMapper_4308d496f011429cf814385050f083dc", install = TRUE)
-
-#Setting up cache path for faster loading (edit for your own folder)
-set_cancensus_cache_path("D:/McGill/can_cache", install = TRUE, overwrite = TRUE)
-
-#Importing Fonts
-font_import()
-loadfonts(device = "win")
 
 #Grabbing the Laval shapefiles
 laval_csd <- cancensus::get_census(dataset = "CA21", 
-                                  regions = list(CSD = 2465005), 
-                                  level = "CSD", 
-                                  geo_format = "sf")
+                                   regions = list(CSD = 2465005), 
+                                   level = "CSD", 
+                                   geo_format = "sf")
 
 laval_ct <- cancensus::get_census(dataset = "CA21", 
                                   regions = list(CSD = 2465005), 
@@ -44,33 +33,21 @@ laval_db <- cancensus::get_census(dataset = "CA21",
 
 #Grabbing the shapefile for the Montreal CMA
 mtlcma_sf <- cancensus::get_census(dataset = "CA21", 
-                                regions = list(CSD = 24462), 
-                                level = "CMA", 
-                                geo_format = "sf")
-
-#Setting the Laval bound box for maps
-laval_bbox <- st_bbox(laval_ct)
+                                   regions = list(CSD = 24462), 
+                                   level = "CMA", 
+                                   geo_format = "sf")
 
 #Setting up the curbcut scale
-curbcut_scale <- c("#C4CDE1", "#98A8CB", "#6C83B5", "#4C5C7F", "#2B3448")
-curbcut_na <- "#B3B3BB"
+curbcut_scale <- curbcut_colors$left_5$fill[2:6]
+curbcut_na <- curbcut_colors$left_5$fill[1]
 
 #Import 15 minute walking TTM and modifying it with necessary rows
-ttm_walk_15_p <- read.csv("D://McGill/can_cache/walk15.csv") |> 
-  select(-X, -travel_seconds) |> 
-  mutate(across(everything(), as.character)) |> 
-  rename("GeoUID" = "from")
+ttm_walk_7 <- ttm(under_x_minutes = 7)
 
-ttm_walk_15 <- laval_db |> 
-  st_drop_geometry() |> 
-  select(GeoUID) |> 
-  mutate(to = GeoUID) |> 
-  bind_rows(ttm_walk_15_p) |> 
-  arrange(GeoUID)
 
 # Bus Stop Location -------------------------------------------------------
 #Importing GTFS data. Available in the data folder under justin
-stl_gtfs <- read_gtfs("D://McGill/can_cache/GTF_STL.zip")
+stl_gtfs <- tidytransit::read_gtfs("data/axe3/GTF_STL.zip")
 
 #Grabbing bus stops, converting it to be usable to plot, and removing duplicates
 #Removing duplicates doesn't necessarily reflect real life as there are usually
@@ -78,22 +55,81 @@ stl_gtfs <- read_gtfs("D://McGill/can_cache/GTF_STL.zip")
 bus_stops <- st_as_sf(stl_gtfs$stops, coords = c("stop_lon", "stop_lat"), crs = 4326) |> 
   distinct(stop_name, .keep_all = TRUE)
 
+# Plot accessibility to bus stops in 7 minutes walk
+bs_db_int <- sf::st_intersects(bus_stops, laval_db["GeoUID"], prepared = TRUE)
+bus_stops$GeoUID <- sapply(bs_db_int, \(x) {
+  ID <- laval_db$GeoUID[x]
+  if (length(ID) == 0) return(NA)
+  ID
+}, simplify = TRUE)
+
+access_busstops <- merge(ttm_walk_7, bus_stops[c("GeoUID", "stop_id")], by.x = "to", by.y = "GeoUID")
+access_busstops <- sf::st_drop_geometry(access_busstops)
+access_busstops <- unique(access_busstops[c("from", "stop_id")])
+
+access_busstops <- table(access_busstops$from)
+
+access_busstops <- 
+  tibble::tibble(GeoUID = names(access_busstops),
+                 busstops = as.vector(access_busstops))
+
+no_spots <- DBs$GeoUID[!DBs$GeoUID %in% access_busstops$GeoUID]
+access_busstops <- rbind(access_busstops, tibble::tibble(GeoUID = no_spots, busstops = 0))
+access_busstops <- tibble::as_tibble(access_busstops)
+
+access_busstops <- cc.buildr::merge(access_busstops, laval_db[c("GeoUID", "Population")])
+
 #Plotting the bus stops
-ggplot() +
-  geom_sf(data = mtlcma_sf, fill = "lightgrey", color = "black") +
-  geom_sf(data = laval_ct, fill = "white", color = "black") +
-  geom_sf(data = bus_stops, color = "indianred3", size = 0.65) +
-  theme_minimal() +
-  labs(title = "Arrêts d'autobus de la Société de transport de Laval 2024") +
-  theme(plot.title = element_text(hjust = 0.5), axis.text = element_blank(),
-        axis.title = element_blank(), axis.ticks = element_blank(),
-        panel.grid = element_blank(), panel.background = element_rect(fill = "lightblue")) +
-  coord_sf(xlim = c(laval_bbox$xmin, laval_bbox$xmax),
-           ylim = c(laval_bbox$ymin, laval_bbox$ymax))
+labels <- c("0", "1-2", "3-4", "5-6", "7+")
+
+# Add our bins in the data
+access_busstops <- add_bins(df = access_busstops,
+                               variable = "busstops",
+                               breaks = c(-Inf, 0.0001, 2.1, 4.1, 6.1, Inf),
+                               labels = labels
+)
+
+# Union the features so the polygons don't show their borders. Might revisit
+# with the addition of streets!
+t <- Reduce(rbind,
+            split(access_busstops, access_busstops$binned_variable) |>
+              lapply(\(x) {
+                out <- tibble::tibble(x$binned_variable)
+                out$geometry <- sf::st_union(x)
+                sf::st_as_sf(out, crs = 4326)[1, ]
+              })
+) |> sf::st_as_sf()
+names(t)[1] <- "binned_variable"
+
+t |> 
+  ggplot() +
+  gg_cc_tiles +
+  geom_sf(aes(fill = binned_variable), color = "transparent") +
+  scale_fill_manual(values = curbcut_colors$left_5$fill[c(2:6)],
+                    name = "Arrêts d'autobus (n)",
+                    labels = labels,
+                    guide = guide_legend(title.position = "top",
+                                         label.position = "bottom", nrow = 1)) +
+  geom_sf(data = bus_stops, color = color_theme("greenurbanlife"),
+          size = 0.2, alpha = 0.5) +
+  gg_cc_theme +
+  theme(legend.spacing.x = unit(2, 'cm'),
+        legend.spacing.y = unit(1, 'cm'))
+
+
+# Values
+sum(access_busstops$Population[access_busstops$busstops == 0])
+sum(access_busstops$Population[access_busstops$busstops %in% c(1,2)])
+
+
+# Bus lines accessibles ---------------------------------------------------
+
+
+
 
 # Bike Map -------------------------------------------------------------
 #Grabbing all bike lanes within the Laval bound box
-cycle_osm <- opq(bbox = laval_bbox, timeout = 300) |> 
+cycle_osm <- opq(bbox = lvlbbox, timeout = 300) |> 
   add_osm_feature(key = "highway", value = "cycleway") |> 
   osmdata_sf()
 
@@ -144,13 +180,13 @@ ggplot(data = bike_comfort) +
         panel.background = element_rect(fill = "#525252"), legend.spacing.x = unit(-0.05, "cm"),
         legend.key.width = unit(1.95, "cm"), legend.background = element_blank(),
         legend.box.background = element_blank()) +
-  coord_sf(xlim = c(laval_bbox$xmin, laval_bbox$xmax),
-           ylim = c(laval_bbox$ymin, laval_bbox$ymax)) +
+  coord_sf(xlim = c(lvlbbox$xmin, lvlbbox$xmax),
+           ylim = c(lvlbbox$ymin, lvlbbox$ymax)) +
   guides(fill = guide_legend(order = 1, label.position = "bottom", title.position = "top", nrow = 1),
     color = guide_legend(order = 2, label.position = "bottom", title.position = "top", nrow = 1))
 
 # Charging Stations -------------------------------------------------------
-charging_osm <- opq(bbox = laval_bbox, timeout = 300) |> 
+charging_osm <- opq(bbox = lvlbbox, timeout = 300) |> 
   add_osm_feature(key = "amenity", value = "charging_station") |> 
   osmdata_sf()
 
@@ -168,8 +204,8 @@ ggplot() +
         axis.text = element_blank(),
         axis.title = element_blank(), axis.ticks = element_blank(),
         panel.grid = element_blank(), panel.background = element_rect(fill = "#525252")) +
-  coord_sf(xlim = c(laval_bbox$xmin, laval_bbox$xmax),
-           ylim = c(laval_bbox$ymin, laval_bbox$ymax))
+  coord_sf(xlim = c(lvlbbox$xmin, lvlbbox$xmax),
+           ylim = c(lvlbbox$ymin, lvlbbox$ymax))
 
 # Points de vente (transport collectif) -----------------------------------
 #Using the shapefile below and STL_accessibilite-points-vente.pdf and
@@ -265,8 +301,8 @@ ggplot() +
                         label.hjust = 0.5),
     color = guide_legend(order = 2, ncol = 3)
   ) +
-  coord_sf(xlim = c(laval_bbox$xmin, laval_bbox$xmax),
-           ylim = c(laval_bbox$ymin, laval_bbox$ymax))
+  coord_sf(xlim = c(lvlbbox$xmin, lvlbbox$xmax),
+           ylim = c(lvlbbox$ymin, lvlbbox$ymax))
 
 # Bus Data ----------------------------------------------------------------
 #Grabbing necessary STL data
@@ -416,8 +452,8 @@ ggplot(data = laval_accessibility) +
         panel.background = element_rect(fill = "#525252")) +
   guides(fill = guide_legend(title.position = "top", title.hjust = 0.5,
                              barwidth = 1, barheight = 1, nrow = 1)) +
-  coord_sf(xlim = c(laval_bbox$xmin, laval_bbox$xmax),
-           ylim = c(laval_bbox$ymin, laval_bbox$ymax))
+  coord_sf(xlim = c(lvlbbox$xmin, lvlbbox$xmax),
+           ylim = c(lvlbbox$ymin, lvlbbox$ymax))
 
 #Mapping out route accessibility
 ggplot(data = laval_accessibility) +
@@ -438,8 +474,8 @@ ggplot(data = laval_accessibility) +
         panel.background = element_rect(fill = "#525252")) +
   guides(fill = guide_legend(title.position = "top", title.hjust = 0.5,
                              barwidth = 1, barheight = 1, nrow = 1)) +
-  coord_sf(xlim = c(laval_bbox$xmin, laval_bbox$xmax),
-           ylim = c(laval_bbox$ymin, laval_bbox$ymax))
+  coord_sf(xlim = c(lvlbbox$xmin, lvlbbox$xmax),
+           ylim = c(lvlbbox$ymin, lvlbbox$ymax))
 
 #Mapping out bus runs accessibility
 ggplot(data = laval_accessibility) +
@@ -460,7 +496,7 @@ ggplot(data = laval_accessibility) +
         panel.background = element_rect(fill = "#525252")) +
   guides(fill = guide_legend(title.position = "top", title.hjust = 0.5,
                              barwidth = 1, barheight = 1, nrow = 1)) +
-  coord_sf(xlim = c(laval_bbox$xmin, laval_bbox$xmax),
-           ylim = c(laval_bbox$ymin, laval_bbox$ymax))
+  coord_sf(xlim = c(lvlbbox$xmin, lvlbbox$xmax),
+           ylim = c(lvlbbox$ymin, lvlbbox$ymax))
 
 test <- filter(laval_accessibility, laval_accessibility$stop_count == 0)

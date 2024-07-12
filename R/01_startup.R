@@ -29,7 +29,7 @@ laval_sectors <- laval_sectors <- qs::qread("data/geom_context/secteur.qs")
 
 tiles <- mapboxapi::get_static_tiles(location = lvlbbox,
                                      username = "curbcut",
-                                     zoom = 10,
+                                     zoom = 11,
                                      style_id = "cljkciic3002h01qveq5z1wrp",
                                      access_token = "pk.eyJ1IjoiY3VyYmN1dCIsImEiOiJjbGprYnVwOTQwaDAzM2xwaWdjbTB6bzdlIn0.Ks1cOI6v2i8jiIjk38s_kg",
                                      scaling_factor = "2x")
