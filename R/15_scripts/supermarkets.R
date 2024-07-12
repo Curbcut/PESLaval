@@ -129,7 +129,7 @@ hm_access_supermarket <-
 
 # Plot it -----------------------------------------------------------------
 
-labels <- c("0", "1-2", "2+")
+labels <- c("0", "1-2", "3+")
 
 # Add our bins in the data
 hm_access_supermarket <- add_bins(df = hm_access_supermarket,

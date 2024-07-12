@@ -3,6 +3,7 @@ source("R/01_startup.R")
 
 # Load cultural facilities ------------------------------------------------
 
+# De BDOICA
 read_method <- function(file) {
   content <- utils::unzip(file, list = TRUE, exdir = tempdir())$Name
   csv_file <- content[grepl("\\.csv", content)]
@@ -17,10 +18,29 @@ cultural$Longitude <- suppressWarnings(as.numeric(cultural$Longitude))
 cultural <- cultural[!is.na(cultural$Longitude), ]
 cultural$Latitude <- suppressWarnings(as.numeric(cultural$Latitude))
 cultural <- cultural[!is.na(cultural$Latitude), ]
-cultural <- sf::st_transform(sf::st_as_sf(cultural, 
-                                          coords = c("Longitude", 
-                                                     "Latitude"), 
-                                          crs = 4326), 3347)
+cultural <- sf::st_as_sf(cultural, 
+                         coords = c("Longitude", 
+                                    "Latitude"), 
+                         crs = 4326)
+
+
+# De Signé laval
+sig <- tibble::tibble(name = c("comotion", "jazz", "synapses"),
+                      geometry = sf::st_sfc(sf::st_point(c(-73.7187425098842, 45.56003891491458)),
+                                            sf::st_point(c(-73.72620606945262, 45.566202830787915)),
+                                            sf::st_point(c(-73.7320292118133, 45.60717957929867))))
+sig <- sf::st_as_sf(sig, crs = 4326)
+
+# Du diagnostic culturel (2017)
+dia <- qs::qread("data/axe3/locations/culturels_from_diagnostic.qs")
+
+
+cultural <- cultural[c("Facility_Name")]
+names(cultural)[1] <- "name"
+names(dia)[1] <- "name"
+
+cultural <- rbind(sig, dia, cultural)
+cultural$name <- sapply(cultural$name, utf8::as_utf8)
 
 CMA <- cancensus::get_census("CA21", regions = list(CMA = 24462), level = "CMA",
                              geo_format = "sf")
@@ -30,6 +50,38 @@ CMA_DBs <- cancensus::get_census("CA21", regions = list(CMA = 24462), level = "D
 # Keep only the ones in the CMA
 cultural <- sf::st_transform(cultural, crs = sf::st_crs(CMA_DBs))
 cultural <- sf::st_filter(cultural, CMA)
+
+# Remove one of the points if they are within 20m (double counting)
+threshold_distance <- units::set_units(20, "meters")
+distance_matrix <- sf::st_distance(cultural, )
+close_points <- distance_matrix < threshold_distance
+diag(close_points) <- FALSE
+keep_indices <- which(!apply(close_points, 1, any))
+filtered_points <- cultural[keep_indices, ]
+
+pairs <- cultural[-keep_indices, ]
+threshold_distance <- units::set_units(20, "meters")
+distance_matrix <- sf::st_distance(pairs)
+close_points <- distance_matrix < threshold_distance
+diag(close_points) <- FALSE
+to_remove <- rep(FALSE, nrow(pairs))
+
+# Iterate over the pairs and mark points for removal
+for (i in 1:nrow(close_points)) {
+  if (!to_remove[i]) {
+    close_indices <- which(close_points[i, ])
+    to_remove[close_indices] <- TRUE
+  }
+}
+pairs <- pairs[!to_remove, ]
+cultural <- rbind(filtered_points, pairs)
+
+# How many in Laval?
+CSD <- cancensus::get_census("CA21", regions = list(CSD = 2465005), level = "CSD",
+                             geo_format = "sf")
+nrow(sf::st_filter(cultural, CSD))
+
+# Attach a DB ID
 cultural <- sf::st_intersection(cultural, CMA_DBs["GeoUID"])
 
 tt <- ttm()
@@ -59,7 +111,7 @@ hm_access_cultural <-
 
 # Plot it -----------------------------------------------------------------
 
-labels <- c("0", "1-2", "2+")
+labels <- c("0", "1-2", "3+")
 
 # Add our bins in the data
 hm_access_cultural <- add_bins(df = hm_access_cultural,
@@ -85,12 +137,13 @@ t |>
   gg_cc_tiles +
   geom_sf(aes(fill = binned_variable), color = "transparent") +
   scale_fill_manual(values = curbcut_colors$left_5$fill[c(2, 4, 6)],
-                    name = "Supermarchés accessibles (n)",
+                    name = "Installations culturelles accessibles (n)",
                     labels = labels,
                     guide = guide_legend(title.position = "top",
                                          label.position = "bottom", nrow = 1)) +
-  geom_sf(data = cultural, color = color_theme("purpletransport"),
+  geom_sf(data = cultural, color = color_theme("pinkhealth"),
           size = 0.8, alpha = 0.8) +
   gg_cc_theme +
   theme(legend.spacing.x = unit(2, 'cm'),
         legend.spacing.y = unit(1, 'cm'))
+
