@@ -88,10 +88,10 @@ tt <- ttm()
 
 # How many cultural accessible --------------------------------------------
 
-hm_access_cultural <- merge(tt, cultural[c("GeoUID", "Index")], 
+hm_access_cultural <- merge(tt, cultural[c("GeoUID", "name")], 
                                by.x = "to", by.y = "GeoUID")
 
-hm_access_cultural <- unique(hm_access_cultural[c("from", "Index")])
+hm_access_cultural <- unique(hm_access_cultural[c("from", "name")])
 hm_access_cultural <- table(hm_access_cultural$from)
 
 hm_access_cultural <- 
@@ -147,3 +147,84 @@ t |>
   theme(legend.spacing.x = unit(2, 'cm'),
         legend.spacing.y = unit(1, 'cm'))
 
+
+# Values ------------------------------------------------------------------
+
+cultural_pop <- merge(DBs[c("GeoUID", "Population")], 
+                   sf::st_drop_geometry(hm_access_cultural),
+                   by = "GeoUID")
+
+cultural_pop <- 
+  cultural_pop |> 
+  sf::st_drop_geometry() |> 
+  group_by(binned_variable) |> 
+  summarize(pop = sum(Population))
+
+# Make sure to use the same numbers as in the table shown!!!!
+zeroaccess <- sum(cultural_pop$pop[cultural_pop$binned_variable %in% c("0")])
+zeroaccess / lvl$Population
+more_3 <- sum(cultural_pop$pop[cultural_pop$binned_variable %in% c("3+")])
+more_3 / lvl$Population
+
+# Look for more vulnerable population. lowincome and old age?
+DAs <- cancensus::get_census("CA21", regions = list(CSD = 2465005), level = "DA",
+                             vectors = c(lowincome = "v_CA21_1025",
+                                         immigrant = "v_CA21_4410"),
+                             geo_format = "sf")
+
+DAs <- DAs[c("GeoUID", "Population", "lowincome", "immigrant")]
+names(DAs) <- c("DA_UID", "DA_pop", "lowincome", "immigrant", "geometry")
+DB_lowincome <- cc.buildr::merge(DBs[c("GeoUID", "DA_UID", "Population")], 
+                                 sf::st_drop_geometry(DAs), by = "DA_UID")
+DB_lowincome <- sf::st_drop_geometry(DB_lowincome)
+DB_lowincome$pop_ratio <- DB_lowincome$Population / DB_lowincome$DA_pop
+DB_lowincome$lowincome <- DB_lowincome$lowincome * DB_lowincome$pop_ratio
+DB_lowincome$immigrant <- DB_lowincome$immigrant * DB_lowincome$pop_ratio
+DB_lowincome <- DB_lowincome[c("GeoUID", "lowincome", "immigrant")]
+
+cultural_demo <- merge(DB_lowincome, 
+                   sf::st_drop_geometry(hm_access_cultural),
+                   by = "GeoUID")
+
+cultural_demo <- 
+  cultural_demo |> 
+  sf::st_drop_geometry() |> 
+  group_by(binned_variable) |> 
+  summarize(lowincome = sum(lowincome, na.rm = TRUE),
+            immigrant = sum(immigrant, na.rm = TRUE)) |> 
+  mutate(lowincome_pct = lowincome / sum(lowincome), 
+         immigrant_pct = immigrant / sum(immigrant))
+
+cultural_demo$lowincome <- convert_hundreds(x = cultural_demo$lowincome)
+cultural_demo$immigrant <- convert_hundreds(x = cultural_demo$immigrant)
+cultural_demo$lowincome_pct <- curbcut:::convert_unit.pct(x = cultural_demo$lowincome_pct, decimal = 0)
+cultural_demo$immigrant_pct <- curbcut:::convert_unit.pct(x = cultural_demo$immigrant_pct, decimal = 0)
+
+names(cultural_demo) <- c("Installations culturelles (n)", "Faible revenu (n)", 
+                      "Immigrants (n)", "Faible revenu (%)", 
+                      "Immigrants (%)")
+cultural_demo <- cultural_demo[c(1,2,4,3,5)]
+
+# Add general population
+cultural_demo$`Population (n)` <- curbcut::convert_unit(x = cultural_pop$pop)
+cultural_demo$`Population (%)` <- curbcut:::convert_unit.pct(x = cultural_pop$pop / sum(cultural_pop$pop), decimal = 0)
+
+# Format for the table
+cultural_demo$`Immigrants (%)` <- gsub("%", "", cultural_demo$`Immigrants (%)`) |> as.numeric()
+cultural_demo$`Faible revenu (%)` <- gsub("%", "", cultural_demo$`Faible revenu (%)`) |> as.numeric()
+cultural_demo$`Population (%)` <- gsub("%", "", cultural_demo$`Population (%)`) |> as.numeric()
+cultural_demo |> 
+  gt() |> 
+  data_color(
+    columns = ends_with("%)"),
+    colors = scales::col_numeric(
+      palette = c("white", color_theme("purpletransport")),
+      domain = NULL
+    )
+  ) |> 
+  fmt_number(
+    columns = ends_with("%)"),
+    suffixing = TRUE,
+    pattern = "{x}%",
+    decimals = 0,
+  )
