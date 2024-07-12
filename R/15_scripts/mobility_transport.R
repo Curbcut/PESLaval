@@ -61,11 +61,13 @@ ttm_walk_15_p <- read.csv("D://McGill/can_cache/walk15.csv") |>
   mutate(across(everything(), as.character)) |> 
   rename("GeoUID" = "from")
 
-ttm_walk_15 <- ttm_walk_15_p |> 
-  distinct(GeoUID) |> 
+ttm_walk_15 <- laval_db |> 
+  st_drop_geometry() |> 
+  select(GeoUID) |> 
   mutate(to = GeoUID) |> 
   bind_rows(ttm_walk_15_p) |> 
   arrange(GeoUID)
+
 # Bus Stop Location -------------------------------------------------------
 #Importing GTFS data. Available in the data folder under justin
 stl_gtfs <- read_gtfs("D://McGill/can_cache/GTF_STL.zip")
@@ -352,8 +354,9 @@ ttm_7 <- read.csv("D://McGill/can_cache/ttm.csv") |>
   rename("GeoUID" = "from")
 
 #Creating extra rows so each DB can access their own DB and binding to ttm7
-laval_ttm <- laval_bus |> 
-  distinct(GeoUID) |> 
+laval_ttm <- laval_db |> 
+  st_drop_geometry() |> 
+  select(GeoUID) |> 
   mutate(to = GeoUID) |> 
   bind_rows(ttm_7) |> 
   arrange(GeoUID)
