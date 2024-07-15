@@ -390,6 +390,14 @@ lowincome_imm_sf <- laval_db|>
   left_join(lowincome_imm, by = join_by("CT_UID" == "GeoUID")) |> 
   select(notimm_low_child, imm_low_child, notimm_notlow_child, imm_notlow_child) |> 
   st_join(laval_db)
+
+lvl_demo <- get_census(dataset = "CA21", 
+                       regions = list(CSD = 2465005), 
+                       level = "DA",
+                       vectors = c("age5_9" = "v_CA21_32", "age10" = "v_CA21_53",
+                                   "age11" = "v_CA21_56", "age12" = "v_CA21_59",
+                                   "age13" = "v_CA21_62", "age14" = "v_CA21_65",
+                                   "age15" = "v_CA21_74", "age16" = "v_CA21_77"))
 # Maps --------------------------------------------------------------------
 primary_map <- ggplot() +
   geom_sf(data = mtlcma_sf, color = "black", fill = "#FCFCFC") +
@@ -538,6 +546,9 @@ ggplot() +
          color = guide_legend(ncol = 1))+
   coord_sf(xlim = c(laval_bbox$xmin, laval_bbox$xmax),
            ylim = c(laval_bbox$ymin, laval_bbox$ymax))
+
+noprimary <- school_sf |> 
+  filter(eng_secondary >= 1)
 
 # Bivariate CT Maps ---------------------------------------------------------
 #Cross tabulation data for immigrants and low income (only run if school_sf is at CT level)
