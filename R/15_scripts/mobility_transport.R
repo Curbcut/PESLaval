@@ -347,7 +347,7 @@ t |>
   gg_cc_tiles +
   geom_sf(aes(fill = binned_variable), color = "transparent") +
   scale_fill_manual(values = curbcut_colors$left_5$fill[c(2:6)],
-                    name = "Lieux d'intérêts (n)",
+                    name = "Lieux d'intérêts accessibles (n)",
                     labels = labels,
                     guide = guide_legend(title.position = "top",
                                          label.position = "bottom", nrow = 1)) +
@@ -417,64 +417,6 @@ t |>
 # Values
 sum(flows$Public.transit) / sum(flows$`v_CA21_7614: Usual place of work`)
 
-
-# Bike Map -------------------------------------------------------------
-#Grabbing all bike lanes within the Laval bound box
-cycle_osm <- opq(bbox = lvlbbox, timeout = 300) |> 
-  add_osm_feature(key = "highway", value = "cycleway") |> 
-  osmdata_sf()
-
-#Keeping only the bike lanes within Laval
-cycle_lvl <- cycle_osm$osm_lines |> 
-  st_intersection(laval_ct)
-
-#Grabbing all Bixi station information
-bixi_stations <- get_station_information(city = "Montreal")
-
-#Converting the bixi station information into a usable coordinate system
-bixi_sf <- st_as_sf(bixi_stations, coords = c("lon", "lat"), crs = 4326) |> 
-  filter(name != "cpatel") |> 
-  st_intersection(laval_ct)
-
-#Importing bike comfort csv
-bics <- read.csv("D://McGill/can_cache/CAN_BICS_metric_Jan_2022.csv") |> 
-  mutate("dauid" = as.character(dauid))
-
-#Binding can-BICs score to Laval DAs
-bike_comfort <- laval_da |> 
-  left_join(bics, by = join_by("GeoUID" == "dauid"))
-
-# Mapping out the bike map
-ggplot(data = bike_comfort) +
-  geom_sf(data = mtlcma_sf, aes(fill = "mtlcma_sf"), color = "#525252", fill = "#FCFCFC") +
-  geom_sf(data = laval_csd, aes(fill = NA), color = "#525252") +
-  geom_sf(data = bike_comfort, aes(fill = cut(CBICS_cat, breaks = c(0, 1, 2, 3, 4, 5),
-                                              labels = c("Low", "2", "3", "4", "High"))), color = NA) +
-  geom_sf(data = cycle_lvl, aes(color = "cycle_lvl"), size = 1.5) +
-  geom_sf(data = bixi_sf, aes(color = "bixi_sf"), shape = 15, size = 2) +
-  scale_fill_manual(name = "Confort et sécurité des pistes cyclables",
-                    values = c("Low" = curbcut_scale[1], "2" = curbcut_scale[2],
-                               "3" = curbcut_scale[3], "4" = curbcut_scale[4], 
-                               "High" = curbcut_scale[5]),
-                    labels = c("Low", "", "", "", "High"),
-                    na.value = curbcut_na,
-                    guide = guide_legend(label.position = "bottom", title.position = "top", nrow = 1)) +
-  scale_color_manual(name = "",
-                     values = c("cycle_lvl" = "white", "bixi_sf" = "black"),
-                     labels = c("Stations Bixi", "Piste cyclable"),
-                     guide = guide_legend(label.position = "bottom", title.position = "top", nrow = 1)) +
-  labs(title = "Carte et score vélo de Laval 2024") +
-  theme_minimal() +
-  theme(plot.title = element_text(hjust = 0.5), axis.text = element_blank(),
-        axis.title = element_blank(), axis.ticks = element_blank(),
-        legend.position = "bottom", panel.grid = element_blank(),
-        panel.background = element_rect(fill = "#525252"), legend.spacing.x = unit(-0.05, "cm"),
-        legend.key.width = unit(1.95, "cm"), legend.background = element_blank(),
-        legend.box.background = element_blank()) +
-  coord_sf(xlim = c(lvlbbox$xmin, lvlbbox$xmax),
-           ylim = c(lvlbbox$ymin, lvlbbox$ymax)) +
-  guides(fill = guide_legend(order = 1, label.position = "bottom", title.position = "top", nrow = 1),
-    color = guide_legend(order = 2, label.position = "bottom", title.position = "top", nrow = 1))
 
 # # Charging Stations -------------------------------------------------------
 # charging_osm <- opq(bbox = lvlbbox, timeout = 300) |> 

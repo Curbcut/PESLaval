@@ -25,7 +25,7 @@ lvl <- cancensus::get_census("CA21", regions = list(CSD = 2465005),
                                   level = "CSD",
                                   geo_format = "sf")
 lvlbbox <- sf::st_bbox(lvl)
-laval_sectors <- laval_sectors <- qs::qread("data/geom_context/secteur.qs")
+laval_sectors <- qs::qread("data/geom_context/secteur.qs")
 
 tiles <- mapboxapi::get_static_tiles(location = lvlbbox,
                                      username = "curbcut",
