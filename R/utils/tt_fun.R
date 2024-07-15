@@ -41,9 +41,17 @@ ttm_DA <- function(mode = "car") {
   conn <- cc.data::db_connect()
   DAs <- cancensus::get_census("CA21", regions = list(CSD = 2465005), level = "DA")
   
-  matrix <- purrr::map_dfr(DAs$GeoUID, \(ID) {
+  matrix <- sapply(DAs$GeoUID, \(ID) {
     DBI::dbGetQuery(conn, sprintf("SELECT * FROM ttm_car_%s", ID))
-  })
+  }, simplify = FALSE, USE.NAMES = TRUE)
+  
+  matrix <- mapply(\(n, df) {
+    df[1] <- n
+    df <- tibble::as_tibble(df)
+    names(df) <- c("from", "to", "travel_seconds")
+    df
+  }, names(matrix), matrix, SIMPLIFY = FALSE)
+  matrix <- Reduce(rbind, matrix)
   
   DBI::dbDisconnect(conn) 
   

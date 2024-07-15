@@ -52,7 +52,7 @@ stl_gtfs <- tidytransit::read_gtfs("data/axe3/GTF_STL.zip")
 #Grabbing bus stops, converting it to be usable to plot, and removing duplicates
 #Removing duplicates doesn't necessarily reflect real life as there are usually
 #two stops at one intersection, but makes map readability significantly better
-bus_stops <- st_as_sf(stl_gtfs$stops, coords = c("stop_lon", "stop_lat"), crs = 4326) |> 
+bus_stops <- sf::st_as_sf(stl_gtfs$stops, coords = c("stop_lon", "stop_lat"), crs = 4326) |> 
   distinct(stop_name, .keep_all = TRUE)
 
 # Plot accessibility to bus stops in 7 minutes walk
@@ -73,7 +73,7 @@ access_busstops <-
   tibble::tibble(GeoUID = names(access_busstops),
                  busstops = as.vector(access_busstops))
 
-no_spots <- DBs$GeoUID[!DBs$GeoUID %in% access_busstops$GeoUID]
+no_spots <- laval_db$GeoUID[!laval_db$GeoUID %in% access_busstops$GeoUID]
 access_busstops <- rbind(access_busstops, tibble::tibble(GeoUID = no_spots, busstops = 0))
 access_busstops <- tibble::as_tibble(access_busstops)
 
@@ -122,9 +122,300 @@ sum(access_busstops$Population[access_busstops$busstops == 0])
 sum(access_busstops$Population[access_busstops$busstops %in% c(1,2)])
 
 
-# Bus lines accessibles ---------------------------------------------------
+# Bus routes accessibles ---------------------------------------------------
+
+# Filter stop times using the weekday service
+weekday_service <- stl_gtfs$calendar$service_id[stl_gtfs$calendar$wednesday == 1]
+trip_id <- stl_gtfs$trips$trip_id[stl_gtfs$trips$service_id == weekday_service]
+stop_times <- stl_gtfs$stop_times[stl_gtfs$stop_times$trip_id %in% trip_id, ]
+stop_times <- stop_times[stop_times$arrival_time > hms::as_hms("07:00:00") & 
+                           stop_times$arrival_time < hms::as_hms("09:00:00"), ]
+
+stop_times <- cc.buildr::merge(stop_times, sf::st_as_sf(stl_gtfs$stops, 
+                                                        coords = c("stop_lon", "stop_lat"), 
+                                                        crs = 4326)["stop_id"])
+st_db_int <- sf::st_intersects(stop_times, laval_db["GeoUID"], prepared = TRUE)
+stop_times$GeoUID <- sapply(st_db_int, \(x) {
+  ID <- laval_db$GeoUID[x]
+  if (length(ID) == 0) return(NA)
+  ID
+}, simplify = TRUE)
+stop_times <- stop_times[c("trip_id", "GeoUID")]
+# Trip_id is assigned to which route_id?
+trips <- cc.buildr::merge(stop_times, stl_gtfs$trips[c("route_id", "trip_id")])
+
+trips <- cc.buildr::merge(ttm_walk_7, trips, by.x = "to", by.y = "GeoUID")
+trips <- sf::st_drop_geometry(trips)
+trips <- unique(trips[c("from", "route_id")])
+
+trips <- table(trips$from)
+
+trips <- 
+  tibble::tibble(GeoUID = names(trips),
+                 trips = as.vector(trips))
+
+no_spots <- laval_db$GeoUID[!laval_db$GeoUID %in% trips$GeoUID]
+trips <- rbind(trips, tibble::tibble(GeoUID = no_spots, trips = 0))
+trips <- tibble::as_tibble(trips)
+
+# Plot lines
+trips <- cc.buildr::merge(trips, laval_db[c("GeoUID", "Population")])
+
+#Plotting the bus stops
+labels <- c("0", "1-2", "3-4", "5-6", "7+")
+
+# Add our bins in the data
+trips <- add_bins(df = trips,
+                       variable = "trips",
+                       breaks = c(-Inf, 0.0001, 2.1, 4.1, 6.1, Inf),
+                       labels = labels
+)
+
+# Union the features so the polygons don't show their borders. Might revisit
+# with the addition of streets!
+t <- Reduce(rbind,
+            split(trips, trips$binned_variable) |>
+              lapply(\(x) {
+                out <- tibble::tibble(x$binned_variable)
+                out$geometry <- sf::st_union(x)
+                sf::st_as_sf(out, crs = 4326)[1, ]
+              })
+) |> sf::st_as_sf()
+names(t)[1] <- "binned_variable"
+
+t |> 
+  ggplot() +
+  gg_cc_tiles +
+  geom_sf(aes(fill = binned_variable), color = "transparent") +
+  scale_fill_manual(values = curbcut_colors$left_5$fill[c(2:6)],
+                    name = "Trajets d'autobus (n)",
+                    labels = labels,
+                    guide = guide_legend(title.position = "top",
+                                         label.position = "bottom", nrow = 1)) +
+  gg_cc_theme +
+  theme(legend.spacing.x = unit(2, 'cm'),
+        legend.spacing.y = unit(1, 'cm'))
+
+# Values
+sum(trips$Population[trips$trips == 0])
+sum(trips$Population[trips$trips %in% c(1,2)])
+
+# Bus vehicles accessibles ---------------------------------------------------
+
+# Filter stop times using the weekday service
+weekday_service <- stl_gtfs$calendar$service_id[stl_gtfs$calendar$wednesday == 1]
+trip_id <- stl_gtfs$trips$trip_id[stl_gtfs$trips$service_id == weekday_service]
+stop_times <- stl_gtfs$stop_times[stl_gtfs$stop_times$trip_id %in% trip_id, ]
+
+stop_times <- stop_times[stop_times$arrival_time > hms::as_hms("07:00:00") & 
+                           stop_times$arrival_time < hms::as_hms("09:00:00"), ]
+
+stop_times <- cc.buildr::merge(stop_times, sf::st_as_sf(stl_gtfs$stops, 
+                                                    coords = c("stop_lon", "stop_lat"), 
+                                                    crs = 4326)["stop_id"])
+st_db_int <- sf::st_intersects(stop_times, laval_db["GeoUID"], prepared = TRUE)
+stop_times$GeoUID <- sapply(st_db_int, \(x) {
+  ID <- laval_db$GeoUID[x]
+  if (length(ID) == 0) return(NA)
+  ID
+}, simplify = TRUE)
+stop_times <- stop_times[c("trip_id", "GeoUID")]
+stop_times <- cc.buildr::merge(ttm_walk_7, stop_times, by.x = "to", by.y = "GeoUID")
+stop_times <- sf::st_drop_geometry(stop_times)
+stop_times <- unique(stop_times[c("from", "trip_id")])
+
+stop_times <- table(stop_times$from)
+
+stop_times <- 
+  tibble::tibble(GeoUID = names(stop_times),
+                 vehicles = as.vector(stop_times))
+
+no_spots <- laval_db$GeoUID[!laval_db$GeoUID %in% stop_times$GeoUID]
+stop_times <- rbind(stop_times, tibble::tibble(GeoUID = no_spots, vehicles = 0))
+stop_times <- tibble::as_tibble(stop_times)
+
+# Plot lines
+stop_times <- cc.buildr::merge(stop_times, laval_db[c("GeoUID", "Population")])
+
+#Plotting the bus stops
+labels <- c("0", "1-10", "11-25", "26-50", "50+")
+
+# Add our bins in the data
+stop_times <- add_bins(df = stop_times,
+                            variable = "vehicles",
+                            breaks = c(-Inf, 0.0001, 10.1, 25.1, 50.1, Inf),
+                            labels = labels
+)
+
+# Union the features so the polygons don't show their borders. Might revisit
+# with the addition of streets!
+t <- Reduce(rbind,
+            split(stop_times, stop_times$binned_variable) |>
+              lapply(\(x) {
+                out <- tibble::tibble(x$binned_variable)
+                out$geometry <- sf::st_union(x)
+                sf::st_as_sf(out, crs = 4326)[1, ]
+              })
+) |> sf::st_as_sf()
+names(t)[1] <- "binned_variable"
+
+t |> 
+  ggplot() +
+  gg_cc_tiles +
+  geom_sf(aes(fill = binned_variable), color = "transparent") +
+  scale_fill_manual(values = curbcut_colors$left_5$fill[c(2:6)],
+                    name = "Véhicules (autobus) (n)",
+                    labels = labels,
+                    guide = guide_legend(title.position = "top",
+                                         label.position = "bottom", nrow = 1)) +
+  gg_cc_theme +
+  theme(legend.spacing.x = unit(2, 'cm'),
+        legend.spacing.y = unit(1, 'cm'))
 
 
+# Values
+sum(stop_times$Population[stop_times$vehicles == 0])
+sum(stop_times$Population[stop_times$vehicles < 6])
+sum(stop_times$Population[stop_times$vehicles > 24])
+
+
+# POIs accessible ---------------------------------------------------------
+
+# Get all points of interest
+pois <- cc.data::bucket_read_object_zip_shp(object = "poi/poi_2022_1.zip", bucket = "curbcut.amenities")
+pois2 <- cc.data::bucket_read_object_zip_shp(object = "poi/poi_2022_2.zip", bucket = "curbcut.amenities")
+pois <- rbind(pois, pois2)
+
+# Travel time matrix in transit
+transit_ttm <- ttm_DA("transit_pwd")
+
+# Filer the CMA
+CMA <- cancensus::get_census("CA21", regions = list(CMA = 24462), level = "CMA",
+                             geo_format = "sf")
+pois <- sf::st_transform(pois, crs = sf::st_crs(CMA))
+pois <- sf::st_filter(pois, CMA)
+
+# Intersects number of POIs per DA
+CMA_da <- cancensus::get_census("CA21", regions = list(CMA = 24462), level = "DA",
+                                geo_format = "sf")
+intersects_nb <- sf::st_intersects(CMA_da, pois)
+CMA_da$pois <- lengths(intersects_nb)
+DA_poi <- CMA_da[c("GeoUID", "pois")]
+
+# Only keep transit times under 20 minutes
+transit_ttm <- transit_ttm[transit_ttm$travel_seconds <= 20*60, ]
+
+
+DA_poi <- cc.buildr::merge(transit_ttm, DA_poi, by.x = "to", by.y = "GeoUID")
+
+DA_poi <- aggregate(pois ~ from, data = DA_poi, FUN = sum)
+
+
+no_spots <- laval_db$GeoUID[!laval_db$GeoUID %in% DA_poi$GeoUID]
+DA_poi <- rbind(DA_poi, tibble::tibble(from = no_spots, pois = 0))
+DA_poi <- tibble::as_tibble(DA_poi)
+
+DA_poi <- DA_poi[DA_poi$from %in% laval_da$GeoUID, ]
+DA_poi <- cc.buildr::merge(DA_poi, laval_da[c("GeoUID")], 
+                           by.x = "from", by.y = "GeoUID")
+
+
+#Plotting the bus stops
+labels <- c("0-15K", "15K-30K", "30K-45K", "45K-60K", "60+")
+
+# Add our bins in the data
+DA_poi <- add_bins(df = DA_poi,
+                   variable = "pois",
+                   breaks = c(0, 15000, 30000, 45000, 60000, Inf),
+                   labels = labels
+)
+
+# Union the features so the polygons don't show their borders. Might revisit
+# with the addition of streets!
+t <- Reduce(rbind,
+            split(DA_poi, DA_poi$binned_variable) |>
+              lapply(\(x) {
+                out <- tibble::tibble(x$binned_variable)
+                out$geometry <- sf::st_union(x)
+                sf::st_as_sf(out, crs = 4326)[1, ]
+              })
+) |> sf::st_as_sf()
+names(t)[1] <- "binned_variable"
+
+t |> 
+  ggplot() +
+  gg_cc_tiles +
+  geom_sf(aes(fill = binned_variable), color = "transparent") +
+  scale_fill_manual(values = curbcut_colors$left_5$fill[c(2:6)],
+                    name = "Lieux d'intérêts (n)",
+                    labels = labels,
+                    guide = guide_legend(title.position = "top",
+                                         label.position = "bottom", nrow = 1)) +
+  gg_cc_theme +
+  theme(legend.spacing.x = unit(2, 'cm'),
+        legend.spacing.y = unit(1, 'cm'))
+
+
+
+# Transit usage -----------------------------------------------------------
+
+flows <- read.csv("data/axe3/mtl_flow_21.csv")
+flows <- tibble::as_tibble(flows[c("POR", "Public.transit")])
+flows$POR <- as.character(flows$POR)
+
+flows$POR <- sapply(flows$POR, \(x) {
+  if (grepl("\\.\\d{2}", x)) return(x)
+  if (grepl("\\.\\d{1}", x)) return(paste0(x, "0"))
+  paste0(x, ".00")
+})
+
+flows <- aggregate(Public.transit ~ POR, data = flows, FUN = sum)
+
+laval_ct_usualplaceofwork <- cancensus::get_census(dataset = "CA21", 
+                                  regions = list(CSD = 2465005), 
+                                  level = "CT", 
+                                  geo_format = "sf", vectors = "v_CA21_7614")
+flows <- cc.buildr::merge(laval_ct_usualplaceofwork, flows, by.x = "GeoUID", by.y = "POR")
+flows$density <- flows$Public.transit / flows$`v_CA21_7614: Usual place of work`
+
+
+#Plotting the bus stops
+labels <- c("0", "0 - 2.5%", "2.5% - 5%", "5% - 7.5%", "+ 7.5%")
+
+# Add our bins in the data
+flows <- add_bins(df = flows,
+                   variable = "density",
+                   breaks = c(-Inf, 0.00000001, 0.0250001, 0.0500001, 0.07500001, Inf),
+                   labels = labels
+)
+
+# Union the features so the polygons don't show their borders. Might revisit
+# with the addition of streets!
+t <- Reduce(rbind,
+            split(flows, flows$binned_variable) |>
+              lapply(\(x) {
+                out <- tibble::tibble(x$binned_variable)
+                out$geometry <- sf::st_union(x)
+                sf::st_as_sf(out, crs = 4326)[1, ]
+              })
+) |> sf::st_as_sf()
+names(t)[1] <- "binned_variable"
+
+t |> 
+  ggplot() +
+  gg_cc_tiles +
+  geom_sf(aes(fill = binned_variable), color = "transparent") +
+  scale_fill_manual(values = curbcut_colors$left_5$fill[c(2:6)],
+                    name = "Utilisation du transport en commun pour les déplacements domicile-travail (%)",
+                    labels = labels,
+                    guide = guide_legend(title.position = "top",
+                                         label.position = "bottom", nrow = 1)) +
+  gg_cc_theme +
+  theme(legend.spacing.x = unit(2, 'cm'),
+        legend.spacing.y = unit(1, 'cm'))
+
+# Values
+sum(flows$Public.transit) / sum(flows$`v_CA21_7614: Usual place of work`)
 
 
 # Bike Map -------------------------------------------------------------
@@ -185,124 +476,124 @@ ggplot(data = bike_comfort) +
   guides(fill = guide_legend(order = 1, label.position = "bottom", title.position = "top", nrow = 1),
     color = guide_legend(order = 2, label.position = "bottom", title.position = "top", nrow = 1))
 
-# Charging Stations -------------------------------------------------------
-charging_osm <- opq(bbox = lvlbbox, timeout = 300) |> 
-  add_osm_feature(key = "amenity", value = "charging_station") |> 
-  osmdata_sf()
-
-charging_lvl <- charging_osm$osm_points |> 
-  st_intersection(laval_ct)
-
-ggplot() +
-  geom_sf(data = mtlcma_sf, color = "black", fill = "#FCFCFC") +
-  geom_sf(data = laval_csd, color = "black", fill = NA) +
-  geom_sf(data = charging_lvl, color = "darkred", size = 1) +
-  coord_sf() +
-  theme_minimal() +
-  labs(title = "Bornes de recharge pour véhicules électriques à Laval 2024") +
-  theme(plot.title = element_text(hjust = 0.5),
-        axis.text = element_blank(),
-        axis.title = element_blank(), axis.ticks = element_blank(),
-        panel.grid = element_blank(), panel.background = element_rect(fill = "#525252")) +
-  coord_sf(xlim = c(lvlbbox$xmin, lvlbbox$xmax),
-           ylim = c(lvlbbox$ymin, lvlbbox$ymax))
-
-# Points de vente (transport collectif) -----------------------------------
-#Using the shapefile below and STL_accessibilite-points-vente.pdf and
-#the STL website to determine the level of accessibility
-full_acc <- c("475, boul. de l'Avenir", "600, montée du Moulin", "800b, boul. Chomedey (160)",
-              "275, boul. Samson", "2500, boul. Saint-Martin Est", "165, boul. Curé-Labelle",
-              "2220, boul. des Laurentides")
-partial_acc <- c("10B, rue Dufferin", "555, boul. Samson", "650, rue Principale",
-                 "1263, boul. Jolibourg", "155, boul. de La Concorde Est",
-                 "2397, boul. Curé-Labelle", "4600, boul. Samson", "4650, boul. du Souvenir",
-                 "4219, boul. Samson", "965, boul. Curé-Labelle", "5000, boul. des Laurentides",
-                 "1690, boul. Sainte-Rose", "4425, boul. de La Concorde", "3475, boul. Dagenais",
-                 "5680, boul. des Laurentides", "255, boul. de La Concorde Ouest", "430, boul. Cartier",
-                 "44, boul. des Laurentides", "545, rue Lucien-Paiement", "3000, boul. Le Carrefour",
-                 "580,  boul. Curé-Labelle (suite 10)", "4672, boul. Saint-Martin",
-                 "2955, boul. de La Concorde", "1295, boul. de la Concorde O.", "405, boul. des Laurentides",
-                 "6155, boul. Arthur-Sauvé", "4347, boul. Ste-Rose")
-no_acc <- c("3875, boul. Sainte-Rose", "501, rue Guillemette", "265, 15e Rue",
-            "3667, boul. Lévesque Ouest", "45, boul. Lévesque Est", "3323, boul. de la Concorde E.",
-            "2795, boul. René-Laennec", "5162, de la Fabrique")
-
-#Importing GEOADMIN_POINT_VENTE.shp from the data folder and 
-#assigning each row their accessibility value
-vending_sf <- st_read("D://McGill/can_cache/Points_de_vente_shp/GEOADMIN_POINT_VENTE.shp") |> 
-  st_transform(crs = 4326) |> 
-  mutate(accessible = case_when(
-    ADRESSE %in% full_acc ~ "Accessible",
-    ADRESSE %in% partial_acc ~ "Partiellement accessible",
-    ADRESSE %in% no_acc ~ "Non accessible",
-    TRUE ~ NA_character_)) |> 
-  select(NOM, accessible) |> 
-  drop_na() |> 
-  mutate(accessible = factor(accessible, levels = c("Accessible", "Partiellement accessible",
-                                                    "Non accessible")))
-
-#Converting vending points to shapefile and then joining
-vending_join <- st_join(laval_db, vending_sf) |> 
-  st_drop_geometry() |> 
-  select(GeoUID, accessible) |> 
-  mutate(accessible = ifelse(is.na(accessible), NA, 1)) |> 
-  filter(accessible == 1)
-
-#Joining the 15 minute TTM with the data
-vending_walk <- ttm_walk_15 |> 
-  left_join(vending_join, by = join_by("to" == "GeoUID")) |> 
-  filter(accessible == 1) |> 
-  group_by(GeoUID) |> 
-  summarize(sum_accessible = sum(accessible, na.rm = TRUE)) |> 
-  rename("accessible" = "sum_accessible")
-  #mutate(accessible = replace_na(accessible, 0))
-
-#Calculating accessibility to vending locations by DB
-vending_accessibility <- laval_db |> 
-  left_join(vending_walk, by = "GeoUID") |> 
-  mutate(accessible = replace_na(accessible, 0)) |> 
-  mutate(accessible_cat = factor(case_when(
-    accessible == 0 ~ "0",
-    accessible == 1 ~ "1",
-    accessible >= 2 ~ "2+"
-  )))
-
-ggplot() + 
-  geom_sf(data = mtlcma_sf, fill = "#FCFCFC", color = NA) +
-  geom_sf(data = vending_accessibility, aes(fill = factor(accessible_cat)), color = NA) +
-  scale_fill_manual(values = c("0" = "#C4CDE1", 
-                               "1" = "#6C83B5",
-                               "2+" = "#2B3448"),
-                    na.value = curbcut_na,
-                    name = "Nombre de points de vente accessibles") +
-  labs(title = "Accessibilité aux points de vente STL 2024") +
-  new_scale_color() +
-  geom_sf(data = vending_sf, aes(color = accessible)) +
-  scale_color_manual(values = c("Accessible" = "#0096FF", 
-                                "Partiellement accessible" = "#FFB000", 
-                                "Non accessible" = "#DC267F",
-                                "Accessibilité inconnue" = "grey"),
-                     name = "Points de vente") +
-  theme_minimal() +
-  theme(plot.title = element_text(hjust = 0.5), axis.text = element_blank(),
-        axis.title = element_blank(), axis.ticks = element_blank(),
-        legend.position = "bottom", panel.grid = element_blank(),
-        panel.background = element_rect(fill = "#525252"),
-        legend.direction = "vertical",  # Vertical orientation for legends
-        legend.box = "vertical",        # Stack legends vertically
-        legend.key.height = unit(1.25, "lines"),  # Adjust key height for both legends
-        legend.key.width = unit(1.25, "lines"),   # Adjust key width for both legends
-        legend.title.align = 0.5,
-        legend.spacing.y = unit(0.1, "cm")) +
-  guides(
-    fill = guide_legend(order = 1, ncol = 3, title.position = "top",
-                        title.hjust = 0.5,
-                        label.position = "bottom",
-                        label.hjust = 0.5),
-    color = guide_legend(order = 2, ncol = 3)
-  ) +
-  coord_sf(xlim = c(lvlbbox$xmin, lvlbbox$xmax),
-           ylim = c(lvlbbox$ymin, lvlbbox$ymax))
+# # Charging Stations -------------------------------------------------------
+# charging_osm <- opq(bbox = lvlbbox, timeout = 300) |> 
+#   add_osm_feature(key = "amenity", value = "charging_station") |> 
+#   osmdata_sf()
+# 
+# charging_lvl <- charging_osm$osm_points |> 
+#   st_intersection(laval_ct)
+# 
+# ggplot() +
+#   geom_sf(data = mtlcma_sf, color = "black", fill = "#FCFCFC") +
+#   geom_sf(data = laval_csd, color = "black", fill = NA) +
+#   geom_sf(data = charging_lvl, color = "darkred", size = 1) +
+#   coord_sf() +
+#   theme_minimal() +
+#   labs(title = "Bornes de recharge pour véhicules électriques à Laval 2024") +
+#   theme(plot.title = element_text(hjust = 0.5),
+#         axis.text = element_blank(),
+#         axis.title = element_blank(), axis.ticks = element_blank(),
+#         panel.grid = element_blank(), panel.background = element_rect(fill = "#525252")) +
+#   coord_sf(xlim = c(lvlbbox$xmin, lvlbbox$xmax),
+#            ylim = c(lvlbbox$ymin, lvlbbox$ymax))
+# 
+# # Points de vente (transport collectif) -----------------------------------
+# #Using the shapefile below and STL_accessibilite-points-vente.pdf and
+# #the STL website to determine the level of accessibility
+# full_acc <- c("475, boul. de l'Avenir", "600, montée du Moulin", "800b, boul. Chomedey (160)",
+#               "275, boul. Samson", "2500, boul. Saint-Martin Est", "165, boul. Curé-Labelle",
+#               "2220, boul. des Laurentides")
+# partial_acc <- c("10B, rue Dufferin", "555, boul. Samson", "650, rue Principale",
+#                  "1263, boul. Jolibourg", "155, boul. de La Concorde Est",
+#                  "2397, boul. Curé-Labelle", "4600, boul. Samson", "4650, boul. du Souvenir",
+#                  "4219, boul. Samson", "965, boul. Curé-Labelle", "5000, boul. des Laurentides",
+#                  "1690, boul. Sainte-Rose", "4425, boul. de La Concorde", "3475, boul. Dagenais",
+#                  "5680, boul. des Laurentides", "255, boul. de La Concorde Ouest", "430, boul. Cartier",
+#                  "44, boul. des Laurentides", "545, rue Lucien-Paiement", "3000, boul. Le Carrefour",
+#                  "580,  boul. Curé-Labelle (suite 10)", "4672, boul. Saint-Martin",
+#                  "2955, boul. de La Concorde", "1295, boul. de la Concorde O.", "405, boul. des Laurentides",
+#                  "6155, boul. Arthur-Sauvé", "4347, boul. Ste-Rose")
+# no_acc <- c("3875, boul. Sainte-Rose", "501, rue Guillemette", "265, 15e Rue",
+#             "3667, boul. Lévesque Ouest", "45, boul. Lévesque Est", "3323, boul. de la Concorde E.",
+#             "2795, boul. René-Laennec", "5162, de la Fabrique")
+# 
+# #Importing GEOADMIN_POINT_VENTE.shp from the data folder and 
+# #assigning each row their accessibility value
+# vending_sf <- st_read("D://McGill/can_cache/Points_de_vente_shp/GEOADMIN_POINT_VENTE.shp") |> 
+#   st_transform(crs = 4326) |> 
+#   mutate(accessible = case_when(
+#     ADRESSE %in% full_acc ~ "Accessible",
+#     ADRESSE %in% partial_acc ~ "Partiellement accessible",
+#     ADRESSE %in% no_acc ~ "Non accessible",
+#     TRUE ~ NA_character_)) |> 
+#   select(NOM, accessible) |> 
+#   drop_na() |> 
+#   mutate(accessible = factor(accessible, levels = c("Accessible", "Partiellement accessible",
+#                                                     "Non accessible")))
+# 
+# #Converting vending points to shapefile and then joining
+# vending_join <- st_join(laval_db, vending_sf) |> 
+#   st_drop_geometry() |> 
+#   select(GeoUID, accessible) |> 
+#   mutate(accessible = ifelse(is.na(accessible), NA, 1)) |> 
+#   filter(accessible == 1)
+# 
+# #Joining the 15 minute TTM with the data
+# vending_walk <- ttm_walk_15 |> 
+#   left_join(vending_join, by = join_by("to" == "GeoUID")) |> 
+#   filter(accessible == 1) |> 
+#   group_by(GeoUID) |> 
+#   summarize(sum_accessible = sum(accessible, na.rm = TRUE)) |> 
+#   rename("accessible" = "sum_accessible")
+#   #mutate(accessible = replace_na(accessible, 0))
+# 
+# #Calculating accessibility to vending locations by DB
+# vending_accessibility <- laval_db |> 
+#   left_join(vending_walk, by = "GeoUID") |> 
+#   mutate(accessible = replace_na(accessible, 0)) |> 
+#   mutate(accessible_cat = factor(case_when(
+#     accessible == 0 ~ "0",
+#     accessible == 1 ~ "1",
+#     accessible >= 2 ~ "2+"
+#   )))
+# 
+# ggplot() + 
+#   geom_sf(data = mtlcma_sf, fill = "#FCFCFC", color = NA) +
+#   geom_sf(data = vending_accessibility, aes(fill = factor(accessible_cat)), color = NA) +
+#   scale_fill_manual(values = c("0" = "#C4CDE1", 
+#                                "1" = "#6C83B5",
+#                                "2+" = "#2B3448"),
+#                     na.value = curbcut_na,
+#                     name = "Nombre de points de vente accessibles") +
+#   labs(title = "Accessibilité aux points de vente STL 2024") +
+#   new_scale_color() +
+#   geom_sf(data = vending_sf, aes(color = accessible)) +
+#   scale_color_manual(values = c("Accessible" = "#0096FF", 
+#                                 "Partiellement accessible" = "#FFB000", 
+#                                 "Non accessible" = "#DC267F",
+#                                 "Accessibilité inconnue" = "grey"),
+#                      name = "Points de vente") +
+#   theme_minimal() +
+#   theme(plot.title = element_text(hjust = 0.5), axis.text = element_blank(),
+#         axis.title = element_blank(), axis.ticks = element_blank(),
+#         legend.position = "bottom", panel.grid = element_blank(),
+#         panel.background = element_rect(fill = "#525252"),
+#         legend.direction = "vertical",  # Vertical orientation for legends
+#         legend.box = "vertical",        # Stack legends vertically
+#         legend.key.height = unit(1.25, "lines"),  # Adjust key height for both legends
+#         legend.key.width = unit(1.25, "lines"),   # Adjust key width for both legends
+#         legend.title.align = 0.5,
+#         legend.spacing.y = unit(0.1, "cm")) +
+#   guides(
+#     fill = guide_legend(order = 1, ncol = 3, title.position = "top",
+#                         title.hjust = 0.5,
+#                         label.position = "bottom",
+#                         label.hjust = 0.5),
+#     color = guide_legend(order = 2, ncol = 3)
+#   ) +
+#   coord_sf(xlim = c(lvlbbox$xmin, lvlbbox$xmax),
+#            ylim = c(lvlbbox$ymin, lvlbbox$ymax))
 
 # Bus Data ----------------------------------------------------------------
 #Grabbing necessary STL data
