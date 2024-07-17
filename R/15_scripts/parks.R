@@ -42,7 +42,7 @@ parks_access <- cc.buildr::merge(parks_access, DBs[c("GeoUID", "geometry")])
 
 # Map it ------------------------------------------------------------------
 
-labels <- c("0", "1", "2", "4", "5+")
+labels <- c("0", "1", "2", "3-4", "5+")
 
 # Add our bins in the data
 parks_access <- add_bins(df = parks_access,
