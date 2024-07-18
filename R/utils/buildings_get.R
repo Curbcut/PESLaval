@@ -13,7 +13,7 @@ buildings <- cc.data::db_read_data("buildings", column_to_select = "DA_ID",
 
 DB <- cancensus::get_census(dataset = "CA21", 
                             regions = list(CSD = 2465005), 
-                            level = "DA", 
+                            level = "DB", 
                             geo_format = "sf")
 buildings <- sf::st_transform(buildings, crs = sf::st_crs(DB))
 
