@@ -4,6 +4,7 @@ library(sf)
 library(readxl)
 library(cmhc)
 library(scales)
+library(qs)
 library(raster) #Only load this if you don't need to use select()
 library(terra)
 
@@ -40,6 +41,12 @@ laval_ct <- cancensus::get_census(dataset = "CA21",
 laval_da <- cancensus::get_census(dataset = "CA21", 
                                   regions = list(CSD = 2465005), 
                                   level = "DA", 
+                                  geo_format = "sf")
+
+#Grabbing Laval shapefile by dissemination block
+laval_db <- cancensus::get_census(dataset = "CA21", 
+                                  regions = list(CSD = 2465005), 
+                                  level = "DB", 
                                   geo_format = "sf")
 
 #Loading the colors for the curbcut and heat scale for ouranos_sf
@@ -95,18 +102,18 @@ vuln_pop <- ouranos_sf |>
 
 #Mapping out heat vulnerability
 ggplot(data = ouranos_sf) +
-  geom_sf(data = laval_csd, fill = "#F1F1F1", color = "black") +
-  geom_sf(aes(fill = `Index`), color = "#454545", size = 0.3) +
-  labs(title = "Vulnérabilité à la chaleur à Laval 2018",
-       fill = "Niveau de vulnérabilité") +
+  gg_cc_tiles +
+  geom_sf(aes(fill = `Index`), color = "#454545", size = 0.2) +
+  labs(fill = "Niveau de vulnérabilité") +
   scale_fill_manual(values = heat_scale) +
-  theme_minimal() +
-  theme(axis.line = element_blank(), axis.text = element_blank(),
-        axis.title = element_blank(), axis.ticks = element_blank(),
-        panel.grid = element_blank(), plot.title = element_text(hjust = 0.5),
+  theme_void() +
+  theme(axis.text = element_blank(), axis.title = element_blank(),
+        panel.grid = element_blank(), plot.title = element_blank(),
         legend.position = "bottom", legend.justification = "center") +
   guides(fill = guide_legend(title.position = "top", title.hjust = 0.5, 
-                             label.position = "bottom", keywidth = 3, keyheight = 0.5))
+                             label.position = "bottom", keywidth = 3, keyheight = 0.5)) +
+  coord_sf(xlim = c(laval_bbox$xmin, laval_bbox$xmax),
+           ylim = c(laval_bbox$ymin, laval_bbox$ymax))
 
 # Biodiversity ------------------------------------------------------------
 # #Reading greenspace shapefile and canopy .tif
@@ -224,8 +231,8 @@ ggplot() +
 
 #Flood map using more granular data, version 2 without making separate files
 ggplot(data = curbcut_flooding) +
-  geom_sf(data = mtlcma_sf, fill = "grey", color = "black") +
-  geom_sf(data = laval_csd, fill = "#F8F8F8", color = NA) +
+  gg_cc_tiles +
+  geom_sf(data = laval_csd, fill = "#B3B3BB", color = NA, alpha = 0.5) +
   geom_sf(aes(fill = LIMITE), color = NA) +
   scale_fill_manual(values = c(
     "Zone inondable 0-2 ans" = "#045a8d",
@@ -235,13 +242,9 @@ ggplot(data = curbcut_flooding) +
       "Zone inondable 0-2 ans" = "Zone inondable 0-2 ans",
       "Zone inondable 2-20 ans" = "2-20 ans",
       "Zone inondable 20-100 ans" = "20-100 ans")) +
-  geom_sf(data = laval_csd, fill = NA, color = "black") +
-  theme_minimal() +
-  labs(title = "Carte des zones inondables 2019", fill = "") +
-  theme(axis.line = element_blank(), axis.text = element_blank(),
-        panel.background = element_rect(fill = "#cedbdc"),
-        axis.title = element_blank(), axis.ticks = element_blank(),
-        panel.grid = element_blank(), plot.title = element_text(hjust = 0.5),
+  theme_void() +
+  theme(axis.text = element_blank(), axis.title = element_blank(),
+        panel.grid = element_blank(), legend.title = element_blank(),
         legend.position = "bottom", legend.justification = "center") +
   coord_sf(xlim = c(laval_bbox$xmin, laval_bbox$xmax),
            ylim = c(laval_bbox$ymin, laval_bbox$ymax))
@@ -294,3 +297,78 @@ laval_flooded <- laval_db |>
   mutate(proportion_0_2 = flooding_0_2 * 100 / total_population,
          proportion_2_20 = flooding_2_20 * 100 / total_population,
          proportion_20_100 = flooding_20_100 * 100 / total_population)
+
+# Flooded Building Analysis -----------------------------------------------------
+zoning <- st_read("D://McGill/can_cache/cdu_type_milieux.shp") |> 
+  st_transform(crs = 4326) |> 
+  select(TYPE_MILIE) |> 
+  filter(!TYPE_MILIE %in% c("T1.1", "CI.1", "CI.2", "CI.3", "CE", "ZC",
+                            "ZH", "ZI.1", "ZI.2", "ZI.3", "ZE", "ZP", "SZD.1",
+                            "SZD.2", "SZD.3", "SZD.4", "SZD.5")) |> 
+  st_make_valid()
+
+buildings <- qread("D://McGill/can_cache/buildingss.qs") |> 
+  rename("GeoUID" = "DB_ID") |> 
+  st_join(zoning) |> 
+  filter(!is.na(TYPE_MILIE)) |> 
+  distinct(ID, .keep_all = TRUE) |> 
+  select(GeoUID) |> 
+  mutate(building = 1)
+
+flooded_buildings <- buildings |>
+  mutate(flood0_2 = 0,
+         flood2_20 = 0,
+         flood20_100 = 0)
+
+intersections0_2 <- st_intersects(flooded_buildings, flooding0_2, sparse = FALSE)
+intersections2_20 <- st_intersects(flooded_buildings, flooding2_20, sparse = FALSE)
+intersections20_100 <- st_intersects(flooded_buildings, flooding20_100, sparse = FALSE)
+
+flooded_buildings$flood0_2[apply(intersections0_2, 1, any)] <- 1
+flooded_buildings$flood2_20[apply(intersections0_2, 1, any)] <- 1
+flooded_buildings$flood20_100[apply(intersections0_2, 1, any)] <- 1
+
+flooded_buildings$flood2_20[apply(intersections2_20, 1, any)] <- 1
+flooded_buildings$flood20_100[apply(intersections2_20, 1, any)] <- 1
+
+flooded_buildings$flood20_100[apply(intersections20_100, 1, any)] <- 1
+
+flooded_buildings <- flooded_buildings |>
+  st_drop_geometry() |> 
+  group_by(GeoUID) |> 
+  summarize(
+    building = sum(building, na.rm = TRUE),
+    flood0_2 = sum(flood0_2, na.rm = TRUE),
+    flood2_20 = sum(flood2_20, na.rm = TRUE),
+    flood20_100 = sum(flood20_100, na.rm = TRUE)
+  )
+
+flooded_db <- laval_db |> 
+  st_drop_geometry() |> 
+  select(GeoUID, Population) |> 
+  left_join(flooded_buildings, by = "GeoUID") |> 
+  mutate(pop0_2 = round(Population * (flood0_2 / building), 0),
+         pop2_20 = round(Population * (flood2_20 / building), 0),
+         pop20_100 = round(Population * (flood20_100 / building), 0)) |> 
+  summarize(Population = sum(Population, na.rm = TRUE),
+            pop0_2 = sum(pop0_2, na.rm = TRUE),
+            pop2_20 = sum(pop2_20, na.rm = TRUE),
+            pop20_100 = sum(pop20_100, na.rm = TRUE))
+
+# Non-Residential Flooding ------------------------------------------------
+non_res_zoning <- st_read("D://McGill/can_cache/cdu_type_milieux.shp") |> 
+  st_transform(crs = 4326) |> 
+  select(TYPE_MILIE) |> 
+  filter(TYPE_MILIE %in% c("T1.1", "CI.1", "CI.2", "CI.3", "CE", "ZC",
+                           "ZH", "ZI.1", "ZI.2", "ZI.3", "ZE", "ZP", "SZD.1",
+                           "SZD.2", "SZD.3", "SZD.4", "SZD.5")) |> 
+  st_make_valid()
+
+non_res <- qread("D://McGill/can_cache/buildingss.qs") |> 
+  rename("GeoUID" = "DB_ID") |> 
+  st_join(non_res_zoning) |> 
+  filter(!is.na(TYPE_MILIE)) |> 
+  mutate(flood = 0)
+
+flood_non_res <- st_intersects(non_res, flooding0_2, sparse = FALSE)
+non_res$flood[apply(flood_non_res, 1, any)] <- 1

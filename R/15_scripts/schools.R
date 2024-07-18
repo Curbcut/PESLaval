@@ -494,10 +494,10 @@ ggplot() +
 
 #Kevin Map
 ggplot() +
-  geom_sf(data = mtlcma_sf, color = "black", fill = "#FCFCFC") +
-  geom_sf(data = laval_csd, color = "black", fill = NA) +
+  gg_cc_tiles +
   geom_sf(data = school_sf, aes(fill = access_pri), color = NA) +
-  geom_sf(data = primary_points, aes(color = type)) +
+  geom_sf(data = primary_points, aes(color = type), size = 0.9, alpha = 0.8) +
+  geom_sf(data = laval_sectors, fill = "transparent", color = "black") +
   scale_fill_manual(values = c("pri_none" = "#E8E8E8", 
                                "pri_fr" = "#6C83B5",
                                "pri_en" = "#73AE80",
@@ -510,21 +510,19 @@ ggplot() +
   scale_color_manual(values = c("Anglophone" = "#F5D574", 
                                 "Francophone" = "#CD718C"),
                      na.value = curbcut_na) +
-  theme_minimal() +
+  theme_void() +
   theme(plot.title = element_blank(), axis.text = element_blank(),
         legend.position = "bottom", legend.title = element_blank(),
         axis.title = element_blank(), axis.ticks = element_blank(),
-        panel.grid = element_blank(), panel.background = element_rect(fill = "#525252")) +
+        panel.grid = element_blank()) +
   guides(fill = guide_legend(ncol = 2),
-         color = guide_legend(ncol = 1))+
-  coord_sf(xlim = c(laval_bbox$xmin, laval_bbox$xmax),
-           ylim = c(laval_bbox$ymin, laval_bbox$ymax))
+         color = guide_legend(ncol = 1, override.aes = list(size = 3)))
 
 ggplot() +
-  geom_sf(data = mtlcma_sf, color = "black", fill = "#FCFCFC") +
-  geom_sf(data = laval_csd, color = "black", fill = NA) +
+  gg_cc_tiles +
   geom_sf(data = school_sf, aes(fill = access_sec), color = NA) +
-  geom_sf(data = secondary_points, aes(color = type)) +
+  geom_sf(data = secondary_points, aes(color = type), size = 0.9, alpha = 0.8) +
+  geom_sf(data = laval_sectors, fill = "transparent", color = "black") +
   scale_fill_manual(values = c("sec_none" = "#E8E8E8", 
                                "sec_fr" = "#6C83B5",
                                "sec_en" = "#73AE80",
@@ -537,15 +535,12 @@ ggplot() +
   scale_color_manual(values = c("Anglophone" = "#F5D574", 
                                 "Francophone" = "#CD718C"),
                      na.value = curbcut_na) +
-  theme_minimal() +
+  theme_void() +
   theme(plot.title = element_blank(), axis.text = element_blank(),
         legend.position = "bottom", legend.title = element_blank(),
-        axis.title = element_blank(), axis.ticks = element_blank(),
-        panel.grid = element_blank(), panel.background = element_rect(fill = "#525252")) +
+        axis.title = element_blank(), panel.grid = element_blank()) +
   guides(fill = guide_legend(ncol = 2),
-         color = guide_legend(ncol = 1))+
-  coord_sf(xlim = c(laval_bbox$xmin, laval_bbox$xmax),
-           ylim = c(laval_bbox$ymin, laval_bbox$ymax))
+         color = guide_legend(ncol = 1, override.aes = list(size = 3)))
 
 noprimary <- school_sf |> 
   filter(eng_secondary >= 1)

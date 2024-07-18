@@ -197,7 +197,16 @@ municipal_table_ttm <- ttm_walk_15_ct |>
   group_by(GeoUID) |> 
   summarise(public_sum = sum(place, na.rm = TRUE), .groups = 'drop')
 
-list(classInt::classIntervals(municipal_table_ttm$public_sum, n = 4, style = "jenks")$brks)
+list(classInt::classIntervals(municipal_table_ttm$public_sum, n = 5, style = "jenks")$brks)
+
+averages <- table_sf |> 
+  left_join(municipal_table_ttm, by = "GeoUID") |> 
+  st_drop_geometry() |> 
+  select(low, immigrant, Population, public_sum) |> 
+  mutate(total_low = low * public_sum,
+         total_imm = immigrant * public_sum,
+         total_population = Population * public_sum) |> 
+  summarize(across(everything(), sum, na.rm = TRUE))
 
 municipal_sf_ct <- table_sf |> 
   left_join(municipal_table_ttm, by = "GeoUID") |> 
@@ -207,16 +216,17 @@ municipal_sf_ct <- table_sf |>
   summarize("Faible revenu (n)" = sum(low, na.rm = TRUE),
             "Les immigrants (n)" = sum(immigrant, na.rm = TRUE),
             "Population (n)" = sum(Population, na.rm = TRUE)) |> 
-  mutate(`Lieux et édifices municipaux accessibles (n)` = case_when(public_sum < 2 ~ "< 2",
-                                                                    public_sum >= 2 & public_sum <= 6 ~ "2-6",
-                                                                    public_sum > 6 & public_sum <= 12 ~ "6-12",
-                                                                    public_sum > 12 ~ "> 12")) |> 
+  mutate(`Lieux et édifices municipaux accessibles (n)` = case_when(public_sum == 0 ~ "0",
+                                                                    public_sum >= 1 & public_sum <= 2 ~ "1-2",
+                                                                    public_sum > 2 & public_sum <= 6 ~ "3-6",
+                                                                    public_sum > 6 & public_sum <= 10 ~ "7-10",
+                                                                    public_sum > 10 ~ "> 10")) |> 
   group_by(`Lieux et édifices municipaux accessibles (n)`) |> 
   summarize("Faible revenu (n)" = sum(`Faible revenu (n)`),
             "Les immigrants (n)" = sum(`Les immigrants (n)`),
             "Population (n)" = sum(`Population (n)`)) |> 
   mutate(`Lieux et édifices municipaux accessibles (n)` = factor(`Lieux et édifices municipaux accessibles (n)`,
-                                                                 levels = c("< 2", "2-6", "6-12", "> 12"))) |> 
+                                                                 levels = c("0", "1-2", "3-6", "7-10", "> 10"))) |> 
   mutate("Faible revenu (%)" = round(`Faible revenu (n)` * 100 / sum(`Faible revenu (n)`), 2),
          "Les immigrants (%)" = round(`Les immigrants (n)` * 100 / sum(`Les immigrants (n)`), 2),
          "Population (%)" = round(`Population (n)` * 100 / sum(`Population (n)`), 2)) |> 
