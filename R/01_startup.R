@@ -35,22 +35,24 @@ tiles <- mapboxapi::get_static_tiles(location = lvlbbox,
                                      scaling_factor = "2x")
 
 gg_cc_tiles <- list(ggspatial::layer_spatial(tiles, alpha = 0.7))
+default_theme <- theme(legend.position = "bottom",
+                        legend.box = "horizontal",
+                        legend.title = element_text(size = 10),
+                        legend.text = element_text(size = 8),
+                        legend.title.align = 0.5,
+                        legend.text.align = 0.5,
+                        text=element_text(family="KMR Apparat Regular"))
 gg_cc_theme_no_sf <- list(
   theme_minimal(),
-  theme(legend.position = "bottom",
-        legend.box = "horizontal",
-        legend.title = element_text(size = 10),
-        legend.text = element_text(size = 8),
-        legend.title.align = 0.5,
-        legend.text.align = 0.5,
-        text=element_text(family="KMR Apparat Regular"))
+  default_theme
 )
 gg_cc_theme <- c(list(
   geom_sf(data = laval_sectors, fill = "transparent", color = "black"),
   coord_sf(xlim = c(lvlbbox["xmin"], lvlbbox["xmax"]), 
            ylim = c(lvlbbox["ymin"], lvlbbox["ymax"]))),
   gg_cc_theme_no_sf,
-  list(theme_void())
+  list(theme_void()),
+  list(default_theme)
 )
 
 # Helper function to make binned variables

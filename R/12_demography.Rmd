@@ -46,8 +46,8 @@ age_pyramid
 Laval a une population diversifiée sur le plan ethnique et culturel, et l'une des façons de mesurer cette diversité est l'origine ethnique des résidents. 
 
 Définition: Origine ethnique
-- *L'origine ethnique d'une personne fait référence aux origines ethniques ou culturelles de ses ancêtres. Un ancêtre est souvent plus éloigné qu'un grand-parent.*
-  - *Une personne peut déclarer plus d'une origine ethnique ou culturelle.*^[Statistique Canada. (2024). Origine ethnique ou culturelle de la personne (variable). Récupéré de https://www23.statcan.gc.ca/imdb/p3Var_f.pl?Function=DEC&Id=1219467]
++ *L'origine ethnique d'une personne fait référence aux origines ethniques ou culturelles de ses ancêtres. Un ancêtre est souvent plus éloigné qu'un grand-parent.*
+  + *Une personne peut déclarer plus d'une origine ethnique ou culturelle.*^[Statistique Canada. (2024). Origine ethnique ou culturelle de la personne (variable). Récupéré de https://www23.statcan.gc.ca/imdb/p3Var_f.pl?Function=DEC&Id=1219467]
 
 En 2021, plus du tiers de la population lavalloise (`r ethnic_origins$europe`) a déclaré être d'origine ethnique ou culturelle européenne, suivi par `r ethnic_origins$na` d'origine nord-américaine, `r ethnic_origins$asian` asiatique, `r ethnic_origins$african` africaine, `r ethnic_origins$caraibe_latin` caribéenne ou d'Amérique centrale et du Sud, et `r ethnic_origins$other` d'origine océanique ou d'autres réponses. 
 
