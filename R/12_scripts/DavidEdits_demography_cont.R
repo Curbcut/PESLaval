@@ -1,6 +1,6 @@
 #bridget working:
 ### DEMOGRAPHY - POPULATION AND POPULATION DENSITY #############################
-source("R/01_startup")
+source("R/01_startup.R")
 library(ggplot2)
 #geom_context <- qs::qread("data/geom_context/geom_context.qs")
 
@@ -16,19 +16,19 @@ laval_census <- cancensus::get_census(dataset = "CA21",
                                       level = "CSD",
                                       geo_format = "sf")
 
-# curbcut::convert_unit lets us convert any type and number to 'Pretty' number. 
+# convert_number lets us convert any type and number to 'Pretty' number. 
 # To use curbcut functions, install the package through `devtools::install_github("Curbcut/curbcut")`
 laval_population_census <- laval_census$Population
-laval_population_census_pretty <- curbcut::convert_unit(x = laval_population)
+laval_population_census_pretty <- convert_number(x = laval_population)
 
 laval_population_ISQ <- 454990
-laval_population_ISQ_pretty <- curbcut::convert_unit(x = laval_population)
+laval_population_ISQ_pretty <- convert_number(x = laval_population)
 
 laval_size <- (cc.buildr::get_area(laval_census) / 1e6)
-laval_size_pretty <- curbcut::convert_unit(x = laval_size)
+laval_size_pretty <- convert_number(x = laval_size)
 
 density <- laval_population_ISQ / laval_size
-density_pretty <- curbcut::convert_unit(x = density)
+density_pretty <- convert_number(x = density)
 
 
 # Population density graph ------------------------------------------------
@@ -229,129 +229,143 @@ ggplot2::ggsave(filename = here::here("output/0_demography/age_pyramid.png"),
                 plot = age_pyramid, width = 6, height = 4)
 
 
-# Another way to accomplish the same result, to show a different workflow
-# Temporary example to show the other way to get our data
-pop_dist_qc_CSD <- get_census(dataset = "CA21", 
-                              regions = list(PR = 24), 
-                              level = "CSD",
-                              vectors = pop_dist_vector)
+# Répartition par genre ---------------------------------------------------
 
-pop_dist_qc_CSD <- 
-  pop_dist_qc_CSD |> 
-  # All rows with any NAs have all NAs, so safe to just filter on one column
-  filter(!is.na(`Femme 45-49`)) |> 
-  mutate(city = case_when(
-    GeoUID == "2466023" ~ "Montreal",
-    GeoUID == "2465005" ~ "Laval",
-    .default = NA),
-    region = if_else(CMA_UID == "24462", "Montreal", NA),
-    .before = Type) |> 
-  group_by(city, region) |> 
-  summarize(across(c(`Homme 0-4`:`Femme 85+`), sum),
-            .groups = "drop")
+h_f  <- get_census(dataset = "CA21", 
+                   regions = list(CSD = 2465005), 
+                   level = "CSD",
+                   vectors = c(homme = "v_CA21_9", femme = "v_CA21_10"))
 
-pop_dist_qc_CSD_1 <- 
-  pop_dist_qc_CSD |> 
-  filter(!is.na(city)) |> 
-  select(-region)
-
-pop_dist_qc_CSD_2 <- 
-  pop_dist_qc_CSD |> 
-  filter(region == "Montreal") |> 
-  summarize(city = "Montreal CMA", across(c(`Homme 0-4`:`Femme 85+`), sum))
-
-pop_dist_qc_CSD_3 <- 
-  pop_dist_qc_CSD |>
-  summarize(city = "Province", across(c(`Homme 0-4`:`Femme 85+`), sum))
-
-bind_rows(pop_dist_qc_CSD_1, pop_dist_qc_CSD_2, pop_dist_qc_CSD_3) |> 
-  pivot_longer(-city, names_to = "category") |> 
-  rename(name = city) |> 
-  # Split gender off into its own variable
-  mutate(gender = str_extract(category, "(Homme|Femme)"),
-         category = str_remove(category, "(Homme |Femme )")) |> 
-  group_by(name, gender) |> 
-  mutate(pct = value / sum(value)) |> 
-  ungroup() |> 
-  # Make Femme values negative to facilitate easier population pyramids
-  mutate(pct = if_else(gender == "Femme", pct * -1, pct)) |> 
-  mutate(category = factor(category, levels = sort_vec)) |> 
-  ggplot(aes(x = pct, y = category, fill = gender)) +
-  geom_col() +
-  facet_wrap(~name, nrow = 2) +
-  scale_fill_manual(values = c("Femme" = "pink", "Homme" = "blue")) +
-  scale_x_continuous(breaks = -2:2 * 0.04,
-                     labels = c("8 %", "4 %", "0", "4 %", "8 %")) +
-  theme(legend.position = "bottom")
+homme_pct_pretty <- convert_pct(h_f$homme / (h_f$homme + h_f$femme))
+femme_pct_pretty <- convert_pct(h_f$femme / (h_f$femme + h_f$homme))
 
 
-#average and median age--------------------------------------------------------
+#ethnic origin for the population ----------------------------------------------
 
-average_age <- cancensus::get_census(dataset = "CA21", 
-                                      regions = list(CSD = 2465005), 
-                                      level = "CSD",
-                                      vectors = c("AverageAge" = "v_CA21_386",
-                                                  "AverageAgeHomme" = "v_CA21_387",
-                                                  "AverageAgeFemme" = "v_CA21_388"))
+ethnic_origins <- read.csv("data/demography/Ethnic Origin Total Pop V2.csv", skip = 12)[1:10, 1:2] |> 
+  tibble::as_tibble()
+names(ethnic_origins) <- c("response", "total")
+ethnic_origins$total <- gsub(",", "", ethnic_origins$total) |> as.numeric()
 
-median_age <- cancensus::get_census(dataset = "CA21", 
-                                     regions = list(CSD = 2465005), 
-                                     level = "CSD",
-                                     vectors = c("MedianAge" = "v_CA21_389",
-                                                 "MedianAgeHomme" = "v_CA21_390",
-                                                 "MedianAgeFemme" = "v_CA21_391"))
+ethnic_origins <- sapply(ethnic_origins$response[3:10], \(x) {
+  val <- ethnic_origins$total[ethnic_origins$response == x] / 
+    ethnic_origins$total[ethnic_origins$response == "Total - Ethnic or cultural origin 9"]
+}, simplify = FALSE, USE.NAMES = TRUE)
 
-#percent population change------------------------------------------------------
+ethnic_origins$`caraibe_latin` <- ethnic_origins$`Latin, Central and South American origins` + ethnic_origins$`Caribbean origins`
+ethnic_origins$`other` <- ethnic_origins$`Other ethnic and cultural origins` + ethnic_origins$`Oceanian origins`
+
+ethnic_origins <- lapply(ethnic_origins, convert_pct)
+ethnic_origins$na <- ethnic_origins$`North American origins`
+ethnic_origins$europe <- ethnic_origins$`European origins`
+ethnic_origins$asian <- ethnic_origins$`Asian origins`
+ethnic_origins$african <- ethnic_origins$`African origins`
+
+# How many ethnic groups?
+ethnic_groups <- cancensus::list_census_vectors("CA21")$vector[
+  cancensus::list_census_vectors("CA21")$parent_vector == "v_CA21_4917"
+]
+vecs <- ethnic_groups[!is.na(ethnic_groups)]
+ethnic_groups <- cancensus::get_census(dataset = "CA21", 
+                                       regions = list(CSD = 2465005), 
+                                       level = "CSD",
+                                       vectors = vecs)
+ethnic_groups <- ethnic_groups[11:ncol(ethnic_groups)]
+ethnic_groups <- pivot_longer(ethnic_groups, cols = names(ethnic_groups))
+groupe_ethniques_diff <- ethnic_groups[ethnic_groups$value != 0, ] |> nrow()
+
+
+# Percent population change -----------------------------------------------
 
 population_change <- cancensus::get_census(dataset = "CA21", 
                                            regions = list(CSD = 2465005), 
                                            level = "CSD",
                                            vectors = c("population_change" = "v_CA21_3"))
-
-#compare population change to rest of province
-
-View(list_census_regions("CA21"))
-View(list_census_vectors("CA21"))
+population_change <- population_change$population_change
+population_change <- convert_pct(population_change / 100)
 
 quebec_pop_change <- cancensus::get_census(dataset = "CA21", 
-                                           regions = list(PR = 8501833), 
+                                           regions = list(PR = 24), 
                                            level = "PR",
                                            vectors = c("population_change" = "v_CA21_3"))
+quebec_pop_change <- quebec_pop_change$population_change
+quebec_pop_change <- convert_pct(quebec_pop_change / 100)
 
-#ethnic origin for the population ----------------------------------------------
-#using Total - Place of birth for the immigrant population in private households
-####but then this doesn't account for non-immigrants?
 
-ethnic_origin <- cancensus::get_census(dataset = "CA21", 
-                                       regions = list(CSD = 2465005), 
-                                       level = "CSD",
-                                       vectors = c("Total" = "v_CA21_4455",
-                                                   "Americas" = "v_CA21_4458",
-                                                   "Europe" = "v_CA21_4494",
-                                                   "Africa" = "v_CA21_4545",
-                                                   "Asia" = "v_CA21_4578",
-                                                   "Oceana and other" = "v_CA21_4632"))
+# Population evolution ----------------------------------------------------
 
-ethnic_origin <- ethnic_origin |> mutate(PercentAmericas = Americas/Total) |> 
-  mutate(PercentEurope = Europe/Total,
-         PercentAfrica = Africa/Total,
-         PercentAsia = Asia/Total,
-         PercentOceana_Other = `Oceana and other`/Total)
+#insert data set from folder sourced from different census' years
+pop_evolution <- read.csv("data/demography/Population Evolution.csv", skip = 3) |> 
+  tibble::as_tibble()
+pop_evolution_tidy <- pop_evolution[1:16, ]
+names(pop_evolution_tidy)[1] <- "Année"
 
-#see if this is significantly different than previous years or not
+# the last four points need to be distinct because those are the future projections
+pop_evolution_tidy <- pop_evolution_tidy %>%
+  mutate(PointType = ifelse(row_number() > n() - 4, "Projection (ISQ)", "Valeur du recensement canadien"))
 
-View(list_census_vectors("CA06"))
+# allows for the end of the line to be dotted based on projection points
+solid_data <- pop_evolution_tidy %>% filter(PointType == "Valeur du recensement canadien" | row_number() == n() - 4)
+dotted_data <- pop_evolution_tidy %>% filter(PointType == "Projection (ISQ)" | row_number() == n() - 4)
 
-ethnic_origin2006 <- cancensus::get_census(dataset = "CA06",
-                                           regions = list(CSD = 2465005), 
-                                           level = "CSD")
-                                           
+# create the visual 
+pop_et_proj <- ggplot(data = pop_evolution_tidy, aes(x = Année, y = Population)) +
+  geom_point(aes(color = PointType), size = 3) +
+  geom_line(data = solid_data, aes(x = Année, y = Population, group = 1), linetype = "solid") +
+  geom_line(data = dotted_data, aes(x = Année, y = Population, group = 1), linetype = "dotted") +
+  ylim(0, max(pop_evolution_tidy$Population)) +
+  scale_color_manual(values = c("Projection (ISQ)" = color_theme("pinkhealth"), "Valeur du recensement canadien" = "black")) +
+  labs(color = element_blank(), title = element_blank()) + 
+  scale_y_continuous(labels = convert_number) +
+  gg_cc_theme_no_sf
 
+ggplot2::ggsave(filename = here::here("output/0_demography/pop_et_proj.png"), 
+                plot = pop_et_proj, width = 7, height = 3)
+
+
+
+# Naissances --------------------------------------------------------------
+
+# Births -----------------------------------------------------------------------
+# this is the data source, filter to just look at Laval
+### https://statistique.quebec.ca/fr/document/naissances-regions-administratives/tableau/naissances-deces-accroissement-naturel-mariages-par-region-administrative-quebec#tri_phe=10&tri_ra=13
+
+#insert downloaded data set from linked source
+
+Laval_Births <- read.csv("data/demography/Laval_Births.csv", skip = 5) |> 
+  tibble::as_tibble()
+Laval_Births <- pivot_longer(Laval_Births[3, ], cols = names(Laval_Births)[4:41], )[4:5]
+names(Laval_Births) <- c("year", "naissances")
+Laval_Births$year <- as.numeric(gsub("^X|ᵖ", "", Laval_Births$year))
+Laval_Births$naissances <- as.numeric(Laval_Births$naissances)
+
+
+# Get numbner of births 2023
+naissances_laval <- Laval_Births$naissances[Laval_Births$year == 2023]
+naissances_laval <- convert_number(naissances_laval)
+
+# Inspect the specific rows 35 to 39
+naissances_laval_moyenne_5 <- 
+  convert_number(Laval_Births$naissances[Laval_Births$year %in% 2019:2023] |> mean())
+
+laval_births_graph <- 
+  ggplot(Laval_Births) + 
+  geom_line(aes(x = year, y = naissances)) + 
+  scale_y_continuous(labels = convert_number, limits = c(2500,4800)) +
+  gg_cc_theme_no_sf +
+  xlab("Année") +
+  ylab("Naissances")
+
+ggplot2::ggsave(filename = here::here("output/0_demography/laval_births_graph.png"), 
+                plot = laval_births_graph, width = 4, height = 3)
 
 qs::qsavem(laval_population_ISQ_pretty, laval_size_pretty, density_pretty,
            pop_density_plot, age_pyramid, age_moyen_pretty,
            age_moyen_prov_pretty, age_moyen_cma_pretty, moins_18_pretty, 
            moins_18_prov_pretty, sixtyfive_pretty, sixtyfive_prov_pretty, 
+           homme_pct_pretty, femme_pct_pretty, ethnic_origins, groupe_ethniques_diff,
+           population_change, quebec_pop_change, pop_et_proj, naissances_laval,
+           naissances_laval_moyenne_5, laval_births_graph,
            file = "data/demography/demo.qsm")
 
                                     

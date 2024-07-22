@@ -82,11 +82,12 @@ convert_hundreds <- function(x) {
 }
 
 convert_number <- function(x) {
-  out <- curbcut::convert_unit(x = x)
-  gsub(",", " ", out)
+  x[!is.na(x)] <- curbcut::convert_unit(x = x[!is.na(x)])
+  gsub(",", " ", x)
 }
 
 convert_pct <- function(x) {
   out <- curbcut:::convert_unit.pct(x = x, decimal = 1)
+  out <- gsub("\\.", ",", out)
   gsub("\\%", " %", out)
 }

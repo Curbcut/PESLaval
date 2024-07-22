@@ -1,7 +1,10 @@
 fig:popDensityPlot
 fig:agePyarmid
+fig:popProj
+fig:birthsGraph
 la-démographie-de-laval
 structure-de-la-population
+croissance-de-la-population
 limmigration-et-diversité-ethnoculturelle
 les-langues
 la-famille-lavalloise
