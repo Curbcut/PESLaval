@@ -7,42 +7,61 @@ output:
   bookdown::pdf_document2: default
 ---
 
-https://numerique.banq.qc.ca/patrimoine/details/52327/2773091
-
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = FALSE, include = FALSE)
 ```
 
-## Population
-
 ```{r population}
 
 # Load the data that has been calculated and saved in the according script:
-qs::qload(here::here("data/demography/pop_and_density.qsm"))
+qs::qload(here::here("data/demography/demo.qsm"))
 
 # In the text, we always refer to an object previously created using this: `r object_name`
 ```
-La population de la Ville de Laval en 2021 était de `r laval_population_pretty` selon le recensement canadien de la même année. Selon les projections actuelles de l'Institut de la Statistique du Québec, la population du territoire lavallois est estimée à 454,990 individus pour l'année 2024. (Source: https://statistique.quebec.ca/fr/document/projections-de-population-regions-administratives-et-regions-metropolitaines-rmr).
 
-## Densité
+# La démographie de Laval
 
-```{r popDensityPlot, include=TRUE, fig.cap="Densité de la population lavalloise selon les secteurs de recensement, 2021", fig.align = 'center'}
+Fondée en 1965 par la fusion de 14 anciennes municipalités, Laval s'étend sur `r laval_size_pretty` km² et couvre l'Île Jésus ainsi que les Îles Laval. Depuis sa création, la ville a connu une croissance démographique notable, passant d'une région rurale à un centre urbain dynamique. Laval est la troisième plus grande ville de la province en termes d’habitant·e·s, après Montréal et Québec.
+
+En 2024, la population de Laval est estimée à `r laval_population_ISQ_pretty`^[Institut de la statistique du Québec. (2024). Projections de population: Régions administratives et régions métropolitaines (RMR). Récupéré de https://statistique.quebec.ca/fr/document/projections-de-population-regions-administratives-et-regions-metropolitaines-rmr.], avec une densité moyenne de `r density_pretty` personnes par kilomètre carré. Comme le montre la figure \@ref(fig:popDensityPlot), les secteurs les plus densément peuplés se retrouvent à  Chomedey, Laval-des-Rapides, et Pont-Viau.
+
+```{r popDensityPlot, include=TRUE, fig.cap="Densité de la population lavalloise par km², 2021", fig.align = 'center'}
 
 pop_density_plot
 
 ```
 
-La figure \@ref(fig:popDensityPlot) informe la densité de la population sur le territoire.
+## Structure de la population
 
-## Changement dans le temps
+En 2021, l'âge moyen des Lavallois·e·s était de `r age_moyen_pretty` ans, comparativement à `r age_moyen_prov_pretty` ans pour la province et à `r age_moyen_cma_pretty` ans pour l'ensemble de la Communauté Métropolitaine de Montréal. Les jeunes de moins de 18 ans constituaient `r moins_18_pretty` de la population de Laval, une proportion un peu plus élevée que celle du Québec dans son ensemble, qui était de `r moins_18_prov_pretty`. Les personnes âgées de 65 ans et plus représentaient `r sixtyfive_pretty` de la population lavalloise, ce qui était légèrement inférieur à la moyenne de la province (`r sixtyfive_prov_pretty` pour la province). Comparativement à l’ensemble du Québec, la distribution de la population de Laval comportait une plus faible proportion de jeunes adultes (25-34 ans), mais une plus grande proportion d'enfants, comme le montre la figure \@ref(fig:agePyarmid) ci-dessous. Les astérisques sont utilisés à titre indicatif lorsqu'une tranche de la population, par âge et pour un genre, dépassait les 6 %.
 
-```{r popDensityPlotChange, include=TRUE, fig.cap="Laval change in population density, 2016-2021", fig.align = 'center'}
+```{r agePyarmid, include=TRUE, fig.cap="Répartition de la population par âge et par sexe, Laval et Ensemble du Québec, 2021", fig.align = 'center'}
 
-pop_density_change_plot
+age_pyramid
 
 ```
 
-La figure \@ref(fig:popDensityPlotChange) informe la densité de la population sur le territoire.
 
 
-## Comparaison avec la province
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
