@@ -289,3 +289,50 @@ ggplot(comp, aes(x = Year, y = prop, fill = level)) +
         axis.text.y = element_blank(), axis.ticks.y = element_blank(),
         axis.title.x = element_blank(), axis.ticks.x = element_blank()) +
   guides(fill = guide_legend(ncol = 2))
+
+# Education by Sex --------------------------------------------------------
+edus_v <- c("m15_64" = "v_CA21_69", "f15_64" = "v_CA21_70",
+            "m15_19" = "v_CA21_72", "f15_19" = "v_CA21_73",
+            "m20_24" = "v_CA21_90", "f20_24" = "v_CA21_91",
+            "m_none" = "v_CA21_5869", "f_none" = "v_CA21_5870",
+            "m_sec" = "v_CA21_5872", "f_sec" = "v_CA21_5873",
+            "m_psec" = "v_CA21_5878", "f_psec" = "v_CA21_5879",
+            "m_uni" = "v_CA21_5896", "f_uni" = "v_CA21_5897")
+
+edus <- get_census(dataset = "CA21",
+                   regions = list(CSD = (2465005)),
+                   level = "CSD",
+                   vectors = edus_v) |> 
+  mutate(m_total = m15_64 - m15_19 - m20_24, f_total = f15_64 - f15_19 - f20_24) |> 
+  mutate(m_none = round(m_none / m_total * 100, 1), f_none = round(f_none / f_total * 100, 1),
+         m_sec = round(m_sec / m_total * 100, 1), f_sec = round(f_sec / f_total * 100, 1),
+         m_psec = round(m_psec / m_total * 100, 1), f_psec = round(f_psec / f_total * 100, 1),
+         m_uni = round(m_uni / m_total * 100, 1), f_uni = round(f_uni / f_total * 100, 1)) |> 
+  select(m_none, f_none, m_sec, f_sec, m_psec, f_psec, m_uni, f_uni) |> 
+  pivot_longer(everything(), names_to = "level", values_to = "prop") |> 
+  mutate(education = case_when(str_ends(level, "none") ~ "none",
+                               str_ends(level, "_sec") ~ "sec",
+                               str_ends(level, "psec") ~ "psec",
+                               str_ends(level, "uni") ~ "uni",
+                               TRUE ~ "Other"),
+         sex = case_when(str_starts(level, "m") ~ "Hommes",
+                          str_starts(level, "f") ~ "Femmes",
+                          TRUE ~ "Total"),
+         percent = paste0(prop, "%")) |> 
+  select(-level) |> 
+  mutate(education = factor(education, levels = c("none", "sec", "psec", "uni")))
+
+ggplot(edus, aes(x = education, y = prop, fill = sex)) +
+  geom_bar(stat = "identity", position = "dodge") +
+  geom_text(aes(label = percent, y = 1), vjust = -0.5, color = "white", size = 4, position = position_dodge(width = 0.9)) +
+  scale_fill_manual(values = c("Femmes" = "#CD718C", "Hommes" = "#A3B0D1")) +
+  scale_x_discrete(labels = c("Aucun certificat, diplôme\nou grade",
+                              "Diplôme d'études secondaires\nou attestation d'équivalence",
+                              "Certificat ou diplôme\nd’études postsecondaires\ninférieur au baccalauréat",
+                              "Baccalauréat ou grade supérieur")) +
+  theme_minimal() +
+  theme(legend.title = element_blank(), legend.position = "bottom",
+        plot.title = element_blank(), axis.title.y = element_blank(),
+        axis.text.y = element_blank(), axis.ticks.y = element_blank(),
+        axis.title.x = element_blank(), axis.ticks.x = element_blank()) +
+  guides(fill = guide_legend(ncol = 2))
