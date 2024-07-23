@@ -4,8 +4,22 @@ author: "Curbcut"
 output: html_document
 ---
 
-
 ```{r setup1, include=FALSE}
 knitr::opts_chunk$set(echo = FALSE)
 ```
 
+## Langues
+
+Pour une analyse approfondie du paysage linguistique de Laval, il est essentiel d'examiner diverses mesures de l'utilisation des langues. Chaque mesure fournit des informations précieuses sur les diverses facettes de l'utilisation des langues: comment les langues sont apprises, utilisées à la maison et utilisées au travail. Ainsi, les mesures suivantes permettent d'illustrer non seulement les langues parlées, mais aussi la profondeur et le contexte de leur utilisation dans différents environnements, qu'il s'agisse d'environnement personnels ou professionnels.
+
+### Connaissance des langues officielles du Canada
+
+Selon la loi québécoise, la seule langue officielle et commune du Québec est le français. Toutefois, pour les besoins de notre analyse et l'utilisation des données du recensement canadien, nous employons le terme "langues officielles" tel que défini par Statistique Canada, qui reconnaît à la fois le français et l'anglais comme langues officielles du pays.
+
+Ainsi, en ce qui concerne la connaissance des langues officielles du Canada telles que définies par le recensement canadien, Laval compte notamment une grande proportion de personnes bilingues (français et anglais) que l'ensemble du Québec, et cette proportion a augmenté de façon constante au fil du temps, passant de `r bilingual_1996` en 1996 à `r bilingual_2021` en 2021.
+
+### Population d'expression de langue anglaise
+
+### Langue la plus souvent parlée à la maison
+
+### Les langues parlées au travail

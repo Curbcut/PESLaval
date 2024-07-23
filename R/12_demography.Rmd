@@ -46,8 +46,8 @@ age_pyramid
 Laval a une population diversifiée sur le plan ethnique et culturel, et l'une des façons de mesurer cette diversité est l'origine ethnique des résidents. 
 
 Définition: Origine ethnique
-+ *L'origine ethnique d'une personne fait référence aux origines ethniques ou culturelles de ses ancêtres. Un ancêtre est souvent plus éloigné qu'un grand-parent.*
-  + *Une personne peut déclarer plus d'une origine ethnique ou culturelle.*^[Statistique Canada. (2024). Origine ethnique ou culturelle de la personne (variable). Récupéré de https://www23.statcan.gc.ca/imdb/p3Var_f.pl?Function=DEC&Id=1219467]
+- *L'origine ethnique d'une personne fait référence aux origines ethniques ou culturelles de ses ancêtres. Un ancêtre est souvent plus éloigné qu'un grand-parent.*
+  - *Une personne peut déclarer plus d'une origine ethnique ou culturelle.*^[Statistique Canada. (2024). Origine ethnique ou culturelle de la personne (variable). Récupéré de https://www23.statcan.gc.ca/imdb/p3Var_f.pl?Function=DEC&Id=1219467]
 
 En 2021, plus du tiers de la population lavalloise (`r ethnic_origins$europe`) a déclaré être d'origine ethnique ou culturelle européenne, suivi par `r ethnic_origins$na` d'origine nord-américaine, `r ethnic_origins$asian` asiatique, `r ethnic_origins$african` africaine, `r ethnic_origins$caraibe_latin` caribéenne ou d'Amérique centrale et du Sud, et `r ethnic_origins$other` d'origine océanique ou d'autres réponses. 
 
@@ -70,9 +70,10 @@ laval_births_graph
 
 ```
 
-D'après les projections démographiques de l'Institut de la statistique du Québec (2022), le nombre de naissances annuelles devrait atteindre environ 4 380 d'ici 2041. En 2020, près de la moitié (44,2 %) des nouveau-nés lavallois étaient nées dans les secteurs 3 (Chomedey) et 2 (Pont-Viau, Renaud-Coursol et Laval-des-Rapides), chacun représentant 22,1 % des naissances. Parmi les 3 976 naissances de cette année-là, un peu plus de la moitié (55,5 %) ont eu lieu sur le territoire de la ville de Laval^[Récupéré de https://www.lavalensante.com/fileadmin/internet/cisss_laval/Documentation/Sante_publique/Profils_et_portraits/Portraits/230824_PORTRAIT_LAVALLOIS_2023_FR_VF.pdf].
+D'après les projections démographiques de l'Institut de la statistique du Québec (2022), le nombre de naissances annuelles devrait atteindre environ 4 380 d'ici 2041. En 2020, près de la moitié (44,2 %) des nouveau-nés lavallois étaient nées dans les secteurs 3 (Chomedey) et 2 (Pont-Viau, Renaud-Coursol et Laval-des-Rapides), chacun représentant 22,1 % des naissances. Parmi les 3 976 naissances de cette année-là, un peu plus de la moitié (55,5 %) ont eu lieu sur le territoire de la ville de Laval^[Institut de la statistique du Québec. (2024). Naissances, décès, accroissement naturel et mariages par région administrative, Québec. Récupéré de https://statistique.quebec.ca/fr/document/naissances-regions-administratives/tableau/naissances-deces-accroissement-naturel-mariages-par-region-administrative-quebec#tri_phe=10&tri_ra=13].
 
-Plus de la moitié des nouveau-nés lavallois (58,5 %) en 2020 avaient au moins un parent né à l’étranger, en hausse par rapport à 2016 (54,2 %). La proportion de nouveau-nés avec deux parents immigrant·e·s a également augmenté, passant de 36,2 % en 2016 à 39,6 % en 2020. En revanche, la proportion de nouveau-nés ayant deux parents canadiens a diminué, passant de 46,9 % en 2016 à 39,2 % en 2020^[Récupéré de https://www.lavalensante.com/fileadmin/internet/cisss_laval/Documentation/Sante_publique/Profils_et_portraits/Portraits/230824_PORTRAIT_LAVALLOIS_2023_FR_VF.pdf].
+Plus de la moitié des nouveau-nés lavallois (58,5 %) en 2020 avaient au moins un parent né à l’étranger, en hausse par rapport à 2016 (54,2 %). La proportion de nouveau-nés avec deux parents immigrant·e·s a également augmenté, passant de 36,2 % en 2016 à 39,6 % en 2020. En revanche, la proportion de nouveau-nés ayant deux parents canadiens a diminué, passant de 46,9 % en 2016 à 39,2 % en 2020^[Institut de la statistique du Québec. (2024). Naissances, décès, accroissement naturel et mariages par région administrative, Québec. Récupéré de https://statistique.quebec.ca/fr/document/naissances-regions-administratives/tableau/naissances-deces-accroissement-naturel-mariages-par-region-administrative-quebec#tri_phe=10&tri_ra=13].
+
 
 
 
