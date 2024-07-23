@@ -25,7 +25,7 @@ lf_lvl_mtl_21  <- get_census(dataset = "CA21",
                               level = "CSD",
                               vectors = lf_vectors_21) |> 
   select(all_of(lf_names_21)) |> 
-  mutate(Geography = c("Laval", "Montreal")) |> 
+  mutate(Geography = c("Laval", "Montréal")) |> 
   select(Geography, everything())
 
 #Grab lf_vectors_21 data for the province of Quebec and cleans up the table
@@ -34,7 +34,7 @@ lf_qc_21  <- get_census(dataset = "CA21",
                            level = "PR",
                            vectors = lf_vectors_21) |> 
   select(all_of(lf_names_21)) |> 
-  mutate(Geography = "Quebec") |> 
+  mutate(Geography = "Québec") |> 
   select(Geography, everything())
 
 #Combines the data and calculates (un)employment rate, and then cleans up the table
@@ -56,16 +56,7 @@ lf_lvl_mtl_16  <- get_census(dataset = "CA16",
                            level = "CSD",
                            vectors = lf_vectors_16) |> 
   select(all_of(lf_names_16)) |> 
-  mutate(Geography = c("Laval", "Montreal")) |> 
-  select(Geography, everything())
-
-#Grab lf_vectors_16 data for the Montreal CMA and cleans up the table
-lf_mtl_cma_16 <- get_census(dataset = "CA16", 
-                            regions = list(CMA = 24462), 
-                            level = "CMA",
-                            vectors = lf_vectors_16) |> 
-  select(all_of(lf_names_16)) |> 
-  mutate(Geography = "Montreal CMA") |> 
+  mutate(Geography = c("Laval", "Montréal")) |> 
   select(Geography, everything())
 
 #Grab lf_vectors_16 data for the province of Quebec and cleans up the table
@@ -74,7 +65,7 @@ lf_qc_16  <- get_census(dataset = "CA16",
                         level = "PR",
                         vectors = lf_vectors_16) |> 
   select(all_of(lf_names_16)) |> 
-  mutate(Geography = "Quebec") |> 
+  mutate(Geography = "Québec") |> 
   select(Geography, everything())
 
 #Combine 2016 data into one table
@@ -93,16 +84,7 @@ lf_lvl_mtl_11  <- get_census(dataset = "CA11",
                              level = "CSD",
                              vectors = lf_vectors_11) |> 
   select(all_of(lf_names_11)) |> 
-  mutate(Geography = c("Laval", "Montreal")) |> 
-  select(Geography, everything())
-
-#Grab lf_vectors_11 data for the Montreal CMA and cleans up the table
-lf_mtl_cma_11 <- get_census(dataset = "CA11", 
-                            regions = list(CMA = 24462), 
-                            level = "CMA",
-                            vectors = lf_vectors_11) |> 
-  select(all_of(lf_names_11)) |> 
-  mutate(Geography = "Montreal CMA") |> 
+  mutate(Geography = c("Laval", "Montréal")) |> 
   select(Geography, everything())
 
 #Grab lf_vectors_11 data for the province of Quebec and cleans up the table
@@ -111,7 +93,7 @@ lf_qc_11  <- get_census(dataset = "CA11",
                         level = "PR",
                         vectors = lf_vectors_11) |> 
   select(all_of(lf_names_11)) |> 
-  mutate(Geography = "Quebec") |> 
+  mutate(Geography = "Québec") |> 
   select(Geography, everything())
 
 #Combine 2011 data into one table
@@ -130,16 +112,7 @@ lf_lvl_mtl_06  <- get_census(dataset = "CA06",
                              level = "CSD",
                              vectors = lf_vectors_06) |> 
   select(all_of(lf_names_06)) |> 
-  mutate(Geography = c("Laval", "Montreal")) |> 
-  select(Geography, everything())
-
-#Grab lf_vectors_06 data for the Montreal CMA and cleans up the table
-lf_mtl_cma_06 <- get_census(dataset = "CA06", 
-                            regions = list(CMA = 24462), 
-                            level = "CMA",
-                            vectors = lf_vectors_06) |> 
-  select(all_of(lf_names_06)) |> 
-  mutate(Geography = "Montreal CMA") |> 
+  mutate(Geography = c("Laval", "Montréal")) |> 
   select(Geography, everything())
 
 #Grab lf_vectors_06 data for the province of Quebec and cleans up the table
@@ -148,7 +121,7 @@ lf_qc_06  <- get_census(dataset = "CA06",
                         level = "PR",
                         vectors = lf_vectors_06) |> 
   select(all_of(lf_names_06)) |> 
-  mutate(Geography = "Quebec") |> 
+  mutate(Geography = "Québec") |> 
   select(Geography, everything())
 
 #Combine 2006 data into one table
@@ -167,16 +140,7 @@ lf_lvl_mtl_01  <- get_census(dataset = "CA01",
                              level = "CSD",
                              vectors = lf_vectors_01) |> 
   select(all_of(lf_names_01)) |> 
-  mutate(Geography = c("Laval", "Montreal")) |> 
-  select(Geography, everything())
-
-#Grab lf_vectors_01 data for the Montreal CMA and cleans up the table
-lf_mtl_cma_01 <- get_census(dataset = "CA01", 
-                            regions = list(CMA = 24462), 
-                            level = "CMA",
-                            vectors = lf_vectors_01) |> 
-  select(all_of(lf_names_01)) |> 
-  mutate(Geography = "Montreal CMA") |> 
+  mutate(Geography = c("Laval", "Montréal")) |> 
   select(Geography, everything())
 
 #Grab lf_vectors_01 data for the province of Quebec and cleans up the table
@@ -185,7 +149,7 @@ lf_qc_01  <- get_census(dataset = "CA01",
                         level = "PR",
                         vectors = lf_vectors_01) |> 
   select(all_of(lf_names_01)) |> 
-  mutate(Geography = "Quebec") |> 
+  mutate(Geography = "Québec") |> 
   select(Geography, everything())
 
 #Combine 2001 data into one table
@@ -207,13 +171,17 @@ employment_rate <- lf_combined |>
 
 
 #Creating the line graph for employment rate
-ggplot(employment_rate, aes(x = as.factor(Year), y = Value, color = Geography, group = Geography)) +
-  geom_line(size = 1.5) +
+employment_rate_graph <- ggplot(employment_rate, aes(x = as.factor(Year), y = Value, color = Geography, group = Geography)) +
+  geom_line(linewidth = 1.5) +
   labs(title = "Taux d'emploi de 2001 à 2021", x = "Année",
        y = "Taux d'emploi (%)", color = "Geography") +
+  scale_color_manual(values = c(
+    "Laval" = "#A3B0D1",
+    "Montréal" = "#E08565",
+    "Québec" = "#73AD80")) +
   theme_minimal() +
-  theme(legend.position = "bottom", legend.box = "horizontal",
-        legend.title = element_blank(), plot.title = element_text(hjust = 0.5))
+  theme(legend.position = "bottom", legend.box = "horizontal", axis.title.x = element_blank(),
+        legend.title = element_blank(), plot.title = element_blank())
 
 #Creating the unemployment rate table and pivoting it to make it longer
 unemployment_rate <- lf_combined |> 
@@ -223,13 +191,17 @@ unemployment_rate <- lf_combined |>
 
 
 #Creating the line graph for unemployment rate
-ggplot(unemployment_rate, aes(x = as.factor(Year), y = Value, color = Geography, group = Geography)) +
-  geom_line(size = 1.5) +
+unemployment_rate_graph <- ggplot(unemployment_rate, aes(x = as.factor(Year), y = Value, color = Geography, group = Geography)) +
+  geom_line(linewidth = 1.5) +
   labs(title = "Taux de chômage de 2001 à 2021", x = "Année",
        y = "Taux de chômage (%)", color = "Geography") +
+  scale_color_manual(values = c(
+    "Laval" = "#A3B0D1",
+    "Montréal" = "#E08565",
+    "Québec" = "#73AD80")) +
   theme_minimal() +
-  theme(legend.position = "bottom", legend.box = "horizontal",
-        legend.title = element_blank(), plot.title = element_text(hjust = 0.5))
+  theme(legend.position = "bottom", legend.box = "horizontal", axis.title.x = element_blank(),
+        legend.title = element_blank(), plot.title = element_blank())
 
 # Workplace category ------------------------------------------------------
 #Grab 2021 workplace category data for Laval, clean it up, and pivot it into a longer format
@@ -747,10 +719,10 @@ commute_grabber <- function(dyear, cvector, cyear){
   get_census(dataset = dyear, 
              regions = list(CSD = 2465005), 
              level = "CSD",
-             vectors = cvector) #|>
-    #mutate(Year = cyear, "Within Laval" = round(same_csd * 100 / total, 1),
-           #"Outside Laval" = round((diff_csd + diff_prov) * 100 / total, 1)) |> 
-    #select(Year, "Within Laval", "Outside Laval")
+             vectors = cvector) |>
+    mutate(Year = cyear, "Within Laval" = same_csd / total, 1,
+           "Outside Laval" = (diff_csd + diff_prov) / total, 1) |> 
+    select(Year, "Within Laval", "Outside Laval")
 }
 
 #Grabbing the data for years 2016 and 2021
@@ -760,12 +732,16 @@ commute16 <- commute_grabber("CA16", commute16v, "2016")
 #Prepping the data to create the graph
 commute_dest <- bind_rows(commute21, commute16) |> 
   pivot_longer(cols = -Year, names_to = "destination", values_to = "percentage") |> 
+  mutate(perc = convert_pct(x = percentage),
+         percentage = percentage * 100) |> 
   mutate(destination = factor(destination, levels = c("Within Laval",
                                                       "Outside Laval")))
 
 #Creating the bar graph for commute destination
-ggplot(commute_dest, aes(x = destination, y = percentage, fill = factor(Year))) +
+commute_graph <- ggplot(commute_dest, aes(x = destination, y = percentage, fill = factor(Year))) +
   geom_bar(stat = "identity", position = "dodge") +
+  geom_text(aes(label = perc), position = position_dodge(width = 0.9), 
+            vjust = 2, size = 4, color = "white") +
   labs(title = "Destinations de déplacement à Laval en 2016 et 2021",
        x = "Destination de déplacement",
        y = "Proportion de navetteurs (%)",
@@ -773,9 +749,10 @@ ggplot(commute_dest, aes(x = destination, y = percentage, fill = factor(Year))) 
   scale_x_discrete(labels = c(
     "Within Laval" = "À Laval",
     "Outside Laval" = "À l'extérieur de Laval")) +
+  scale_fill_manual(values = c("2016" = "#CD718C", "2021" = "#73AD80")) +
   theme_minimal() +
   theme(legend.position = "bottom", legend.title = element_blank(),
-        plot.title = element_text(hjust = 0.5))
+        plot.title = element_blank(), text=element_text(family="KMR Apparat Regular"))
 
 # Place of Work -----------------------------------------------------------
 #Grabbing the vectors for place of work in 2016 and 2011
@@ -894,19 +871,18 @@ act_prop <- bind_rows(act21, act16, act11, act06, act01) |>
   pivot_longer(cols = -Year, values_to = "percentage", names_to = "type")
 
 #Line graph for raw numbers
-ggplot(act_raw, aes(x = as.factor(Year), y = count, color = type, group = type)) +
+activity_graph <- ggplot(act_raw, aes(x = as.factor(Year), y = count, color = type, group = type)) +
   geom_line(size = 1.5) +
-  labs(title = "Situation d'activité de Laval 2001-2021", x = "Année",
-       y = "Personnes", color = "Geography") +
+  labs(y = "Personnes", color = "Geography") +
   scale_color_manual(labels = c("Total" = "Total", "In Labour Force" = "Population Active",
                                "Not in Labour Force" = "Population Inactive"),
-                     values = c("Total" = "indianred2",
-                       "In Labour Force" = "royalblue3",
-                       "Not in Labour Force" = "darkgreen"
+                     values = c("Total" = "#73AD80",
+                       "In Labour Force" = "#A3B0D1",
+                       "Not in Labour Force" = "#CD718C"
                      )) +
-  scale_y_continuous(labels = label_number(big.mark = ".")) +
+  scale_y_continuous(labels = label_number(big.mark = " ")) +
   theme_minimal() +
-  theme(legend.position = "bottom", legend.box = "horizontal",
+  theme(legend.position = "bottom", legend.box = "horizontal", axis.title.x = element_blank(),
         legend.title = element_blank(), plot.title = element_text(hjust = 0.5))
 
 #Line graph for proportion
@@ -975,3 +951,16 @@ ggplot(social_assist_rate, aes(x = Year, y = `Social Rate`, color = Geography, g
   theme_minimal() +
   theme(legend.position = "bottom", legend.box = "horizontal",
         legend.title = element_blank(), plot.title = element_text(hjust = 0.5))
+
+# R Markdown --------------------------------------------------------------
+ggplot2::ggsave(filename = here::here("output/axe1/employment/employment_rate_graph.png"), 
+                plot = employment_rate_graph, width = 8, height = 6)
+ggplot2::ggsave(filename = here::here("output/axe1/employment/unemployment_rate_graph.png"), 
+                plot = unemployment_rate_graph, width = 8, height = 6)
+ggplot2::ggsave(filename = here::here("output/axe1/employment/activity_graph.png"), 
+                plot = activity_graph, width = 8, height = 6)
+ggplot2::ggsave(filename = here::here("output/axe1/employment/commute_graph.png"), 
+                plot = commute_graph, width = 8, height = 6)
+
+qs::qsavem(employment_rate_graph, unemployment_rate_graph, activity_graph, commute_graph,
+           file = "D://McGill/can_cache/data/employment.qsm")
