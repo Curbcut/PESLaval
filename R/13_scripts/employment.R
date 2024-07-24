@@ -181,7 +181,8 @@ employment_rate_graph <- ggplot(employment_rate, aes(x = as.factor(Year), y = Va
     "Québec" = "#73AD80")) +
   theme_minimal() +
   theme(legend.position = "bottom", legend.box = "horizontal", axis.title.x = element_blank(),
-        legend.title = element_blank(), plot.title = element_blank())
+        legend.title = element_blank(), plot.title = element_blank(),
+        text=element_text(family="KMR Apparat Regular"))
 
 #Creating the unemployment rate table and pivoting it to make it longer
 unemployment_rate <- lf_combined |> 
@@ -201,7 +202,8 @@ unemployment_rate_graph <- ggplot(unemployment_rate, aes(x = as.factor(Year), y 
     "Québec" = "#73AD80")) +
   theme_minimal() +
   theme(legend.position = "bottom", legend.box = "horizontal", axis.title.x = element_blank(),
-        legend.title = element_blank(), plot.title = element_blank())
+        legend.title = element_blank(), plot.title = element_blank(),
+        text=element_text(family="KMR Apparat Regular"))
 
 # Workplace category ------------------------------------------------------
 #Grab 2021 workplace category data for Laval, clean it up, and pivot it into a longer format
@@ -520,7 +522,7 @@ noc_occupation_table16 <- noc_occupation16 |>
   mutate(category = factor(category, levels = c("na", "0", "1", "2", "3", "4", "5", "6", "7", "8", "9")))
 
 #Creating the grouped bar graph
-ggplot(noc_occupation_table, aes(x = category, y = count, fill = Type)) +
+noc_graph <- ggplot(noc_occupation_table, aes(x = category, y = count, fill = Type)) +
   geom_bar(stat = "identity", position = "dodge", width = 0.7) +
   scale_x_discrete(labels = c("Sans objet", "Membres des corps législatifs et\n cadres supérieurs/cadres supérieures",
                               "Affaires, finance et administration", "Sciences naturelles et appliquées\n et domaines apparentés",
@@ -530,15 +532,17 @@ ggplot(noc_occupation_table, aes(x = category, y = count, fill = Type)) +
                               "Ressources naturelles, agriculture et\n production connexe",
                               "Fabrication et services d'utilité publique")) +
   labs(title = "Classification nationale des professions (CNP) 2021", x = "", y = "Personnes") +
-  scale_fill_manual(values = c("Total" = "royalblue2", 
-                               "Men" = "indianred", 
-                               "Women" = "gold2"),
+  scale_fill_manual(values = c("Total" = "#73AD80", 
+                               "Men" = "#A3B0D1", 
+                               "Women" = "#CD718C"),
                     name = "Status",
                     labels = c("Total" = "Total", "Men" = "Hommes", "Women" = "Femmes")) +
+  scale_y_continuous(labels = function(x) format(x, big.mark = " ", scientific = FALSE)) +
   theme_minimal() +
   theme(legend.position = "bottom", legend.title = element_blank(),
         axis.text.x = element_text(angle = 45, hjust = 1),
-        plot.title = element_text(hjust = 0.5))
+        plot.title = element_blank(),
+        text=element_text(family="KMR Apparat Regular"))
 
 # North American Industry Classification System ---------------------------
 #Vectors for 2021 NAICS categories
@@ -823,13 +827,22 @@ ggplot(place, aes(x = destination, y = percentage, fill = factor(Year))) +
         plot.title = element_text(hjust = 0.5))
 
 #Line graph for place of work
-ggplot(place, aes(x = Year, y = percentage, color = destination, group = destination)) +
+workplace_graph <- ggplot(place, aes(x = Year, y = percentage, color = destination, group = destination)) +
   geom_line(linewidth = 1.5) +
-  labs(title = "Catégorie de lieu de travail à Laval de 2001 à 2021", x = "Année",
-       y = "Proportion de résidents employés (%)") +
+  labs(y = "Proportion de résidents employés (%)") +
+  scale_color_manual(values = c("Usual Place of Work" = "#A3B0D1",
+                                "Work from Home" = "#73AD80",
+                                "No Fixed Address" = "#CD718C",
+                                "Outside Canada" = "#9E9090"),
+                     labels = c("Usual Place of Work" = "Lieu habituel de travail",
+                                "Work from Home" = "À domicile",
+                                "No Fixed Address" = "Sans adresse de travail fixe",
+                                "Outside Canada" = "À l'extérieur du Canada"
+  )) +
   theme_minimal() +
   theme(legend.position = "bottom", legend.box = "horizontal",
-        legend.title = element_blank(), plot.title = element_text(hjust = 0.5))
+        legend.title = element_blank(), plot.title = element_text(hjust = 0.5),
+        text=element_text(family="KMR Apparat Regular"), axis.title.x = element_blank())
 
 # Activity Situation Historical -------------------------------------------
 #Grabbing vectors for activity situation
@@ -883,7 +896,8 @@ activity_graph <- ggplot(act_raw, aes(x = as.factor(Year), y = count, color = ty
   scale_y_continuous(labels = label_number(big.mark = " ")) +
   theme_minimal() +
   theme(legend.position = "bottom", legend.box = "horizontal", axis.title.x = element_blank(),
-        legend.title = element_blank(), plot.title = element_text(hjust = 0.5))
+        legend.title = element_blank(), plot.title = element_text(hjust = 0.5),
+        text=element_text(family="KMR Apparat Regular"))
 
 #Line graph for proportion
 ggplot(act_prop, aes(x = as.factor(Year), y = percentage, color = type, group = type)) +
@@ -923,7 +937,7 @@ social_assist_qc <- read_excel("D://Mcgill/can_cache/assistance_sociale_QC_et_La
   rename(Year = 1) |> 
   select(Year, Change, `Social Rate`) |> 
   mutate(across(c(Change, `Social Rate`), ~ . * 100),
-         Geography = "Quebec")
+         Geography = "Québec")
 
 #Pulling a modified version of assistance_sociale_QC_et_Laval.xlsx for social assistance
 #in Laval and modifying it to be easier to work with
@@ -943,14 +957,17 @@ social_assist_rate <- bind_rows(social_assist_qc, social_assist_lvl) |>
   select(-Change)
 
 #Graphing the social assistance rate
-ggplot(social_assist_rate, aes(x = Year, y = `Social Rate`, color = Geography, group = Geography)) +
+social_assist_graph <- ggplot(social_assist_rate, aes(x = Year, y = `Social Rate`, color = Geography, group = Geography)) +
   geom_line(linewidth = 1.5) +
-  labs(title = "Taux d'assistance sociale de 1993 à 2023", x = "Année",
-       y = "Taux annuel moyen d’aide sociale (%)", color = "Geography") +
+  labs(y = "Taux annuel moyen d’aide sociale (%)", color = "Geography") +
   scale_y_continuous(labels = label_number(decimal.mark = ",")) +
+  scale_color_manual(values = c("Laval" = "#A3B0D1",
+                                "Québec" = "#73AD80")) +
   theme_minimal() +
   theme(legend.position = "bottom", legend.box = "horizontal",
-        legend.title = element_blank(), plot.title = element_text(hjust = 0.5))
+        legend.title = element_blank(), plot.title = element_blank(),
+        text=element_text(family="KMR Apparat Regular"),
+        axis.title.x = element_blank())
 
 # R Markdown --------------------------------------------------------------
 ggplot2::ggsave(filename = here::here("output/axe1/employment/employment_rate_graph.png"), 
@@ -961,6 +978,13 @@ ggplot2::ggsave(filename = here::here("output/axe1/employment/activity_graph.png
                 plot = activity_graph, width = 8, height = 6)
 ggplot2::ggsave(filename = here::here("output/axe1/employment/commute_graph.png"), 
                 plot = commute_graph, width = 8, height = 6)
+ggplot2::ggsave(filename = here::here("output/axe1/employment/workplace_graph.png"), 
+                plot = workplace_graph, width = 8, height = 6)
+ggplot2::ggsave(filename = here::here("output/axe1/employment/social_assist_graph.png"), 
+                plot = social_assist_graph, width = 8, height = 6)
+ggplot2::ggsave(filename = here::here("output/axe1/employment/noc_graph.png"), 
+                plot = noc_graph, width = 8, height = 6)
 
 qs::qsavem(employment_rate_graph, unemployment_rate_graph, activity_graph, commute_graph,
+           workplace_graph, social_assist_graph, noc_graph,
            file = "D://McGill/can_cache/data/employment.qsm")

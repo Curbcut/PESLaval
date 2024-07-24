@@ -216,17 +216,20 @@ laval_family_size_long <- laval_family_size %>%
   pivot_longer(cols = -year, names_to = "family_size", values_to = "percentage")
 
 # Plot the data
-ggplot(laval_family_size_long, aes(x = year, y = percentage, color = family_size)) +
-  geom_line(size = 1.2) +
+family_size_graph <- ggplot(laval_family_size_long, aes(x = year, y = percentage, color = family_size)) +
+  geom_line(linewidth = 1.5) +
   geom_point(size = 3) +
-  labs(title = "Taille des familles lavalloises à travers le temps",
-       x = "Année de recensement",
-       y = "Pourcentage",
+  labs(y = "Proportion de familles",
        color = "Taille de la famille") +
+  scale_color_manual(values = c("2 membres" = "#A3B0D1", 
+                                "3 membres" = "#73AD80", 
+                                "4 membres" = "#E08565",
+                                "5+ membres" = "#CD718C")) +
   theme_minimal() +
-  scale_y_continuous(labels = scales::percent)
-
-
+  scale_y_continuous(labels = scales::percent) +
+  theme(legend.position = "bottom", legend.title = element_blank(),
+        axis.title.x = element_blank(), plot.title = element_blank(),
+        text=element_text(family="KMR Apparat Regular"))
 
 
 # Average number of children ----------------------------------------------
@@ -746,7 +749,9 @@ plot_data <- data.frame(
 plot_data <- plot_data %>%
   pivot_longer(cols = c(avec_enfants, sans_enfants), 
                names_to = "child_status", 
-               values_to = "percentage") 
+               values_to = "percentage") |> 
+  mutate(perc = convert_pct(percentage),
+         perc = ifelse(percentage == 0, NA, perc))
 
 
 
@@ -763,6 +768,7 @@ ggplot(plot_data, aes(x = category, y = percentage, fill = child_status)) +
   theme(
     plot.title = element_text(face = "bold", hjust = 0.5))
 
+print(laval_plot)
 
 #here, I pull the data for the province to compare distributions
 
@@ -849,7 +855,9 @@ plot_data_qc <- data.frame(
 plot_data_qc <- plot_data_qc %>%
   pivot_longer(cols = c(avec_enfants, sans_enfants), 
                names_to = "child_status", 
-               values_to = "percentage")
+               values_to = "percentage") |> 
+  mutate(perc = convert_pct(percentage),
+         perc = ifelse(percentage == 0, NA, perc))
 
 
 
@@ -865,42 +873,55 @@ library(scales)
 # i make the two plots separately and combine them later. this is laval
 plot_laval <- ggplot(plot_data, aes(x = category, y = percentage, fill = child_status)) +
   geom_bar(stat = "identity", position = "stack") +
-  labs(title = "Composition des familles à Laval",
-       y = "Pourcentage",
+  geom_text(aes(label = perc), 
+            position = position_stack(vjust = 0.5), 
+            size = 4, 
+            color = "white") +
+  labs(title = "Laval",
+       y = "Proportion de familles",
        x = "Type de famille",
        fill = element_blank()) +
-  scale_fill_manual(values = c("avec_enfants" = "blue", "sans_enfants" = "lightblue")) + # Adjust colors
+  scale_fill_manual(labels = c("avec_enfants" = "Avec enfants", "sans_enfants" = "Sans enfants"),
+                    values = c("avec_enfants" = "#E08565", "sans_enfants" = "#A3B0D1")) + # Adjust colors
   scale_y_continuous(labels = percent_format(accuracy = 1)) + # Format y-axis labels as percentages
   theme_minimal() +
   theme(
-    plot.title = element_text(face = "bold", hjust = 0.5),
+    plot.title = element_text(hjust = 0.5),
     axis.text.x = element_text(angle = 45, hjust = 1),
-    axis.title.y = element_blank(),  # Remove y-axis label to avoid duplication
     axis.ticks.y = element_blank(),  # Remove y-axis ticks for aesthetic purposes
-    plot.margin = margin(5.5, 5.5, 5.5, 5.5),  # Adjust plot margins for alignment
-      legend.position = "none")
+    plot.margin = margin(5.5, 5.5, 5.5, 5.5),# Adjust plot margins for alignment
+    text=element_text(family="KMR Apparat Regular"),
+    legend.position = "none")
+
+print(plot_laval)
 
 # Create stacked bar plot for Quebec
 plot_qc <- ggplot(plot_data_qc, aes(x = category, y = percentage, fill = child_status)) +
   geom_bar(stat = "identity", position = "stack") +
-  labs(title = "Composition des familles au Québec",
+  geom_text(aes(label = perc), 
+            position = position_stack(vjust = 0.5), 
+            size = 4, 
+            color = "white") +
+  labs(title = "Québec",
        y = NULL,  # We'll set y-axis label to NULL to avoid duplication
        x = "Type de famille",
        fill = "Présence d'enfants") +
-  scale_fill_manual(values = c("avec_enfants" = "blue", "sans_enfants" = "lightblue")) + # Adjust colors
-    theme_minimal() +
+  scale_fill_manual(labels = c("avec_enfants" = "Avec enfants", "sans_enfants" = "Sans enfants"),
+                    values = c("avec_enfants" = "#E08565", "sans_enfants" = "#A3B0D1")) + # Adjust colors
+  theme_minimal() +
   theme(
-    plot.title = element_text(face = "bold", hjust = 0.5),
+    plot.title = element_text(hjust = 0.5),
     axis.text.x = element_text(angle = 45, hjust = 1),
     axis.text.y = element_blank(),  # Remove y-axis numbers
     axis.title.y = element_blank(),  # Remove y-axis label to avoid duplication
     axis.ticks.y = element_blank(),  # Remove y-axis ticks for aesthetic purposes
-    legend.position = "bottom",
+    legend.position = "bottom", legend.title = element_blank(),
+    text=element_text(family="KMR Apparat Regular"),
     plot.margin = margin(5.5, 5.5, 5.5, 5.5)  # Adjust plot margins for alignment
   ) +
-  ylim(0, max_y)  # Set the y-axis limit
-  
+  ylim(0, max_y)# Set the y-axis limit
 
+print(plot_qc)
 
 # Combine both plots
 ggplot() +
@@ -914,10 +935,14 @@ ggplot() +
   annotation_custom(ggplotGrob(plot_qc), xmin=0.5, xmax=Inf, ymin=-Inf, ymax=Inf)
 
 
+legend <- get_legend(plot_qc + theme(legend.position = "bottom"), return_all = TRUE)
 
+# Remove legend from plot_qc
+combined_plot <- plot_laval + plot_qc + plot_layout(guides = "collect")
 
-
-
+# Add the shared legend
+family_children_graph <- combined_plot & theme(legend.position = "bottom")
+print(family_children_graph)
 
 # Gender of people in families --------------------------------------------
 # - Type de familles (parents de sexe féminin, masculin, etc)
@@ -1169,18 +1194,25 @@ qc_household_size_numeric <- qc_household_size %>%
 #pivot tables
 laval_household_size_pivot <- laval_household_size_numeric %>%
   pivot_longer(cols = -GeoUID, names_to = "household_size", values_to = "percentage") %>%
-  mutate(household_size = factor(household_size, levels = c("une_personne", "deux_personnes", "trois_personnes", "quatre_personnes_plus")))
+  mutate(household_size = factor(household_size, levels = c("une_personne", "deux_personnes", "trois_personnes", "quatre_personnes_plus"))) |> 
+  mutate(perc = convert_pct(x = percentage),
+         region = "Laval")
 
 qc_household_size_pivot <- qc_household_size_numeric %>%
   pivot_longer(cols = -GeoUID, names_to = "household_size", values_to = "percentage") %>%
-  mutate(household_size = factor(household_size, levels = c("une_personne", "deux_personnes", "trois_personnes", "quatre_personnes_plus")))
+  mutate(household_size = factor(household_size, levels = c("une_personne", "deux_personnes", "trois_personnes", "quatre_personnes_plus"))) |> 
+  mutate(perc = convert_pct(x = percentage),
+         region = "Québec")
+
+household_size_combined <- bind_rows(laval_household_size_pivot, qc_household_size_pivot) |> 
+  select(-GeoUID)
 
 # Find the maximum count to set the y-axis limit
 max_count <- max(max(laval_household_size_pivot$percentage), max(qc_household_size_pivot$percentage))
 
 # Plot for Laval household size
 plot_laval <- ggplot(data = laval_household_size_pivot, aes(x = household_size, y = percentage)) +
-  geom_bar(stat = "identity", fill = "skyblue") +
+  geom_bar(stat = "identity", fill = "#A3B0D1") +
   ylim(0, max_count) +
   labs(
     title = "Taille des ménages lavallois en 2021",
@@ -1190,13 +1222,14 @@ plot_laval <- ggplot(data = laval_household_size_pivot, aes(x = household_size, 
   theme_minimal() +
 theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
   theme(
-    plot.title = element_text(hjust = 0.5, face = "bold")  
+    plot.title = element_text(hjust = 0.5),
+    text=element_text(family="KMR Apparat Regular")
   ) 
 
 # Plot for Quebec household size
 plot_qc <- ggplot(data = qc_household_size_pivot, 
                   aes(x = household_size, y = percentage)) +
-  geom_bar(stat = "identity", fill = "skyblue") +
+  geom_bar(stat = "identity", fill = "#73AD80") +
   ylim(0, max_count) +
   labs(
     title = "Taille des ménages québecois en 2021",
@@ -1206,12 +1239,29 @@ plot_qc <- ggplot(data = qc_household_size_pivot,
   theme_minimal()+
   theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
   theme(
-    plot.title = element_text(hjust = 0.5, face = "bold") 
+    plot.title = element_text(hjust = 0.5),
+    text=element_text(family="KMR Apparat Regular")
   ) 
 
+#R Markdown graph
+household_comp_graph <- ggplot(data = household_size_combined, aes(x = household_size, y = percentage, fill = region)) +
+  geom_bar(stat = "identity", position = "dodge") +
+  labs(y = "Proportion de ménages") +
+  geom_text(aes(label = perc), 
+            position = position_dodge(width = 0.9),
+            vjust = 2.5,
+            size = 4, 
+            color = "white") +
+  scale_y_continuous(labels = scales::percent) +
+  scale_x_discrete(labels = c("une_personne" = "1 personne", "deux_personnes" = "2 personnes",
+                              "trois_personnes" = "3 personnes", "quatre_personnes_plus" = "4+ personnes")) +
+  scale_fill_manual(values = c("Laval" = "#A3B0D1", "Québec" = "#73AD80")) +
+  theme_minimal() +
+  theme(legend.position = "bottom", plot.title = element_blank(), axis.title.x = element_blank(),
+        legend.title = element_blank(), text = element_text(family = "KMR Apparat Regular"))
 
 # Combine plots
-grid.arrange(plot_laval, plot_qc, ncol = 2, top = "Taille des ménages à Laval et au Québec")
+grid.arrange(plot_laval, plot_qc, ncol = 2)
 
 
 ### Persons in households by household size
@@ -1320,7 +1370,7 @@ laval_household_size01 <-
          trois_personnes = three/total,
          quatre_personnes_plus = (four_five + six_more) /total)
 
-laval_household_size96 <-  get_census(
+laval_household_size96 <- get_census(
   dataset = "CA1996",
   regions = list(CSD = 2465005),
   level = "CSD",
@@ -1393,22 +1443,25 @@ long_data <- combined_data %>%
 
 # Define the colors for each household size category
 # i use a gradient to make it more legible
-household_colors <- c("une_personne" = "#CFFDBC",  
-                      "deux_personnes" = "#90EE90",  
-                      "trois_personnes" = "#32CD32",  
-                      "quatre_personnes_plus" = "#006400")  
+household_colors <- c("une_personne" = "#A3B0D1",  
+                      "deux_personnes" = "#73AD80",  
+                      "trois_personnes" = "#E08565",  
+                      "quatre_personnes_plus" = "#CD718C")
 
-# Create the line graph with specified colors
-ggplot(long_data, aes(x = year, y = percentage, color = household_size, group = household_size)) +
-  geom_line(size = 1) +
-  geom_point(size = 2) +
-  scale_color_manual(values = household_colors) + 
+# Create the line graph with specified colors (Markdown)
+hh_evol_graph <- ggplot(long_data, aes(x = year, y = percentage, color = household_size, group = household_size)) +
+  geom_line(linewidth = 1.5) +
+  geom_point(size = 2.75) +
+  scale_color_manual(values = household_colors,
+                     labels = c("une_personne" = "1 personne", "deux_personnes" = "2 personnes",
+                                "trois_personnes" = "3 personnes", "quatre_personnes_plus" = "4+ personnes")) + 
   scale_y_continuous(labels = scales::percent_format()) +
-  labs(title = "Évolution de la taille des ménages lavallois entre 1996 et 2021",
-       x = "Année de recencement",
-       y = "Pourcentage",
+  labs(y = "Proportion de ménages",
        color = "Taille des ménages") +
-  theme_minimal()
+  theme_minimal() +
+  theme(legend.position = "bottom", legend.title = element_blank(),
+        axis.title.x = element_blank(), text=element_text(family="KMR Apparat Regular"),
+        plot.title = element_blank())
 
 
 #evolution of household persons over time
@@ -1569,6 +1622,69 @@ ggplot(laval_household_persons_evol_long, aes(x = household_persons, y = count, 
 
 # TK
 
+# Number of people in households 1996v2001 (Justin) -----------------------
+lvl_hh_size96 <- get_census(dataset = "CA1996",
+                                     regions = list(CSD = 2465005),
+                                     level = "CSD",
+                            vectors = c(total = "v_CA1996_94",
+                                        one = "v_CA1996_117",
+                                        two = "v_CA1996_118",
+                                        three = "v_CA1996_119")) |> 
+  mutate(year = 1996,
+         one_p = one,
+         two_p = two * 2,
+         three_p = three * 3,
+         four_plus = total - one - (two * 2) - (three * 3)) |> 
+  select(year, one_p, two_p, three_p, four_plus)
+
+lvl_hh_size21 <- get_census(dataset = "CA1996",
+                            regions = list(CSD = 2465005),
+                            level = "CSD",
+                            vectors = c(total = "v_CA21_449", 
+                                        one = "v_CA21_444",
+                                        two = "v_CA21_445",
+                                        three = "v_CA21_446")) |> 
+  mutate(year = 2021,
+         one_p = one,
+         two_p = two * 2,
+         three_p = three * 3,
+         four_plus = total - one - (two * 2) - (three * 3)) |> 
+  select(year, one_p, two_p, three_p, four_plus)
+
+na_rows <- data.frame(difference = rep(NA, 4))
+
+lvl_hh_size_change <- bind_rows(lvl_hh_size96, lvl_hh_size21) |> 
+  select(-year) |> 
+  t() |> 
+  as.data.frame() |> 
+  set_names(c("1996", "2021")) |> 
+  mutate(difference = (`2021` / `1996`) - 1) |> 
+  mutate(difference = convert_pct(x = difference)) |> 
+  select(difference) |> 
+  mutate(difference = paste0("+", difference))
+
+lvl_hh_size_diff <- bind_rows(na_rows, lvl_hh_size_change)
+rownames(lvl_hh_size_diff) <- NULL
+
+lvl_hh_size <- bind_rows(lvl_hh_size96, lvl_hh_size21) |> 
+  pivot_longer(cols = -year, names_to = "size", values_to = "count") |> 
+  bind_cols(lvl_hh_size_diff) |> 
+  mutate(size = factor(size, levels = c("one_p", "two_p", "three_p", "four_plus")))
+
+hh_sizecomp_graph <- ggplot(lvl_hh_size, aes(x = size, y = count, fill = as.factor(year))) +
+  geom_bar(stat = "identity", position = "dodge") +
+  geom_text(aes(label = difference),
+            position = position_dodge(width = 0.9),
+            vjust = -0.5) +
+  scale_fill_manual(values = c("1996" = "#CD718C", "2021" = "#A3B0D1")) +
+  scale_x_discrete(labels = c("one_p" = "1 personne", "two_p" = "2 personnes",
+                              "three_p" = "3 personnes", "four_plus" = "4+ personnes")) +
+  labs(x = "La taille du ménage",
+       y = "Nombre de personnes",
+       fill = "Year") +
+  theme_minimal() +
+  theme(legend.position = "bottom", legend.title = element_blank(),
+        text=element_text(family="KMR Apparat Regular"))
 # Number of people in private households ----------------------------------
 #- Nombre de personnes dans les ménages privés
 
@@ -1612,4 +1728,18 @@ qc_living_alone <-
          women_pct = women/total)
 
 
+# R Markdown --------------------------------------------------------------
+ggplot2::ggsave(filename = here::here("output/axe1/family/family_children_graph.png"), 
+                plot = family_children_graph, width = 8, height = 6, bg = "transparent")
+ggplot2::ggsave(filename = here::here("output/axe1/family/family_size_graph.png"), 
+                plot = family_size_graph, width = 8, height = 6, bg = "transparent")
+ggplot2::ggsave(filename = here::here("output/axe1/family/household_comp_graph.png"), 
+                plot = household_comp_graph, width = 8, height = 6, bg = "transparent")
+ggplot2::ggsave(filename = here::here("output/axe1/family/hh_evolution_graph.png"), 
+                plot = hh_evol_graph, width = 8, height = 6, bg = "transparent")
+ggplot2::ggsave(filename = here::here("output/axe1/family/hh_sizecomp_graph.png"), 
+                plot = hh_sizecomp_graph, width = 8, height = 6, bg = "transparent")
 
+qs::qsavem(family_children_graph, family_size_graph, household_comp_graph, hh_evol_graph,
+           hh_sizecomp_graph,
+           file = "D://McGill/can_cache/data/family.qsm")
