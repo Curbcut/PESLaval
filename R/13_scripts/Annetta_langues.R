@@ -428,45 +428,41 @@ homelang21_laval$tolerance <- sapply(seq_along(homelang21_laval$mostspoken), \(x
 })
 homelang21_laval$mostspoken <- factor(homelang21_laval$mostspoken,
                                       levels = c("Non-official", "English", "French"),
-                                      labels = c("Non-officiel", "Anglais", "Français"))
-
-
-color_theme("pinkhealth")
-
+                                      labels = c("Autre", "Anglais", "Français"))
 
 
 # Define custom colors based on tolerance levels
 color_mosthome <- function(language, tolerance) {
   if (is.na(tolerance)) return("#B3B3B3")
-  if (language == "Non-officiel") {
-    if (tolerance < 0.5) return("Non-officiel < 50%")  # Light blue
-    if (tolerance < 0.75) return("Non-officiel > 50 %")  # Medium blue
-    return("Non-officiel > 75 %")  # Dark blue
+  if (language == "Autre") {
+    if (tolerance < 0.5) return("Autre < 50 %")  # Light blue
+    if (tolerance < 0.75) return("Autre > 50 %")  # Medium blue
+    return("Autre > 75 %")  # Dark blue
   }
   if (language == "Anglais") {
-    if (tolerance < 0.5) return("Anglais < 50%")  # Light blue
+    if (tolerance < 0.5) return("Anglais < 50 %")  # Light blue
     if (tolerance < 0.75) return("Anglais > 50 %")  # Medium blue
     return("Anglais > 75 %")  # Dark blue
   }
   if (language == "Français") {
-    if (tolerance < 0.5) return("Français < 50%")  # Light blue
+    if (tolerance < 0.5) return("Français < 50 %")  # Light blue
     if (tolerance < 0.75) return("Français > 50 %")  # Medium blue
     return("Français > 75 %")  # Dark blue
   }
 }
 
 color_labels <- c(
-  "Français < 50%" = "#c5cde3",
+  "Français < 50 %" = "#c5cde3",
   "Français > 75 %" = "#7084b8",  
   "Français > 50 %" = "#a3b0da",
   
-  "Anglais < 50%" = "#E1AABA",
+  "Anglais < 50 %" = "#E1AABA",
   "Anglais > 50 %" = "#cd718c",
   "Anglais > 75 %" = "#b33f61",
   
-  "Non-officiel < 50%" = "#c2b9b9",
-  "Non-officiel > 50 %" = "#9e9090",
-  "Non-officiel > 75 %" = "#786969"
+  "Autre < 50 %" = "#c2b9b9",
+  "Autre > 50 %" = "#9e9090",
+  "Autre > 75 %" = "#786969"
 )
 
 
@@ -478,21 +474,43 @@ homelang21_laval$fill_color <- factor(homelang21_laval$fill_color,
 
 # Ensure there's one variable for all
 for (i in names(color_labels)) {
-  homelang21_laval[nrow(homelang21_laval) + 1, ]$fill_color <-i
+  r <- nrow(homelang21_laval) + 1
+  homelang21_laval[r, ]$fill_color <- i
+  homelang21_laval[r, ]$mostspoken <- gsub(" .*", "", i)
 }
 
+homelang21_laval <- homelang21_laval[!is.na(homelang21_laval$fill_color), ]
+homelang21_laval$fill_color <- gsub("Français |Anglais |Autre ", "", homelang21_laval$fill_color)
+homelang21_laval <- split(homelang21_laval, homelang21_laval$mostspoken)
+
+names(color_labels) <- gsub("Français |Anglais |Autre ", "", names(color_labels))
 
 # Add a legend to the plot
-ggplot(data = homelang21_laval) +
+ggplot(data = homelang21_laval$Français) +
   gg_cc_tiles +
   geom_sf(aes(fill = fill_color), color = "transparent", lwd = 0) +
-  scale_fill_manual(values = color_labels,
-                    name = element_blank(),
+  scale_fill_manual(values = color_labels[1:3], 
+                    name = "Français",
                     guide = guide_legend(title.position = "top",
-                                         label.position = "bottom", nrow = 3)) +
+                                         label.position = "bottom", nrow = 1,
+                                         order = 1)) +
+  ggnewscale::new_scale_fill() +
+  geom_sf(data = homelang21_laval$Anglais, aes(fill = fill_color), color = "transparent", lwd = 0) +
+  scale_fill_manual(values = color_labels[4:6],
+                    name = "Anglais",
+                    guide = guide_legend(title.position = "top",
+                                         label.position = "bottom", nrow = 1,
+                                         order = 2)) +
+  ggnewscale::new_scale_fill() +
+  geom_sf(data = homelang21_laval$`Autre`, aes(fill = fill_color), color = "transparent", lwd = 0) +
+  scale_fill_manual(values = color_labels[7:9],
+                    name = "Autre",
+                    guide = guide_legend(title.position = "top",
+                                         label.position = "bottom", nrow = 1,
+                                         order = 3)) +
   gg_cc_theme +
-  theme(legend.position = "right",
-        legend.box = "vertical")
+  theme(legend.spacing.x = unit(1, 'cm'),
+        legend.spacing.y = unit(1, 'cm'))
 
 
 
