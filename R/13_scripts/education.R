@@ -109,6 +109,7 @@ hs <- bind_rows(hs_21_lvl, hs_21_mtl, hs_21_qc,
 #Creating the line graph
 ggplot(hs, aes(x = Year, y = hs_prop, color = Region, group = Region)) +
   geom_line(linewidth = 1.5) +
+  geom_point(size = 3) +
   scale_color_manual(values = c("Laval" = "#A3B0D1",
                                 "Montreal" = "#E08565",
                                 "Quebec" = "#73AD80")) +
@@ -203,7 +204,7 @@ hc25 <- get_census(
 
 
 #Creating to bar graph
-ggplot(hc25, aes(x = education, y = count, fill = Type)) +
+high_edu_25_graph <- ggplot(hc25, aes(x = education, y = count, fill = Type)) +
   geom_bar(stat = "identity", position = "dodge", aes(group = variable)) +
   geom_text(aes(label = prop, y = count), position = position_dodge(width = 0.9), vjust = 1.5, size = 3.5, color = "white") +
   labs(x = "", y = "Personnes") +
@@ -216,7 +217,8 @@ ggplot(hc25, aes(x = education, y = count, fill = Type)) +
                               "Diplôme universitaire")) +
   theme_minimal() +
   theme(legend.position = "bottom", legend.title = element_blank(),
-        axis.text.x = element_text(angle = 40, hjust = 1))
+        axis.text.x = element_text(angle = 40, hjust = 1),
+        text=element_text(family="KMR Apparat Regular"))
 
 # Composition 2006-2021 ---------------------------------------------------
 comp21v <- c("total" = "v_CA21_5865", "none" = "v_CA21_5868", "sec" = "v_CA21_5871",
@@ -261,22 +263,23 @@ comp06 <- get_census(dataset = "CA06",
 
 comp <- bind_rows(comp06, comp11, comp16, comp21) |> 
   mutate(Year = as.factor(Year),
-         none = round(none / total * 100, 1),
-         sec = round(sec / total * 100, 1),
-         psec = round(psec / total * 100, 1),
-         uni = round(uni / total * 100, 1)) |> 
+         none = none / total,
+         sec = sec / total,
+         psec = psec / total,
+         uni = uni / total) |> 
   select(-total) |> 
   pivot_longer(cols = -Year, names_to = "level", values_to = "prop") |> 
-  mutate(prop_per = paste0(prop, "%")) |> 
+  mutate(prop_per = convert_pct(x = prop)) |> 
   mutate(level = factor(level, levels = c("uni", "psec", "sec", "none"))) |> 
   group_by(Year) |> 
   mutate(cumulative = cumsum(prop) - 0.5 * prop) |> 
   ungroup()
 
-ggplot(comp, aes(x = Year, y = prop, fill = level)) +
-  geom_bar(stat = "identity", width = 0.5) +
+edu_comp_graph <- ggplot(comp, aes(x = Year, y = prop, fill = level)) +
+  geom_bar(stat = "identity", width = 0.6) +
   geom_text(aes(label = prop_per, y = cumulative), vjust = 0.5, color = "white", size = 3) +
-  labs(x = "Année") +
+  scale_y_continuous(labels = scales::percent_format()) +
+  labs(x = "Année", y = "Proportion de la population de 25 ans et plus") +
   scale_fill_manual(values = c("none" = "#252c3d", "sec" = "#3d4a66",
                                "psec" = "#6C83B5", "uni" = "#98A8CB"),
                     labels = c("none" = "Aucun certificat, diplôme ou grade",
@@ -285,9 +288,9 @@ ggplot(comp, aes(x = Year, y = prop, fill = level)) +
                                "uni" = "Baccalauréat ou grade supérieur")) +
   theme_minimal() +
   theme(legend.title = element_blank(), legend.position = "bottom",
-        plot.title = element_blank(), axis.title.y = element_blank(),
-        axis.text.y = element_blank(), axis.ticks.y = element_blank(),
-        axis.title.x = element_blank(), axis.ticks.x = element_blank()) +
+        plot.title = element_blank(), axis.ticks.y = element_blank(),
+        axis.title.x = element_blank(), axis.ticks.x = element_blank(),
+        text=element_text(family="KMR Apparat Regular")) +
   guides(fill = guide_legend(ncol = 2))
 
 # Education by Sex --------------------------------------------------------
@@ -304,10 +307,10 @@ edus <- get_census(dataset = "CA21",
                    level = "CSD",
                    vectors = edus_v) |> 
   mutate(m_total = m15_64 - m15_19 - m20_24, f_total = f15_64 - f15_19 - f20_24) |> 
-  mutate(m_none = round(m_none / m_total * 100, 1), f_none = round(f_none / f_total * 100, 1),
-         m_sec = round(m_sec / m_total * 100, 1), f_sec = round(f_sec / f_total * 100, 1),
-         m_psec = round(m_psec / m_total * 100, 1), f_psec = round(f_psec / f_total * 100, 1),
-         m_uni = round(m_uni / m_total * 100, 1), f_uni = round(f_uni / f_total * 100, 1)) |> 
+  mutate(m_none = m_none / m_total, f_none = f_none / f_total,
+         m_sec = m_sec / m_total, f_sec = f_sec / f_total,
+         m_psec = m_psec / m_total, f_psec = f_psec / f_total,
+         m_uni = m_uni / m_total, f_uni = f_uni / f_total) |> 
   select(m_none, f_none, m_sec, f_sec, m_psec, f_psec, m_uni, f_uni) |> 
   pivot_longer(everything(), names_to = "level", values_to = "prop") |> 
   mutate(education = case_when(str_ends(level, "none") ~ "none",
@@ -318,13 +321,15 @@ edus <- get_census(dataset = "CA21",
          sex = case_when(str_starts(level, "m") ~ "Hommes",
                           str_starts(level, "f") ~ "Femmes",
                           TRUE ~ "Total"),
-         percent = paste0(prop, "%")) |> 
+         percent = convert_pct(x = prop)) |> 
   select(-level) |> 
   mutate(education = factor(education, levels = c("none", "sec", "psec", "uni")))
 
-ggplot(edus, aes(x = education, y = prop, fill = sex)) +
+edu_sex_graph <- ggplot(edus, aes(x = education, y = prop, fill = sex)) +
   geom_bar(stat = "identity", position = "dodge") +
-  geom_text(aes(label = percent, y = 1), vjust = -0.5, color = "white", size = 4, position = position_dodge(width = 0.9)) +
+  geom_text(aes(label = percent), vjust = 2, position = position_dodge(width = 0.9),
+            color = "white", size = 4) +
+  scale_y_continuous(labels = scales::percent_format()) +
   scale_fill_manual(values = c("Femmes" = "#CD718C", "Hommes" = "#A3B0D1")) +
   scale_x_discrete(labels = c("Aucun certificat, diplôme\nou grade",
                               "Diplôme d'études secondaires\nou attestation d'équivalence",
@@ -332,7 +337,18 @@ ggplot(edus, aes(x = education, y = prop, fill = sex)) +
                               "Baccalauréat ou grade supérieur")) +
   theme_minimal() +
   theme(legend.title = element_blank(), legend.position = "bottom",
-        plot.title = element_blank(), axis.title.y = element_blank(),
-        axis.text.y = element_blank(), axis.ticks.y = element_blank(),
-        axis.title.x = element_blank(), axis.ticks.x = element_blank()) +
+        plot.title = element_blank(), axis.title.x = element_blank(),
+        axis.ticks.x = element_blank(), text=element_text(family="KMR Apparat Regular")) +
   guides(fill = guide_legend(ncol = 2))
+
+# Markdown ----------------------------------------------------------------
+ggplot2::ggsave(filename = here::here("output/axe1/education/high_edu_25_graph.png"), 
+                plot = high_edu_25_graph, width = 8, height = 6)
+ggplot2::ggsave(filename = here::here("output/axe1/education/edu_comp_graph.png"), 
+                plot = edu_comp_graph, width = 8, height = 6)
+ggplot2::ggsave(filename = here::here("output/axe1/education/edu_sex_graph.png"), 
+                plot = edu_sex_graph, width = 8, height = 6)
+
+qs::qsavem(high_edu_25_graph, edu_comp_graph, edu_sex_graph,
+           file = "D://McGill/can_cache/data/education.qsm")
+
