@@ -154,19 +154,19 @@ knowledgeLang21 <- bind_rows(tidyLOLang21, tidyQCLang21)
 
 combinedKnowOffLang$Language <- factor(combinedKnowOffLang$Language,
                                        levels = c("Neither", "English", "French", "Both"),
-                                       labels = c("Aucun", "Anglais", "Français", "Les deux"))
+                                       labels = c("Aucune", "Anglais", "Français", "Les deux"))
 
 knowledge_official <- 
   ggplot(combinedKnowOffLang, aes(x = Year, y = Percentage, fill = Language)) +
   geom_bar(stat = "identity", position = "fill") +
   scale_y_continuous(labels = scales::percent) +
-  geom_text(aes(label = paste0(round(Percentage),"%")),
+  geom_text(aes(label = convert_pct(Percentage/100)),
             position = position_fill(vjust = 0.5),
             size = 3,
-            color = "white") +
+            color = "black") +
   ylab(NULL) +
   xlab(NULL) +
-  scale_fill_manual(values = c("Aucun" = color_theme("browndemographics"), 
+  scale_fill_manual(values = c("Aucune" = color_theme("browndemographics"), 
                                "Anglais" = color_theme("pinkhealth"), 
                                "Français" = color_theme("blueexplorer"), 
                                "Les deux" = color_theme("greenecology"))) +
@@ -186,248 +186,416 @@ bilingual_2021 <- combinedKnowOffLang$Percentage[
   combinedKnowOffLang$Year == 2021 & combinedKnowOffLang$Language == "Les deux"
 ]
 bilingual_2021 <- convert_pct(bilingual_2021 / 100)
+no_official_1996 <- combinedKnowOffLang$Percentage[
+  combinedKnowOffLang$Year == 1996 & combinedKnowOffLang$Language == "Aucune"
+]
+no_official_1996 <- convert_pct(no_official_1996 / 100)
+no_official_2021 <- combinedKnowOffLang$Percentage[
+  combinedKnowOffLang$Year == 2021 & combinedKnowOffLang$Language == "Aucune"
+]
+no_official_2021 <- convert_pct(no_official_2021 / 100)
 
-# Plot the difference with Quebec
-reorder21 <- knowledgeLang21 %>%
-  mutate(Language = fct_relevel(Language,
-                                "Neither", "English", "French", "Both"))
+know_fr_laval <- knowledgeLang21$Percentage[
+  knowledgeLang21$`Region Name` == "Laval (V)" & knowledgeLang21$Language %in% c("Français", "Les deux")
+]
+know_fr_laval <- convert_pct(sum(know_fr_laval) / 100)
+
+know_fr_qc <- knowledgeLang21$Percentage[
+  knowledgeLang21$`Region Name` == "Quebec (Que.)" & knowledgeLang21$Language %in% c("Français", "Les deux")
+]
+know_fr_qc <- convert_pct(sum(know_fr_qc) / 100)
+
+know_bilingual_laval <- knowledgeLang21$Percentage[
+  knowledgeLang21$`Region Name` == "Laval (V)" & knowledgeLang21$Language %in% c("Les deux")
+]
+know_bilingual_laval <- convert_pct(sum(know_bilingual_laval) / 100)
+
+know_bilingual_qc <- knowledgeLang21$Percentage[
+  knowledgeLang21$`Region Name` == "Quebec (Que.)" & knowledgeLang21$Language %in% c("Les deux")
+]
+know_bilingual_qc <- convert_pct(sum(know_bilingual_qc) / 100)
+
+know_only_fr_laval <- knowledgeLang21$Percentage[
+  knowledgeLang21$`Region Name` == "Laval (V)" & knowledgeLang21$Language %in% c("Français")
+]
+know_only_fr_laval <- convert_pct(sum(know_only_fr_laval) / 100)
+
+know_only_fr_qc <- knowledgeLang21$Percentage[
+  knowledgeLang21$`Region Name` == "Quebec (Que.)" & knowledgeLang21$Language %in% c("Français")
+]
+know_only_fr_qc <- convert_pct(sum(know_only_fr_qc) / 100)
+
+know_only_en_laval <- knowledgeLang21$Percentage[
+  knowledgeLang21$`Region Name` == "Laval (V)" & knowledgeLang21$Language %in% c("Anglais")
+]
+know_only_en_laval <- convert_pct(sum(know_only_en_laval) / 100)
+
+# Laval vs Quebec
+knowledgeLang21$Language <- factor(knowledgeLang21$Language,
+                                       levels = c("Neither", "English", "French", "Both"),
+                                       labels = c("Aucune", "Anglais", "Français", "Les deux"))
 
 # now to plot and compare laval to quebec in 2021 
-ggplot(reorder21, aes(x=Region, y=Percentage, fill= Language)) +
+know_official_laval_qc_diff <- 
+  ggplot(knowledgeLang21, aes(x=Region, y=Percentage, fill= Language)) +
   geom_bar(stat="identity", position = "fill") +
   scale_y_continuous(labels = scales::percent) +
-  geom_text(aes(label = paste0(round(Percentage),"%")),
+  geom_text(aes(label = convert_pct(Percentage/100)),
             position = position_fill(vjust = 0.5),
             size = 3,
-            color = "white") +
-  labs(y = "Percentage", fill = "Language") +
-  scale_fill_discrete(
-    labels = c("Neither" = "Neither",
-               "English" = "English Only",
-               "French" = "French Only",
-               "Both" = "Both")) 
+            color = "black") +
+  ylab(NULL) +
+  xlab(NULL) +
+  scale_fill_manual(values = c("Aucune" = color_theme("browndemographics"), 
+                               "Anglais" = color_theme("pinkhealth"), 
+                               "Français" = color_theme("blueexplorer"), 
+                               "Les deux" = color_theme("greenecology"))) +
+  guides(fill = guide_legend(reverse = TRUE)) +
+  gg_cc_theme_no_sf +
+  theme(legend.title = element_blank())
 
-# First Language - Knowledge of offical Language -------------------------
-#First language()
+ggplot2::ggsave(filename = here::here("output/axe1/know_official_laval_qc_diff.png"), 
+                plot = know_official_laval_qc_diff, width = 4, height = 4)
 
-#Need to find all the census vectors: 
-find_census_vectors("first language", dataset = "CA1996", type = "total", 
-                    query_type = "keyword", interactive = FALSE)
 
-# 1996
-# v_CA1996_315 - Total
-# v_CA1996_319 - Neither
-# v_CA1996_316 - English
-# v_CA1996_318 - Both
-# v_CA1996_317 - French 
+# Languages spoken (most) at Home ------------------------------------------------
 
-find_census_vectors("first language", dataset = "CA01", type = "total", 
-                    query_type = "keyword", interactive = FALSE)
-# 2001 First language spoken
-# v_CA01_218 - Total
-# v_CA01_222 - Neither
-# v_CA01_219 - English 
-# v_CA01_221 - Both
-# v_CA01_220 - French
+homelang96vector <- c(
+  "Total" = "v_CA1996_323",
+  "English" = "v_CA1996_324",
+  "French" = "v_CA1996_325",
+  "Non-official" = "v_CA1996_326")
+homelang96_laval <- get_census(dataset = "CA1996",
+                               regions = list(CSD = 2465005),
+                               level = "CSD",
+                               vectors = homelang96vector)
 
-find_census_vectors("first language", dataset = "CA06", type = "total", 
-                    query_type = "keyword", interactive = FALSE)
-# 2006 First Language spoken
-# v_CA06_248 - Total
-# v_CA06_252 - Neither
-# v_CA06_249 - English
-# v_CA06_251 - Both
-# v_CA06_250 - French
+homelang01vector <- c(
+  "Total" = "v_CA01_226",
+  "English" = "v_CA01_227",
+  "French" = "v_CA01_228",
+  "Non-official" = "v_CA01_229")
+homelang01_laval <- get_census(dataset = "CA01",
+                               regions = list(CSD = 2465005),
+                               level = "CSD",
+                               vectors = homelang01vector)
 
-find_census_vectors("first language", dataset = "CA16", type = "total", 
-                    query_type = "keyword", interactive = FALSE)
-# 2016 First Language Spoken
-# v_CA16_527 - Total
-# v_CA16_539 - Neither 
-# v_CA16_530 - English
-# v_CA16_536 - Both
-# v_CA16_533 - French
+homelang06vector <-  c(
+  "Total" = "v_CA06_256",
+  "English" = "v_CA06_257",
+  "French" = "v_CA06_258",
+  "Non-official" = "v_CA06_259")
+homelang06_laval <- get_census(dataset = "CA06",
+                               regions = list(CSD = 2465005),
+                               level = "CSD",
+                               vectors = homelang06vector)
 
-find_census_vectors("first language", dataset = "CA21", type = "total", 
-                    query_type = "keyword", interactive = FALSE)
-# 2021 First Language Spoken 
-# v_CA21_1159 - Total
-# v_CA21_1171 - Neither
-# v_CA21_1162 - English
-# v_CA21_1168 - Both
-# v_CA21_1165 - French 
+homelang11vector <-  c(
+  "Total" = "v_CA11F_590",
+  "English" = "v_CA11F_593",
+  "French" = "v_CA11F_596",
+  "Non-official" = "v_CA11F_599") 
+homelang11_laval <- get_census(dataset = "CA16",
+                               regions = list(CSD = 2465005),
+                               level = "CSD",
+                               vectors = homelang11vector)
 
-# 1996 Census Data - First official language spoken
-FirLang96 <- cancensus::get_census(
-  dataset = "CA1996",
-  regions = list(CSD = 2465005),
-  level = "CSD",
-  vectors = c(
-    "Total" = "v_CA1996_315",
-    "Neither" = "v_CA1996_319",
-    "English" = "v_CA1996_316",
-    "Both" = "v_CA1996_318",
-    "French" = "v_CA1996_317"))
+homelang16vector <-  c(
+  "Total" = "v_CA16_1358",
+  "English" = "v_CA16_1364",
+  "French" = "v_CA16_1367",
+  "Non-official" = "v_CA16_1370") 
+homelang16_laval <- get_census(dataset = "CA16",
+                               regions = list(CSD = 2465005),
+                               level = "CSD",
+                               vectors = homelang16vector)
 
-# 2001 - First Official Langauge spoken - get census data
-FirLang01 <- cancensus::get_census(
-  dataset = "CA01", 
-  regions = list(CSD = 2465005),
-  level = "CSD",
-  vectors = c(
-    "Total" = "v_CA01_218",
-    "Neither" = "v_CA01_222",
-    "English" = "v_CA01_219",
-    "Both" = "v_CA01_221",
-    "French" = "v_CA01_220")
-)  
+homelang21vector <- c(
+  "Total" = "v_CA21_2203",
+  "English" = "v_CA21_2209",
+  "French" = "v_CA21_2212",
+  "Non-official" = "v_CA21_2215")  
+homelang21_laval <- get_census(dataset = "CA21",
+                               regions = list(CSD = 2465005),
+                               level = "CSD",
+                               vectors = homelang21vector)
 
-# 2006 - First Official Language Spoken 
-FirLang06 <-  cancensus::get_census(
-  dataset = "CA06",
-  regions = list(CSD= 2465005),
-  level = "CSD",
-  vectors = c(
-    "Total" = "v_CA06_248",
-    "Neither" = "v_CA06_252",
-    "English" = "v_CA06_249",
-    "Both" = "v_CA06_251",
-    "French" = "v_CA06_250"))
-
-# 2016 - First Official Language Spoken 
-FirLan16 <-  cancensus::get_census(
-  dataset = "CA16",
-  regions = list(CSD= 2465005),
-  level = "CSD",
-  vectors = c(
-    "Total" = "v_CA16_527",
-    "Neither" = "v_CA16_539",
-    "English" = "v_CA16_530",
-    "Both" = "v_CA16_536",
-    "French" = "v_CA16_533"))
-
-# 2021 - First Official Language Spoken
-FirLang21 <-  cancensus::get_census(
+# also show for the province
+homelang21_qc <- cancensus::get_census(
   dataset = "CA21",
-  regions = list(CSD= 2465005),
-  level = "CSD",
-  vectors = c(
-    "Total" = "v_CA21_1159",
-    "Neither" = "v_CA21_1171",
-    "English" = "v_CA21_1162",
-    "Both" = "v_CA21_1168",
-    "French" = "v_CA21_1165"))
-
-FirLang21qc <- cancensus::get_census(
-  dataset = "CA21",
-  regions = list(PR= 24),
+  regions = list(PR = 24),
   level = "PR",
-  vectors = c(
-    "Total" = "v_CA21_1159",
-    "Neither" = "v_CA21_1171",
-    "English" = "v_CA21_1162",
-    "Both" = "v_CA21_1168",
-    "French" = "v_CA21_1165"))
+  vectors = c(homelang21vector))
 
-#ensure that data is data frame
-FirLang96 <- as.data.frame(FirLang96)
-library(dplyr)
+#merge the laval datasets 
+lavalhomelang <- 
+  bind_rows(homelang96_laval, 
+            homelang01_laval, 
+            homelang06_laval, 
+            homelang11_laval,
+            homelang16_laval, 
+            homelang21_laval) |> 
+  mutate(year = c("1996", "2001", "2006", "2011", "2016", "2021"))
 
-#Need to calculate percentages for each dataset
-calc_percentages <- function(data) {
-  total_population <- data$Total
-  data <- data %>%
-    mutate(across(c(Neither, English, Both, French), ~. / total_population*100))
-  return(data)
+#merge the 2021 datasetst to compare Laval and Quebec
+homelang21 <- 
+  bind_rows(
+    homelang21_laval,
+    homelang21_qc) |> 
+  mutate(region = c("Laval", "Quebec"))
+
+# make sure that all the values are numeric
+lavalhomelang <- lavalhomelang %>%
+  mutate(across(c(Total, English, French, "Non-official"), ~ as.numeric(gsub("[^0-9.]", "", .))))
+
+#need to convert the totals to percentages
+
+lavalhomelang_percent <- lavalhomelang %>%
+  group_by(year) %>%
+  mutate(across(c(English, French, 'Non-official'), ~./ Total*100))
+
+homelang21percent <- homelang21 |> 
+  group_by(region) |> 
+  mutate(across(c(English, French, 'Non-official'), ~./ Total*100))
+
+# tidy the dataframes of the percentages by doing pivot_longer 
+tidyhomelang <- 
+  pivot_longer(lavalhomelang_percent, cols = c(English:'Non-official'),
+               names_to = "Language", values_to = "Percentage")
+
+tidyhomelang21 <- 
+  pivot_longer(homelang21percent, cols = c(English:'Non-official'),
+               names_to = "Language", values_to = "Percentage")
+
+tidyhomelang$Language <- factor(tidyhomelang$Language,
+                                levels = c("Non-official", "English", "French"),
+                                labels = c("Non-officiel", "Anglais", "Français"))
+
+#trying to add percentages
+most_spoken_at_home <- 
+  ggplot(tidyhomelang, aes(x=year, y=Percentage, fill= Language)) +
+  geom_bar(stat="identity", position = "fill") +
+  scale_y_continuous(labels = scales::percent) +
+  geom_text(aes(label = convert_pct(Percentage/100)),
+            position = position_fill(vjust = 0.5),
+            size = 3,
+            color = "black") +
+  ylab(NULL) +
+  xlab(NULL) +
+  scale_fill_manual(values = c("Non-officiel" = color_theme("browndemographics"), 
+                               "Anglais" = color_theme("pinkhealth"), 
+                               "Français" = color_theme("blueexplorer"))) +
+  guides(fill = guide_legend(reverse = TRUE)) +
+  gg_cc_theme_no_sf +
+  theme(legend.title = element_blank())
+
+# Values for the text
+maison_fun <- \(year, lang) {
+  z <- tidyhomelang$Percentage[tidyhomelang$year == year & 
+                                 tidyhomelang$Language == lang]
+  convert_pct(z/100)
+}
+maison_nonoff_laval <- maison_fun(2021, "Non-officiel")
+maison_nonoff_qc <- convert_pct(homelang21_qc$`Non-official` / homelang21_qc$Total)
+maison_nonoff_laval_1996 <- maison_fun(1996, "Non-officiel")
+maison_en_laval_2001 <- maison_fun(2001, "Anglais")
+maison_en_laval <- maison_fun(2021, "Anglais")
+
+
+
+# See language most often spoken at home
+homelang21vector <- c(
+  "Total" = "v_CA21_2203",
+  "English" = "v_CA21_2209",
+  "French" = "v_CA21_2212",
+  "Non-official" = "v_CA21_2215")  
+homelang21_laval <- get_census(dataset = "CA21",
+                               regions = list(CSD = 2465005),
+                               level = "DA",
+                               vectors = homelang21vector,
+                               geo_format = "sf")
+homelang21_laval <- 
+  homelang21_laval |> 
+  mutate(across(c(English, French, 'Non-official'), ~./ Total))
+homelang21_laval$mostspoken <- "French"
+homelang21_laval$mostspoken[homelang21_laval$English > homelang21_laval$French] <- "English"
+homelang21_laval$mostspoken[homelang21_laval$`Non-official` > homelang21_laval$English &
+                              homelang21_laval$`Non-official` > homelang21_laval$French] <- "Non-official"
+
+# Add an alpha depending on HOW MUCH language is spokenn in %
+homelang21_laval$tolerance <- sapply(seq_along(homelang21_laval$mostspoken), \(x) {
+  homelang21_laval[x, ][[homelang21_laval$mostspoken[x]]]
+})
+homelang21_laval$mostspoken <- factor(homelang21_laval$mostspoken,
+                                      levels = c("Non-official", "English", "French"),
+                                      labels = c("Non-officiel", "Anglais", "Français"))
+
+
+color_theme("pinkhealth")
+
+
+
+# Define custom colors based on tolerance levels
+color_mosthome <- function(language, tolerance) {
+  if (is.na(tolerance)) return("#B3B3B3")
+  if (language == "Non-officiel") {
+    if (tolerance < 0.5) return("Non-officiel < 50%")  # Light blue
+    if (tolerance < 0.75) return("Non-officiel > 50 %")  # Medium blue
+    return("Non-officiel > 75 %")  # Dark blue
+  }
+  if (language == "Anglais") {
+    if (tolerance < 0.5) return("Anglais < 50%")  # Light blue
+    if (tolerance < 0.75) return("Anglais > 50 %")  # Medium blue
+    return("Anglais > 75 %")  # Dark blue
+  }
+  if (language == "Français") {
+    if (tolerance < 0.5) return("Français < 50%")  # Light blue
+    if (tolerance < 0.75) return("Français > 50 %")  # Medium blue
+    return("Français > 75 %")  # Dark blue
+  }
 }
 
-#Check data structure: 
-str(FirLang96)
-# Percent of first official languages spoken
-PerFirLang96 <- calc_percentages(FirLang96)
-PerFirLang01 <- calc_percentages(FirLang01)
-PerFirLang06 <- calc_percentages(FirLang06)
-PerFirLang16 <- calc_percentages(FirLan16)
-PerFirLang21 <- calc_percentages(FirLang21)
-PerFirLangqc21 <- calc_percentages(FirLang21qc)
+color_labels <- c(
+  "Français < 50%" = "#c5cde3",
+  "Français > 75 %" = "#7084b8",  
+  "Français > 50 %" = "#a3b0da",
+  
+  "Anglais < 50%" = "#E1AABA",
+  "Anglais > 50 %" = "#cd718c",
+  "Anglais > 75 %" = "#b33f61",
+  
+  "Non-officiel < 50%" = "#c2b9b9",
+  "Non-officiel > 50 %" = "#9e9090",
+  "Non-officiel > 75 %" = "#786969"
+)
 
-## tidy the dataframes of the percentages by doing pivot_longer 
-tidyFirLang96 <- pivot_longer(PerFirLang96, cols = c(Neither, English, Both, French), 
-                              names_to = "Language", values_to = "Percentage")
-tidyFirLang01 <- pivot_longer(PerFirLang01, cols = c(Neither, English, Both, French),
-                              names_to = "Language", values_to = "Percentage")
-tidyFirLang06 <- pivot_longer(PerFirLang06, cols = c(Neither, English, Both, French),
-                              names_to = "Language", values_to = "Percentage")
-tidyFirLang16 <- pivot_longer(PerFirLang16, cols = c(Neither, English, Both, French),
-                              names_to = "Language", values_to = "Percentage")
-tidyFirLang21 <- pivot_longer(PerFirLang21, cols = c(Neither, English, Both, French),
-                              names_to = "Language", values_to = "Percentage")
-tidyFirLang21qc <- pivot_longer(PerFirLangqc21, cols = c(Neither, English, Both, French),
-                                names_to = "Language", values_to = "Percentage")
 
-# Mutate to add the years to each data frame by adding a column
-tidyFirLang96 <- tidyFirLang96 |> 
-  mutate(Year = "1996")
-tidyFirLang01 <- tidyFirLang01 |> 
-  mutate(Year = "2001")
-tidyFirLang06 <- tidyFirLang06 |> 
-  mutate(Year = "2006")
-tidyFirLang16 <- tidyFirLang16 |> 
-  mutate(Year = "2016")
-tidyFirLang21 <- tidyFirLang21 |> 
-  mutate(Year = "2021", region = "Laval")
-tidyFirLang21qc <- tidyFirLang21qc |> 
-  mutate(Year = "2021", region = "Quebec")
+# Apply custom colors based on language and tolerance
+homelang21_laval$fill_color <- mapply(color_mosthome, homelang21_laval$mostspoken, homelang21_laval$tolerance)
 
-# Combine all the pivot tables - use bind_rows function 
-# ex: combinedKnowOffLang <- bind_rows(tidyLOLang96, tidyLOlang01, tidyLOLang06, tidyLOLang16, tidyLOLang21)
-combinedFirLang <- bind_rows(tidyFirLang96, tidyFirLang01, tidyFirLang06, tidyFirLang16, tidyFirLang21)
+homelang21_laval$fill_color <- factor(homelang21_laval$fill_color,
+                                      levels = names(color_labels))
 
-#going to compare Laval to Quebec
-combinedFir21 <- 
-  bind_rows(tidyFirLang21, tidyFirLang21qc)
+# Ensure there's one variable for all
+for (i in names(color_labels)) {
+  homelang21_laval[nrow(homelang21_laval) + 1, ]$fill_color <-i
+}
 
-#Now to plot
-#ggplot(combinedKnowOffLang, aes(x = Year, y = Percentage, fill = Language)) +
-ggplot(combinedFirLang, aes(x= Year, y = Percentage, fill = Language)) +
-  geom_bar(stat = "identity", position = "fill")
 
-ggplot(combinedFir21, aes(region, Percentage, fill = Language)) +
-  geom_bar(stat = "identity", position = "fill")
-#need to reorder
-## Reorder following a precise order
+# Add a legend to the plot
+ggplot(data = homelang21_laval) +
+  gg_cc_tiles +
+  geom_sf(aes(fill = fill_color), color = "transparent", lwd = 0) +
+  scale_fill_manual(values = color_labels,
+                    name = element_blank()) +
+                    # guide = guide_legend(title.position = "top",
+                    #                      label.position = "bottom", nrow = 1)) +
+  gg_cc_theme
 
-pFirLang21 <- combinedFir21 %>%
-  mutate(Language = fct_relevel(Language, 
-                                "Neither", "English", "Both", 
-                                "French")) 
-pirFirLang <- combinedFirLang |> 
-  mutate(Language = fct_relevel(Language,
-                                "Neither", "English", "Both", "French"))
-#install.packages("scales")
-library(scales) #this allows the labelpercent function to display as percent on y axis
 
-ggplot(pFirLang21, aes(x=region, y=Percentage, fill= Language)) +
-  geom_bar(stat="identity", position = "fill") +
-  labs(title = "First official Language Spoken 2021", x = "region", y = "Percentage") +
-  scale_y_continuous(labels = label_percent()) + 
-  theme_minimal()
 
-ggplot(pirFirLang, aes(x=Year, y=Percentage, fill= Language)) +
-  geom_bar(stat="identity", position = "fill") +
-  labs(title = "First official Language Spoken 2021", x = "region", y = "Percentage") +
-  scale_y_continuous(labels = label_percent()) + 
-  theme_minimal()
 
-# add percentages to the bars
-ggplot(pirFirLang, aes(x = Year, y = Percentage, fill = Language)) +
-  geom_bar(stat = "identity", position = "fill") +
-  scale_y_continuous(labels = scales::percent) +
-  geom_text(aes(label = paste0(round(Percentage),"%")),
-            position = position_fill(vjust = 0.5),
-            size = 3,
-            color = "white") +
-  labs(title = "First official Language Spoken 2021", y = "Percentage") 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+# Union the features so the polygons don't show their borders. Might revisit
+# with the addition of streets!
+
+# t <- Reduce(rbind,
+#             split(homelang21_laval, homelang21_laval$mostspoken) |>
+#               lapply(\(x) {
+#                 out <- tibble::tibble(x$mostspoken)
+#                 out$geometry <- sf::st_union(x)
+#                 sf::st_as_sf(out, crs = 4326)[1, ]
+#               })
+# ) |> sf::st_as_sf()
+# names(t)[1] <- "mostspoken"
+
+ggplot(data = homelang21_laval) +
+  gg_cc_tiles +
+  geom_sf(aes(alpha = tolerance, fill = mostspoken), color = "transparent", lwd = 0) +
+  scale_fill_manual(values = c("Non-officiel" = color_theme("browndemographics"), 
+                               "Anglais" = color_theme("pinkhealth"), 
+                               "Français" = color_theme("blueexplorer")),
+                    name = element_blank()) +
+  gg_cc_theme
+
+
+
+
+
+
+
+qs::qsavem(knowledge_official, bilingual_1996, bilingual_2021,
+           no_official_1996, no_official_2021, know_official_laval_qc_diff,
+           know_fr_qc, know_fr_laval, know_bilingual_laval, know_bilingual_qc,
+           know_only_fr_laval, know_only_fr_qc, know_only_en_laval,
+           most_spoken_at_home, maison_nonoff_laval, maison_nonoff_qc,
+           maison_nonoff_laval_1996, maison_en_laval_2001, maison_en_laval,
+           file = "data/axe1/language.qsm")
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 # Languages spoken at Home ------------------------------------------------
 find_census_vectors("language spoken at home", dataset = "CA21", type = "total", 
@@ -436,8 +604,7 @@ blip <-  cancensus::get_census(
   dataset = "CA16",
   regions = list(CSD= 2465005),
   level = "CSD",
-  vectors = c(
-    "Parent" = "v_CA16_1358"))
+  vectors = c("Parent" = "v_CA16_1358"))
 
 language_parent16 <- find_census_vectors("Single Responses", "CA16") %>% 
   filter(vector == "v_CA16_1358") 
@@ -645,7 +812,7 @@ langs_off.know <-
   cancensus::get_census(dataset = "CA21",
                         regions = list(CSD = 2465005),
                         level = "CT",
-                        vectors=c("v_CA21_1147", "v_CA21_1150", "v_CA21_1153", "v_CA21_1156"),
+                        vectors=c("v_CA21_1147", "v_CA21_1150", "v_CA21_1153", "v_CA21_1156"))
 
 
 # Data Frame for CSD Official languages 2021 - Laval -----------------------------------
@@ -709,7 +876,7 @@ off.lang.CSD <-
                                     "Neither English nor French" = "v_CA21_1156"))
 #Trying to get the percent
 Percentoff.lang.CSD <- off.lang.CSD |> 
- mutate(PercentEnglish = as.numeric(English)/as.numeric(Total)   
+ mutate(PercentEnglish = as.numeric(English)/as.numeric(Total))   
           #mutate(PercentFrench = "French"/"Total") |>    
           #mutate(PercentEnglish_French" = "English and French"/"Total") |> 
           #mutate(PercentNeither = "Neither English nor French"/"Total")
@@ -959,4 +1126,7 @@ ggplot(reorder, aes(x=region, y=Percentage, fill= Language)) +
 # Save the objects --------------------------------------------------------
 
 qs::qsavem(knowledge_official, bilingual_1996, bilingual_2021,
+           no_official_1996, no_official_2021, know_official_laval_qc_diff,
+           know_fr_qc, know_fr_laval, know_bilingual_laval, know_bilingual_qc,
+           know_only_fr_laval, know_only_fr_qc, know_only_en_laval,
            file = "data/axe1/language.qsm")
