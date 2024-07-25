@@ -487,10 +487,12 @@ ggplot(data = homelang21_laval) +
   gg_cc_tiles +
   geom_sf(aes(fill = fill_color), color = "transparent", lwd = 0) +
   scale_fill_manual(values = color_labels,
-                    name = element_blank()) +
-                    # guide = guide_legend(title.position = "top",
-                    #                      label.position = "bottom", nrow = 1)) +
-  gg_cc_theme
+                    name = element_blank(),
+                    guide = guide_legend(title.position = "top",
+                                         label.position = "bottom", nrow = 3)) +
+  gg_cc_theme +
+  theme(legend.position = "right",
+        legend.box = "vertical")
 
 
 
