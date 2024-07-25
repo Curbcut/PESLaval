@@ -166,7 +166,7 @@ knowledge_official <-
             color = "black") +
   ylab(NULL) +
   xlab(NULL) +
-  scale_fill_manual(values = c("Aucune" = color_theme("browndemographics"), 
+  scale_fill_manual(values = c("Aucune" = color_theme("yellowclimate"), 
                                "Anglais" = color_theme("pinkhealth"), 
                                "Français" = color_theme("blueexplorer"), 
                                "Les deux" = color_theme("greenecology"))) +
@@ -246,7 +246,7 @@ know_official_laval_qc_diff <-
             color = "black") +
   ylab(NULL) +
   xlab(NULL) +
-  scale_fill_manual(values = c("Aucune" = color_theme("browndemographics"), 
+  scale_fill_manual(values = c("Aucune" = color_theme("yellowclimate"), 
                                "Anglais" = color_theme("pinkhealth"), 
                                "Français" = color_theme("blueexplorer"), 
                                "Les deux" = color_theme("greenecology"))) +
@@ -382,7 +382,7 @@ most_spoken_at_home <-
             color = "black") +
   ylab(NULL) +
   xlab(NULL) +
-  scale_fill_manual(values = c("Non-officiel" = color_theme("browndemographics"), 
+  scale_fill_manual(values = c("Non-officiel" = color_theme("yellowclimate"), 
                                "Anglais" = color_theme("pinkhealth"), 
                                "Français" = color_theme("blueexplorer"))) +
   guides(fill = guide_legend(reverse = TRUE)) +
@@ -542,7 +542,6 @@ hl$no <- homelang21_laval[c("Non-official")]
 
 # Function to generate n random points within a polygon
 generate_points <- function(polygon, n) {
-  bb <- sf::st_bbox(polygon)
   points <- sf::st_sample(polygon, size = n / 10, type = "random")
   polygon$geometry <- sf::st_union(points)
   return(polygon)
@@ -593,7 +592,7 @@ ggplot(data = hh) +
   geom_sf(aes(color = lang), size = 0.2) +
   scale_color_manual(values = c("Français" = color_theme("blueexplorer"),
                                 "Anglais" = color_theme("pinkhealth"),
-                                "Autre" = color_theme("browndemographics")),
+                                "Autre" = color_theme("yellowclimate")),
                      name = "Un point = 10 individus", 
                      guide = guide_legend(title.position = "top", label.position = "bottom", nrow = 1,
                                           override.aes = list(size = 5, stroke = 0.5))) +
@@ -643,7 +642,7 @@ ggplot(data = hh) +
 ggplot(data = homelang21_laval) +
   gg_cc_tiles +
   geom_sf(aes(alpha = tolerance, fill = mostspoken), color = "transparent", lwd = 0) +
-  scale_fill_manual(values = c("Non-officiel" = color_theme("browndemographics"), 
+  scale_fill_manual(values = c("Non-officiel" = color_theme("yellowclimate"), 
                                "Anglais" = color_theme("pinkhealth"), 
                                "Français" = color_theme("blueexplorer")),
                     name = element_blank()) +
