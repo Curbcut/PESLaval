@@ -522,6 +522,104 @@ ggplot(data = homelang21_laval$Français) +
 
 
 
+# See language most often spoken at home
+homelang21vector <- c(
+  "Total" = "v_CA21_2203",
+  "English" = "v_CA21_2209",
+  "French" = "v_CA21_2212",
+  "Non-official" = "v_CA21_2215")  
+homelang21_laval <- get_census(dataset = "CA21",
+                               regions = list(CSD = 2465005),
+                               level = "DA",
+                               vectors = homelang21vector,
+                               geo_format = "sf")
+
+hl <- list()
+hl$en <- homelang21_laval[c("English")]
+hl$fr <- homelang21_laval[c("French")]
+hl$no <- homelang21_laval[c("Non-official")]
+
+
+# Function to generate n random points within a polygon
+generate_points <- function(polygon, n) {
+  bb <- sf::st_bbox(polygon)
+  points <- sf::st_sample(polygon, size = n / 10, type = "random")
+  polygon$geometry <- sf::st_union(points)
+  return(polygon)
+}
+
+hl_random_points <- lapply(hl, \(h) {
+  for (i in seq_along(h$geometry)) {
+    if (is.na(h[i,][[1]])) next
+    h[i,] <- generate_points(polygon = h[i, ], n = h[i,][[1]])
+  }
+  h
+})
+
+
+
+
+
+hh <- lapply(hl_random_points, \(x) {
+  x$lang <- names(x)[1]
+  x["lang"]
+})
+hh <- Reduce(rbind, hh)
+
+
+st_un_multipoint = function(x) {
+  g = sf::st_geometry(x)
+  i = rep(seq_len(nrow(x)), sapply(g, nrow))
+  x = x[i,]
+  sf::st_geometry(x) = sf::st_sfc(do.call(c,
+                                  lapply(g, function(geom) lapply(1:nrow(geom), function(i) sf::st_point(geom[i,])))))
+  x$original_geom_id = i
+  x
+}
+hh <- hh[!sf::st_is_empty(hh), ]
+hh <- st_un_multipoint(sf::st_cast(hh, "MULTIPOINT"))
+sf::st_crs(hh) <- 4326
+
+hh <- hh[sample(nrow(hh)),]
+
+hh$lang <- gsub("English", "Anglais", hh$lang)
+hh$lang <- gsub("French", "Français", hh$lang)
+hh$lang <- gsub("Non-official", "Autre", hh$lang)
+
+hh$lang <- factor(hh$lang, levels = c("Français", "Anglais", "Autre"))
+
+ggplot(data = hh) +
+  gg_cc_tiles +
+  geom_sf(aes(color = lang), size = 0.2) +
+  scale_color_manual(values = c("Français" = color_theme("blueexplorer"),
+                                "Anglais" = color_theme("pinkhealth"),
+                                "Autre" = color_theme("browndemographics")),
+                     name = "Un point = 10 individus", 
+                     guide = guide_legend(title.position = "top", label.position = "bottom", nrow = 1,
+                                          override.aes = list(size = 5, stroke = 0.5))) +
+  gg_cc_theme +
+  theme(legend.spacing.x = unit(1, 'cm'),
+        legend.spacing.y = unit(1, 'cm'))
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
