@@ -109,6 +109,7 @@ hs <- bind_rows(hs_21_lvl, hs_21_mtl, hs_21_qc,
 #Creating the line graph
 ggplot(hs, aes(x = Year, y = hs_prop, color = Region, group = Region)) +
   geom_line(linewidth = 1.5) +
+  geom_point(size = 3) +
   scale_color_manual(values = c("Laval" = "#A3B0D1",
                                 "Montreal" = "#E08565",
                                 "Quebec" = "#73AD80")) +
@@ -203,7 +204,7 @@ hc25 <- get_census(
 
 
 #Creating to bar graph
-ggplot(hc25, aes(x = education, y = count, fill = Type)) +
+high_edu_25_graph <- ggplot(hc25, aes(x = education, y = count, fill = Type)) +
   geom_bar(stat = "identity", position = "dodge", aes(group = variable)) +
   geom_text(aes(label = prop, y = count), position = position_dodge(width = 0.9), vjust = 1.5, size = 3.5, color = "white") +
   labs(x = "", y = "Personnes") +
@@ -216,7 +217,8 @@ ggplot(hc25, aes(x = education, y = count, fill = Type)) +
                               "Diplôme universitaire")) +
   theme_minimal() +
   theme(legend.position = "bottom", legend.title = element_blank(),
-        axis.text.x = element_text(angle = 40, hjust = 1))
+        axis.text.x = element_text(angle = 40, hjust = 1),
+        text=element_text(family="KMR Apparat Regular"))
 
 # Composition 2006-2021 ---------------------------------------------------
 comp21v <- c("total" = "v_CA21_5865", "none" = "v_CA21_5868", "sec" = "v_CA21_5871",
@@ -336,3 +338,11 @@ ggplot(edus, aes(x = education, y = prop, fill = sex)) +
         axis.text.y = element_blank(), axis.ticks.y = element_blank(),
         axis.title.x = element_blank(), axis.ticks.x = element_blank()) +
   guides(fill = guide_legend(ncol = 2))
+
+# Markdown ----------------------------------------------------------------
+ggplot2::ggsave(filename = here::here("output/axe1/education/high_edu_25_graph.png"), 
+                plot = high_edu_25_graph, width = 8, height = 6)
+
+qs::qsavem(high_edu_25_graph,
+           file = "D://McGill/can_cache/data/education.qsm")
+
