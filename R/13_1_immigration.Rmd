@@ -7,11 +7,11 @@ output:
   bookdown::pdf_document2: default
 ---
 
-```{r setup, include=FALSE}
+```{r setup_immigration, include=FALSE}
 knitr::opts_chunk$set(echo = FALSE)
 ```
 
-```{r population}
+```{r imm}
 
 # Load the data that has been calculated and saved in the according script:
 qs::qload(here::here("data/demography/demo.qsm"))

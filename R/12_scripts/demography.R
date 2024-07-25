@@ -19,10 +19,10 @@ laval_census <- cancensus::get_census(dataset = "CA21",
 # convert_number lets us convert any type and number to 'Pretty' number. 
 # To use curbcut functions, install the package through `devtools::install_github("Curbcut/curbcut")`
 laval_population_census <- laval_census$Population
-laval_population_census_pretty <- convert_number(x = laval_population)
+laval_population_census_pretty <- convert_number(x = laval_population_census)
 
 laval_population_ISQ <- 454990
-laval_population_ISQ_pretty <- convert_number(x = laval_population)
+laval_population_ISQ_pretty <- convert_number(x = laval_population_ISQ)
 
 laval_size <- (cc.buildr::get_area(laval_census) / 1e6)
 laval_size_pretty <- convert_number(x = laval_size)
@@ -365,7 +365,7 @@ qs::qsavem(laval_population_ISQ_pretty, laval_size_pretty, density_pretty,
            moins_18_prov_pretty, sixtyfive_pretty, sixtyfive_prov_pretty, 
            homme_pct_pretty, femme_pct_pretty, ethnic_origins, groupe_ethniques_diff,
            population_change, quebec_pop_change, pop_et_proj, naissances_laval,
-           naissances_laval_moyenne_5, laval_births_graph,
+           naissances_laval_moyenne_5, laval_births_graph, laval_population_census_pretty,
            file = "data/demography/demo.qsm")
 
                                     

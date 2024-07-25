@@ -37,8 +37,8 @@ tiles <- mapboxapi::get_static_tiles(location = lvlbbox,
 gg_cc_tiles <- list(ggspatial::layer_spatial(tiles, alpha = 0.7))
 default_theme <- theme(legend.position = "bottom",
                         legend.box = "horizontal",
-                        legend.title = element_text(size = 10),
-                        legend.text = element_text(size = 8),
+                        legend.title = element_text(size = 8),
+                        legend.text = element_text(size = 6),
                         legend.title.align = 0.5,
                         legend.text.align = 0.5,
                         text=element_text(family="KMR Apparat Regular"))

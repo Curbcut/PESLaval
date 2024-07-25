@@ -2,7 +2,6 @@ rmd_files:
   - R/index.Rmd
   - R/11_context.Rmd
   - R/12_demography.Rmd
-  - R/13_axe1.Rmd
-  - R/14_axe2.Rmd
-  - R/15_axe3.Rmd
+  - R/13_1_immigration.Rmd
+  - R/13_2_langues.Rmd
 output_dir: "_book"
