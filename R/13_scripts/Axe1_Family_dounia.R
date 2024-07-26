@@ -875,7 +875,7 @@ plot_laval <- ggplot(plot_data, aes(x = category, y = percentage, fill = child_s
   geom_bar(stat = "identity", position = "stack") +
   geom_text(aes(label = perc), 
             position = position_stack(vjust = 0.5), 
-            size = 4, 
+            size = 3, 
             color = "white") +
   labs(title = "Laval",
        y = "Proportion de familles",
@@ -900,7 +900,7 @@ plot_qc <- ggplot(plot_data_qc, aes(x = category, y = percentage, fill = child_s
   geom_bar(stat = "identity", position = "stack") +
   geom_text(aes(label = perc), 
             position = position_stack(vjust = 0.5), 
-            size = 4, 
+            size = 3, 
             color = "white") +
   labs(title = "Québec",
        y = NULL,  # We'll set y-axis label to NULL to avoid duplication

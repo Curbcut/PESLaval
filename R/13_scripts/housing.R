@@ -141,12 +141,12 @@ med_rent_cmhc <- function(geoid, years, geoname) {
 
 #Grabbing annual median rent data from 2010 to 2023
 med_rent_lvl <- med_rent_cmhc(2465005, years, "Laval")
-med_rent_mtl <- med_rent_cmhc(2466023, years, "Montreal")
+med_rent_mtl <- med_rent_cmhc(2466023, years, "Montréal")
 
 #Manually inputting the province of Quebec's data as it's unavailable using the CMHC package
 #src = https://www.cmhc-schl.gc.ca/professionals/housing-markets-data-and-research/housing-data/data-tables/rental-market/rental-market-report-data-tables
 med_rent_qc <- data.frame(
-  Geography = "Quebec",
+  Geography = "Québec",
   Year = c(2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018, 2019,
            2020, 2021, 2022, 2023),
   Value = c(610, 629, 625, 645, 650, 665, 675, 693, 705, 745, 773, 800, 860, 939)
@@ -155,19 +155,19 @@ med_rent_qc <- data.frame(
 #YoY growth calculation
 med_rent_yoy <- bind_rows(med_rent_lvl, med_rent_mtl, med_rent_qc) |> 
   pivot_wider(id_cols = "Geography", names_from = Year, values_from = Value) |> 
-  mutate(`2010_2011` = (`2011` / `2010` - 1) * 100,
-         `2011_2012` = (`2012` / `2011` - 1) * 100,
-         `2012_2013` = (`2013` / `2012` - 1) * 100,
-         `2013_2014` = (`2014` / `2013` - 1) * 100,
-         `2014_2015` = (`2015` / `2014` - 1) * 100,
-         `2015_2016` = (`2016` / `2015` - 1) * 100,
-         `2016_2017` = (`2017` / `2016` - 1) * 100,
-         `2017_2018` = (`2018` / `2017` - 1) * 100,
-         `2018_2019` = (`2019` / `2018` - 1) * 100,
-         `2019_2020` = (`2020` / `2019` - 1) * 100,
-         `2020_2021` = (`2021` / `2020` - 1) * 100,
-         `2021_2022` = (`2022` / `2021` - 1) * 100,
-         `2022_2023` = (`2023` / `2022` - 1) * 100) |> 
+  mutate(`2010_2011` = (`2011` / `2010` - 1),
+         `2011_2012` = (`2012` / `2011` - 1),
+         `2012_2013` = (`2013` / `2012` - 1),
+         `2013_2014` = (`2014` / `2013` - 1),
+         `2014_2015` = (`2015` / `2014` - 1),
+         `2015_2016` = (`2016` / `2015` - 1),
+         `2016_2017` = (`2017` / `2016` - 1),
+         `2017_2018` = (`2018` / `2017` - 1),
+         `2018_2019` = (`2019` / `2018` - 1),
+         `2019_2020` = (`2020` / `2019` - 1),
+         `2020_2021` = (`2021` / `2020` - 1),
+         `2021_2022` = (`2022` / `2021` - 1),
+         `2022_2023` = (`2023` / `2022` - 1)) |> 
   select(Geography, `2010_2011`,`2011_2012`, `2012_2013`, `2013_2014`, `2014_2015`,
          `2015_2016`, `2016_2017`, `2017_2018`, `2018_2019`, `2019_2020`, `2020_2021`,
          `2021_2022`, `2022_2023`) |> 
@@ -180,32 +180,30 @@ med_rent_yoy <- bind_rows(med_rent_lvl, med_rent_mtl, med_rent_qc) |>
 
 #Preparing the table for the line graph
 med_rent_annual <- bind_rows(med_rent_lvl, med_rent_mtl, med_rent_qc) |> 
-  mutate(Geography = factor(Geography, levels = c("Laval", "Montreal", "Quebec")))
+  mutate(Geography = factor(Geography, levels = c("Laval", "Montréal", "Québec")))
 
-ggplot(med_rent_annual, aes(x = Year, y = `Value`, group = Geography, color = Geography)) +
-  geom_line(linewidth = 1.25) +
-  labs(title = "Loyer mensuel médian 2010-2023",
-       x = "Année",
-       y = "Loyer mensuel médian ($)") +
-  scale_color_manual(values = c("Laval" = "royalblue2", "Montreal" = "indianred2",
-                                "Quebec" = "gold3"),
-                     labels = c("Laval", "Montreal", "Quebec")) +
+med_rent_graph <- ggplot(med_rent_annual, aes(x = Year, y = `Value`, group = Geography, color = Geography)) +
+  geom_line(linewidth = 1.5) +
+  labs(y = "Loyer mensuel médian ($)") +
+  scale_color_manual(values = c("Laval" = "#A3B0D1", "Montréal" = "#E08565",
+                                "Québec" = "#73AD80"),
+                     labels = c("Laval", "Montréal", "Québec")) +
   theme_minimal() +
   theme(
-    legend.position = "bottom", legend.box = "horizontal",
-    legend.title = element_blank(), plot.title = element_text(hjust = 0.5)
-  )
+    legend.position = "bottom", legend.box = "horizontal", axis.title.x = element_blank(),
+    legend.title = element_blank(), plot.title = element_text(hjust = 0.5),
+    text=element_text(family="KMR Apparat Regular"))
 
-ggplot(med_rent_yoy, aes(x = Year, y = Growth)) +
+med_yoy_growth_graph <- ggplot(med_rent_yoy, aes(x = Year, y = Growth, fill = Geography)) +
   geom_bar(stat = "identity", position = position_dodge()) +
   facet_wrap(~Geography) +
+  scale_fill_manual(values = c("Laval" = "#A3B0D1", "Montréal" = "#E08565", "Québec" = "#73AD80")) +
+  scale_y_continuous(labels = convert_pct) +
   theme_minimal() +
-  labs(title = "Variation d’une année sur l’autre du loyer médian 2010-2023",
-       x = "Année",
-       y = "Variation du loyer médian (%)") +
-  theme(legend.position = "bottom", legend.box = "horizontal",
-        legend.title = element_blank(), plot.title = element_text(hjust = 0.5),
-        axis.text.x = element_text(angle = 45, hjust = 1))
+  labs(y = "Variation du loyer médian") +
+  theme(legend.position = "none", plot.title = element_text(hjust = 0.5),
+        axis.text.x = element_text(angle = 45, hjust = 1),
+        text=element_text(family="KMR Apparat Regular"), axis.title.x = element_blank())
 
 # Monthly Tenant Cost by Laval Neighborhood -------------------------------
 nbhd_mtlcma <- cmhc::get_cmhc(survey = "Rms", series = "Median Rent", 
@@ -227,30 +225,26 @@ med_rent_lvl <- nbhd_mtlcma |>
 
 med_rent_lvl_sf <- laval_zones |> 
   left_join(med_rent_lvl, join_by(NBHD_NAME_EN == Neighbourhoods)) |>
+  mutate(breaks = cut(Value, breaks = c(-Inf, 800, 875, 950, 1025, Inf),
+                         labels = c("< 800", "800-875", "875-950", "950-1 025", "> 1 025"), 
+                         right = FALSE)) |> 
   st_transform(4326)
 
 mtlcma_sf_32618 <- st_transform(mtlcma_sf, 32618)
 laval_csd_32618 <- st_transform(laval_csd, 32618)
 laval_bbox_32618 <- st_bbox(laval_csd_32618)
 
-ggplot(data = med_rent_lvl_sf) +
-  geom_sf(data = mtlcma_sf, fill = "lightgrey") +
-  geom_sf(aes(fill = Value)) +
-  scale_fill_gradientn(colors = curbcut_scale, na.value = "#B3B3BB") +
-  labs(title = "Loyer médian* à Laval 2023",
-       subtitle = "*Loyer médian d'un appartement 2 chambres",
-       fill = "Loyer médian ($)") +
-  theme_minimal() +
-  theme(axis.line = element_blank(), axis.text = element_blank(),
-        axis.title = element_blank(), axis.ticks = element_blank(),
-        panel.grid = element_blank(), legend.position = "bottom",
-        plot.title = element_text(hjust = 0.5), legend.justification = "center",
-        plot.subtitle = element_text(hjust = 0.5),
-        panel.background = element_rect(fill = "lightblue")) +
-  guides(fill = guide_colorbar(title.position = "top", title.hjust = 0.5,
-                               barwidth = 10, barheight = 1)) +
-  coord_sf(xlim = c(laval_bbox$xmin, laval_bbox$xmax),
-           ylim = c(laval_bbox$ymin, laval_bbox$ymax))
+med_rent_map <- ggplot(data = med_rent_lvl_sf) +
+  gg_cc_tiles +
+  geom_sf(aes(fill = breaks), color = "black") +
+  scale_fill_manual(values = curbcut_scale, na.value = "#B3B3BB") +
+  labs(fill = "Loyer médian ($)") +
+  theme_void() +
+  theme(legend.position = "bottom",  legend.justification = "center",
+        text=element_text(family="KMR Apparat Regular"),
+        legend.box.margin = margin(t = -20)) +
+  guides(fill = guide_legend(title.position = "top", title.hjust = 0.5,
+                             barwidth = 1, barheight = 1, nrow = 1))
 
 nbhd_mtlcma_18 <- cmhc::get_cmhc(survey = "Rms", series = "Median Rent", 
                                  dimension = "Bedroom Type", breakdown = "Neighbourhoods", 
@@ -862,13 +856,20 @@ pto_graph <- bind_rows(pto_21, pto_16, pto_11, pto_06, pto_01) |>
   pivot_longer(cols = -Year, names_to = "Type", values_to = "Households") |> 
   group_by(Year) %>%
   mutate(Proportion = Households / sum(Households) * 100,
-         ProportionLabel = paste0(gsub("\\.", ",", round(Proportion, 1)), "%")) |> 
+         ProportionLabel = paste0(gsub("\\.", ",", round(Proportion, 1)), " %")) |> 
   ungroup() |> 
   mutate(Type = factor(Type, levels = c("owner", "tenant"))) |> 
   arrange(Year) |> 
   group_by(Type) |> 
   mutate(Increase = c(FALSE, diff(Proportion) > 0)) |> 
-  ungroup()
+  ungroup() |> 
+  mutate(ProportionLabel = case_when(
+    Year == 2001 ~ ProportionLabel,
+    Increase == TRUE ~ paste0(ProportionLabel, " ▲"),
+    Increase == FALSE ~ paste0(ProportionLabel, " ▼"),
+    TRUE ~ ProportionLabel
+  )) |> 
+  select(-Proportion, -Increase)
 
 #Proportion Graph data
 pto_graph_prop <- bind_rows(pto_21, pto_16, pto_11, pto_06, pto_01) |> 
@@ -877,21 +878,22 @@ pto_graph_prop <- bind_rows(pto_21, pto_16, pto_11, pto_06, pto_01) |>
   select(Year, "Owner Households", "Tenant Households") |> 
   pivot_longer(cols = -Year, names_to = "Type", values_to = "Households") |> 
   mutate(Type = factor(Type, levels = c("Owner Households", "Tenant Households")))
+  
 
 #Graphing the data out
-ggplot(pto_graph, aes(x = Year, y = Households, fill = Type)) +
-  geom_bar(stat = "identity", position = position_dodge()) +
-  geom_text(aes(label = ifelse(Year == min(Year), ProportionLabel, paste0(ProportionLabel, ifelse(Increase, " ▲", " ▼")))),
-            position = position_dodge(width = 0.9), vjust = 1.5, color = "white", size = 4) +
-  labs(title = "Ménages propriétaires et locataires à Laval 2001-2021",
-       x = "Année",
-       y = "Nombre de ménages",
+proportion_graph <- ggplot(pto_graph, aes(x = Year, y = Households, fill = Type)) +
+  geom_bar(stat = "identity", position = position_dodge(width = 0.9)) +
+  geom_text(aes(label = ProportionLabel, group = Type), 
+            position = position_dodge(width = 0.9), vjust = 2, size = 3,
+            color = "white") +
+  labs(y = "Nombre de ménages",
        fill = "Type of Household") +
-  scale_fill_manual(values = c("owner" = "royalblue2", "tenant" = "indianred2"),
+  scale_fill_manual(values = c("owner" = "#A3B0D1", "tenant" = "#CD718C"),
                     labels = c("Propriétaire", "Locataire")) +
   theme_minimal() +
   theme(legend.position = "bottom", legend.box = "horizontal",
-        legend.title = element_blank(), plot.title = element_text(hjust = 0.5))
+        legend.title = element_blank(), plot.title = element_text(hjust = 0.5),
+        text=element_text(family="KMR Apparat Regular"), axis.title.x = element_blank())
 
 #Creating a line chart of proportion over years
 ggplot(pto_graph_prop, aes(x = Year, y = Households, color = Type, group = Type)) +
@@ -1341,3 +1343,16 @@ ggplot(starts_ca_line, aes(x = Year, y = `Count`, group = `Intended Market`, col
     legend.position = "bottom", legend.box = "horizontal", legend.title = element_blank(),
     plot.title = element_text(hjust = 0.5), axis.text.x = element_text(angle = 45, hjust = 1)
   )
+
+# R Markdown --------------------------------------------------------------
+ggplot2::ggsave(filename = here::here("output/axe1/housing/proportion_graph.png"), 
+                plot = proportion_graph, width = 8, height = 6, bg = "transparent")
+ggplot2::ggsave(filename = here::here("output/axe1/housing/med_yoy_growth_graph.png"), 
+                plot = med_yoy_growth_graph, width = 8, height = 6, bg = "transparent")
+ggplot2::ggsave(filename = here::here("output/axe1/housing/med_rent_graph.png"), 
+                plot = med_rent_graph, width = 8, height = 6, bg = "transparent")
+ggplot2::ggsave(filename = here::here("output/axe1/housing/med_rent_map.png"), 
+                plot = med_rent_map, width = 8, height = 6, bg = "transparent")
+
+qs::qsavem(proportion_graph, med_yoy_growth_graph, med_rent_graph, med_rent_map,
+           file = "D://McGill/can_cache/data/housing.qsm")
