@@ -208,6 +208,7 @@ imm_table_qc  <- get_census(dataset = "CA21",
                               vectors = imm_table_21v) |> 
   mutate(Région = "Québec")
 
+#Formatting the numbers
 imm_table_data <- bind_rows(imm_table_lvl, imm_table_mtl, imm_table_qc) |> 
   mutate(`Immigrants totaux (%)` = convert_pct(`Immigrants totaux (n)` / `Population (n)`),
          `Immigrants récents (%)` = convert_pct(`Immigrants récents (n)` / `Population (n)`),
@@ -222,6 +223,7 @@ imm_table_data <- bind_rows(imm_table_lvl, imm_table_mtl, imm_table_qc) |>
          `Immigrants récents (n)`, `Immigrants récents (%)`, `Résident non permanents (n)`,
          `Résident non permanents (%)`, `Non-immigrants (n)`, `Non-immigrants (%)`)
 
+#Creating the table
 imm_table <- imm_table_data |> gt() |> 
   tab_style(
     style = cell_fill(color = "#F0F0F0"),
@@ -253,12 +255,220 @@ non_res_prop <- get_census(dataset = "CA21",
   mutate(test = convert_pct(nonres / Pop)) |> 
   pull(test)
 
+#Recent immigrant map
+#Prepping data to map it
+breaks <- c(-Inf, 0.025, 0.05, 0.075, 0.1, Inf)
+
+recimm_lvl_21_da <- get_census(dataset = "CA21", 
+                            regions = list(CSD = c(2465005)), 
+                            level = "DA",
+                            vectors = c("pop"= "v_CA21_4404", "recent" = "v_CA21_4635"),
+                            geo_format = "sf") |> 
+  mutate(percentage = recent / pop) |> 
+  replace_na(list(percentage = 0)) |> 
+  mutate(percentage_category = cut(percentage, 
+                                   breaks = breaks, 
+                                   labels = c("< 2,5 %", "2,5-5 %", "5-7,5 %", "7,5-20 %", "> 20%"), 
+                                   include.lowest = TRUE))
+
+#Mapping the data
+recimm_prop_map <- ggplot(data = recimm_lvl_21_da) +
+  gg_cc_tiles +
+  geom_sf(aes(fill = percentage_category), color = NA) +
+  geom_sf(data = laval_sectors, fill = "transparent", color = "black") +
+  scale_fill_manual(values = curbcut_scale, na.value = "#B3B3BB") +
+  labs(fill = "Proportion de la population") +
+  theme_void() +
+  theme(legend.position = "bottom", legend.box = "horizontal",
+        text=element_text(family="KMR Apparat Regular")) +
+  guides(fill = guide_legend(title.position = "top", title.hjust = 0.5,
+                             nrow = 1))
+
+#Citizen proportion
+Citizenship <- cancensus::get_census(dataset = "CA21", 
+                                     regions = list(CSD = 2465005), 
+                                     level = "CSD",
+                                     vectors = c("Total" = "v_CA21_4389",
+                                                 "Canadian" = "v_CA21_4392",
+                                                 "NotCanadian" = "v_CA21_4401"))
+
+Citizenship <- Citizenship |> mutate(PercentCanadian = Canadian/Total)
+
+CanadianCitizensLaval <- Citizenship[1,"PercentCanadian"] |> 
+  mutate(PercentCanadian = convert_pct(PercentCanadian)) |> 
+  pull(PercentCanadian)
+
+Citizenship_Quebec <- cancensus::get_census(dataset = "CA21", 
+                                            regions = list(PR = 24), 
+                                            level = "PR",
+                                            vectors = c("Total" = "v_CA21_4389",
+                                                        "Canadian" = "v_CA21_4392",
+                                                        "NotCanadian" = "v_CA21_4401"))
+
+Citizenship_Quebec <- Citizenship_Quebec |> mutate(PercentCanadian = Canadian/Total)
+
+CanadianCitizensQc <- Citizenship_Quebec[1, "PercentCanadian"] |> 
+  mutate(PercentCanadian = convert_pct(PercentCanadian)) |> 
+  pull(PercentCanadian)
+
+Citizenship_mtl <- cancensus::get_census(dataset = "CA21", 
+                                         regions = list(CSD = 2466023), 
+                                         level = "CSD",
+                                         vectors = c("Total" = "v_CA21_4389",
+                                                     "Canadian" = "v_CA21_4392",
+                                                     "NotCanadian" = "v_CA21_4401"))
+
+Citizenship_mtl <- Citizenship_mtl |> mutate(PercentCanadian = Canadian/Total)
+
+CanadianCitizensMtl <- Citizenship_mtl[1, "PercentCanadian"] |> 
+  mutate(PercentCanadian = convert_pct(PercentCanadian)) |> 
+  pull(PercentCanadian)
+
+# Period of Immigration ---------------------------------------------------
+#Pulling data and making it usable for laval
+immigrant_decade <- cancensus::get_census(dataset = "CA21", 
+                                          regions = list(CSD = 2465005), 
+                                          level = "CSD",
+                                          vectors = c("Total" = "v_CA21_4404",
+                                                      "Avant 1980" = "v_CA21_4413",
+                                                      "1980 à 1990" = "v_CA21_4416",
+                                                      "1991 à 2000" = "v_CA21_4419",
+                                                      "2001 à 2010" = "v_CA21_4422",
+                                                      "2011 à 2021" = "v_CA21_4425"))
+
+immigrant_decade_percent <- immigrant_decade |> 
+  mutate(across(`Avant 1980`:`2011 à 2021`, ~. /Total)) |> 
+  select(-Total) |> 
+  pivot_longer(-c(GeoUID:CMA_UID)) |> 
+  mutate(Region = "Laval")
+
+immigrant_decade_percent$name <- 
+  factor(immigrant_decade_percent$name, levels = unique(immigrant_decade_percent$name))
+
+ggplot(data = immigrant_decade_percent, aes(x = name, y = value)) +
+  geom_bar(stat = "identity") +
+  labs(x = "Decade", y = "Percent", title = "Period of Immigration Laval")
+
+#Now for Quebec
+immigrant_decade_queb <- cancensus::get_census(dataset = "CA21", 
+                                               regions = list(PR = 24), 
+                                               level = "PR",
+                                               vectors = c("Total" = "v_CA21_4404",
+                                                           "Avant 1980" = "v_CA21_4413",
+                                                           "1980 à 1990" = "v_CA21_4416",
+                                                           "1991 à 2000" = "v_CA21_4419",
+                                                           "2001 à 2010" = "v_CA21_4422",
+                                                           "2011 à 2021" = "v_CA21_4425"))
+
+immigrant_decade_queb_percent <- immigrant_decade_queb |> 
+  mutate(across(`Avant 1980`:`2011 à 2021`, ~. /Total)) |> 
+  select(-Total) |> 
+  pivot_longer(-c(GeoUID:C_UID)) |> 
+  mutate(Region = "Québec")
+
+immigrant_decade_queb_percent$name <- 
+  factor(immigrant_decade_queb_percent$name, levels = unique(immigrant_decade_queb_percent$name))
+
+ggplot(data = immigrant_decade_queb_percent, aes(x = name, y = value)) +
+  geom_bar(stat = "identity") +
+  scale_y_continuous(labels = scales::comma)+
+  labs(x = "Decade", y = "Percent", title = "Period of Immigration Quebec")
+
+# combine percentage plots together
+combined_decade_data <- bind_rows(immigrant_decade_percent, immigrant_decade_queb_percent) |> 
+  mutate(percentage = convert_pct(value))
+
+period_imm_graph <- ggplot(data = combined_decade_data, aes(x = name, y = value, fill = Region)) +
+  geom_bar(stat = "identity", position = position_dodge()) +
+  geom_text(aes(label = percentage), position = position_dodge(width = 0.9),
+            vjust = 2.5, size = 4, color = "white") +
+  labs(x = "Decade", y = "Proportion de la population", title = "Period of Immigration: Laval vs. Quebec") +
+  scale_fill_manual(values = c("Laval" = "#A3B0D1", "Québec" = "#73AD80")) +
+  scale_y_continuous(labels = function(x) paste0(scales::percent(x, accuracy = 1), " ")) +
+  theme_minimal() +
+  theme(legend.position = "bottom", plot.title = element_blank(), axis.title.x = element_blank(),
+        legend.title = element_blank(), text = element_text(family = "KMR Apparat Regular"))
+
+# Immigration Admission Category ------------------------------------------
+immigrant_admissioncat <- cancensus::get_census(dataset = "CA21", 
+                                                regions = list(CSD = 2465005), 
+                                                level = "CSD",
+                                                vectors = c("Total" = "v_CA21_4830",
+                                                            "Économique" = "v_CA21_4833",
+                                                            "Famille" = "v_CA21_4842",
+                                                            "Réfugiés" = "v_CA21_4845",
+                                                            "Autres" = "v_CA21_4848"))
+
+immigrant_admissioncat_percent <- immigrant_admissioncat |> 
+  mutate(Economic = `Economic Immigrant`/ Total,
+         Family = `Family Sponsored`/Total,
+         Refugee = `Refugees`/Total,
+         Other = Other/Total) |> 
+  pivot_longer(-c(GeoUID:CMA_UID))
+
+
+#slice data to just select percent columns
+immigrant_admissioncat_percent_plot <- immigrant_admissioncat_percent  |> 
+  slice(c(5:8))
+
+
+immigrant_admissioncat_percent_plot|> 
+  ggplot(aes(x = name, y = value)) +
+  geom_col() +
+  labs(x = "Admission Category", y = "Count")
+
+
+# compare to quebec
+
+immigrant_admissioncat_qc <- cancensus::get_census(dataset = "CA21", 
+                                                   regions = list(CSD = 24), 
+                                                   level = "PR",
+                                                   vectors = c("Total" = "v_CA21_4830",
+                                                               "Économique" = "v_CA21_4833",
+                                                               "Famille" = "v_CA21_4842",
+                                                               "Réfugiés" = "v_CA21_4845",
+                                                               "Autres" = "v_CA21_4848"))
+
+immigrant_admissioncat_percent_qc <- immigrant_admissioncat_qc |> 
+  mutate(Economic = `Economic Immigrant`/ Total*100,
+         Family = `Family Sponsored`/Total*100,
+         Refugee = `Refugees`/Total*100,
+         Other = Other/Total*100)
+
+immigrant_admissioncat_percent_qc <- immigrant_admissioncat_percent_qc |> 
+  pivot_longer(-c(GeoUID:C_UID))
+
+
+
+#slice data to just select percent columns
+immigrant_admissioncat_percent_plot_qc <- immigrant_admissioncat_percent_qc  |> 
+  slice(c(5:8))
+
+
+immigrant_admissioncat_percent_plot_qc|> 
+  ggplot(aes(x = name, y = value)) +
+  geom_col() +
+  labs(x = "Admission Category", y = "Count")
+
+# combine with laval
+
+admission_cat_combined <- bind_rows(immigrant_admissioncat_percent_plot, immigrant_admissioncat_percent_plot_qc)
+
+ggplot(data = admission_cat_combined, aes(x = name, y = value, fill = `Region Name`)) +
+  geom_col(position = "dodge") +
+  labs(y = "Percent", x = "Admission Category", title = "Percentage of Immigrants by Admission Category")
+
 # R Markdown --------------------------------------------------------------
 ggplot2::ggsave(filename = here::here("output/axe1/immigration/imm_evol_graph.png"), 
                 plot = imm_evol_graph, width = 8, height = 6)
 ggplot2::ggsave(filename = here::here("output/axe1/immigration/imm_prop_map.png"), 
                 plot = imm_prop_map, width = 8, height = 6)
+ggplot2::ggsave(filename = here::here("output/axe1/immigration/recimm_prop_map.png"), 
+                plot = recimm_prop_map, width = 8, height = 6)
+ggplot2::ggsave(filename = here::here("output/axe1/immigration/period_imm_graph.png"), 
+                plot = period_imm_graph, width = 8, height = 6)
 
 qs::qsavem(imm_evol_graph, imm_21_lvl_prop, imm_21_mtl_prop, imm_21_qc_prop,
-           imm_prop_map, imm_table, non_res_prop,
+           imm_prop_map, imm_table, non_res_prop, recimm_prop_map, CanadianCitizensMtl,
+           CanadianCitizensQc, CanadianCitizensLaval, period_imm_graph,
            file = "D://McGill/can_cache/data/immigration.qsm")
