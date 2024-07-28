@@ -2,6 +2,7 @@ source("R/01_startup.R")
 library(scales)
 library(readxl)
 library(gt)
+library(forcats)
 
 #Setting CensusMapper API Key because it won't save
 set_cancensus_api_key("CensusMapper_4308d496f011429cf814385050f083dc")
@@ -13,6 +14,8 @@ set_cancensus_cache_path("/Users/justin/Documents/R/CurbCutSelf")
 
 #Curbcut scale
 curbcut_scale <- c("#C4CDE1", "#98A8CB", "#6C83B5", "#4C5C7F", "#2B3448")
+curbcut_fill <- c("#A3B0D1", "#73AD80", "#E08565", "#CD718C", "#C9C3FA",
+                  "#F5D574", "#ADB033", "#9E9090")
 
 # Immigration & Diversity -------------------------------------------------
 #Grabbing immigration numbers and total population for each census year
@@ -400,16 +403,12 @@ immigrant_admissioncat <- cancensus::get_census(dataset = "CA21",
                                                             "Autres" = "v_CA21_4848"))
 
 immigrant_admissioncat_percent <- immigrant_admissioncat |> 
-  mutate(Economic = `Economic Immigrant`/ Total,
-         Family = `Family Sponsored`/Total,
-         Refugee = `Refugees`/Total,
-         Other = Other/Total) |> 
-  pivot_longer(-c(GeoUID:CMA_UID))
-
-
-#slice data to just select percent columns
-immigrant_admissioncat_percent_plot <- immigrant_admissioncat_percent  |> 
-  slice(c(5:8))
+  mutate(Region = "Laval",
+         Économique = `Économique`/ Total,
+         Famille = `Famille`/Total,
+         Réfugiés = `Réfugiés`/Total,
+         Autres = Autres/Total) |> 
+  select(Region, Économique, Famille, Réfugiés, Autres)
 
 
 immigrant_admissioncat_percent_plot|> 
@@ -430,19 +429,12 @@ immigrant_admissioncat_qc <- cancensus::get_census(dataset = "CA21",
                                                                "Autres" = "v_CA21_4848"))
 
 immigrant_admissioncat_percent_qc <- immigrant_admissioncat_qc |> 
-  mutate(Economic = `Economic Immigrant`/ Total*100,
-         Family = `Family Sponsored`/Total*100,
-         Refugee = `Refugees`/Total*100,
-         Other = Other/Total*100)
-
-immigrant_admissioncat_percent_qc <- immigrant_admissioncat_percent_qc |> 
-  pivot_longer(-c(GeoUID:C_UID))
-
-
-
-#slice data to just select percent columns
-immigrant_admissioncat_percent_plot_qc <- immigrant_admissioncat_percent_qc  |> 
-  slice(c(5:8))
+  mutate(Region = "Québec",
+         Économique = `Économique`/ Total,
+         Famille = `Famille`/Total,
+         Réfugiés = `Réfugiés`/Total,
+         Autres = Autres/Total) |> 
+  select(Region, Économique, Famille, Réfugiés, Autres)
 
 
 immigrant_admissioncat_percent_plot_qc|> 
@@ -452,11 +444,425 @@ immigrant_admissioncat_percent_plot_qc|>
 
 # combine with laval
 
-admission_cat_combined <- bind_rows(immigrant_admissioncat_percent_plot, immigrant_admissioncat_percent_plot_qc)
+admission_cat_combined <- bind_rows(immigrant_admissioncat_percent, immigrant_admissioncat_percent_qc) |> 
+  pivot_longer(cols = -Region, names_to = "Type", values_to = "Percent") |> 
+  mutate(perc = convert_pct(Percent)) |> 
+  mutate(Type = factor(Type, levels = c("Économique", "Famille", "Réfugiés", "Autres")))
 
-ggplot(data = admission_cat_combined, aes(x = name, y = value, fill = `Region Name`)) +
+ad_cat_graph <- ggplot(data = admission_cat_combined, aes(x = Type, y = Percent, fill = Region)) +
   geom_col(position = "dodge") +
-  labs(y = "Percent", x = "Admission Category", title = "Percentage of Immigrants by Admission Category")
+  geom_text(aes(label = perc), position = position_dodge(width = 0.9),
+            vjust = -0.5, size = 4, color = "black") +
+  scale_y_continuous(labels = function(x) paste0(scales::percent(x, accuracy = 1), " ")) +
+  scale_fill_manual(values = c("Laval" = "#A3B0D1", "Québec" = "#73AD80")) +
+  labs(y = "Proportion d'immigrants", x = "Catégorie d'admission") +
+  theme_minimal() +
+  theme(legend.position = "bottom", plot.title = element_blank(),
+        legend.title = element_blank(), text = element_text(family = "KMR Apparat Regular"))
+
+#Grabbing specific numbers for markdown
+laval_ad_cat <- admission_cat_combined |> 
+  filter(Region == "Laval" & Type == "Économique") |> 
+  pull(perc)
+
+# Age of Immigration ------------------------------------------------------
+#Grabbing vectors for data
+age_21v <- c("m_under_5" = "v_CA21_4441", "m_5_14" = "v_CA21_4444", "m_15_24" = "v_CA21_4447",
+             "m_25_44" = "v_CA21_4450", "m_45_over" = "v_CA21_4453",
+             "f_under_5" = "v_CA21_4442", "f_5_14" = "v_CA21_4445", "f_15_24" = "v_CA21_4448",
+             "f_25_44" = "v_CA21_4451", "f_45_over" = "v_CA21_4454")
+
+#Grabbing totals for each sex
+age_21_gender <- get_census(dataset = "CA21",
+                            regions = list(CSD = 2465005),
+                            level = "CSD",
+                            vectors = c("male" = "v_CA21_4438", "female" = "v_CA21_4439"))
+
+age_21_male <- age_21_gender |> pull(male)
+age_21_female <- age_21_gender |> pull(female)
+
+#Grabbing actual data for age of immigration and cleaning it up
+age_21 <- get_census(dataset = "CA21",
+                     regions = list(CSD = 2465005),
+                     level = "CSD",
+                     vectors = age_21v) |> 
+  select("m_under_5", "m_5_14", "m_15_24", "m_25_44", "m_45_over", "f_under_5",
+         "f_5_14", "f_15_24", "f_25_44", "f_45_over") |> 
+  pivot_longer(cols = everything(), names_to = "Age", values_to = "count") |> 
+  mutate(gender = if_else(str_starts(Age, "m_"), "Homme", "Femme"),
+         Age = case_when(
+           str_ends(Age, "_5") ~ "Moins de 5 ans",
+           str_ends(Age, "_14") ~ "5 à 14",
+           str_ends(Age, "_24") ~ "15 à 24",
+           str_ends(Age, "_44") ~ "25 à 44",
+           str_ends(Age, "_over") ~ "45 et plus"
+         )) |> 
+  mutate(Age = factor(Age, levels = c("45 et plus", "25 à 44", "15 à 24", "5 à 14",
+                                      "Moins de 5 ans")),
+         prop = if_else(gender == "Homme", count / age_21_male, count / age_21_female)) |> 
+  mutate(percentage = convert_pct(prop))
+
+#Reversing the factor for use in other graphs
+age_21_rev <- get_census(dataset = "CA21",
+                     regions = list(CSD = 2465005),
+                     level = "CSD",
+                     vectors = age_21v) |> 
+  select("m_under_5", "m_5_14", "m_15_24", "m_25_44", "m_45_over", "f_under_5",
+         "f_5_14", "f_15_24", "f_25_44", "f_45_over") |> 
+  pivot_longer(cols = everything(), names_to = "Age", values_to = "count") |> 
+  mutate(gender = if_else(str_starts(Age, "m_"), "Homme", "Femme"),
+         Age = case_when(
+           str_ends(Age, "_5") ~ "Moins de 5 ans",
+           str_ends(Age, "_14") ~ "5 à 14",
+           str_ends(Age, "_24") ~ "15 à 24",
+           str_ends(Age, "_44") ~ "25 à 44",
+           str_ends(Age, "_over") ~ "45 et plus"
+         )) |> 
+  mutate(Age = factor(Age, levels = c("Moins de 5 ans", "5 à 14", "15 à 24", "25 à 44",
+                                      "45 et plus")),
+         prop = if_else(gender == "Homme", count / age_21_male, count / age_21_female)) |> 
+  mutate(percentage = convert_pct(prop),
+         gender = factor(gender, levels = c("Moins de 5 ans", "5 à 14")))
+
+#Graphing age of immigration by sex by numbers
+imm_age_sex_graph <- ggplot(data = age_21, aes(x = gender, y = count, fill = Age)) +
+  geom_bar(stat = "identity") +
+  geom_text(aes(label = percentage), 
+            position = position_stack(vjust = 0.5), 
+            color = "white") +
+  scale_y_continuous(labels = label_number(big.mark = " ")) +
+  scale_fill_manual(values = curbcut_scale) +
+  labs(y = "Personnes",
+       fill = "Age Group") +
+  theme_minimal() +
+  theme(legend.position = "bottom", plot.title = element_blank(),
+        legend.title = element_blank(), text = element_text(family = "KMR Apparat Regular"),
+        axis.title.x = element_blank()) +
+  guides(fill = guide_legend(reverse = TRUE))
+
+#Doing the same above except by proportion
+imm_age_sex_prop_graph <- ggplot(data = age_21, aes(x = gender, y = prop, fill = Age)) +
+  geom_bar(stat = "identity") +
+  geom_text(aes(label = percentage), 
+            position = position_stack(vjust = 0.5), 
+            color = "white") +
+  scale_fill_manual(values = curbcut_scale) +
+  scale_y_continuous(labels = convert_pct) +
+  labs(x = "Tranche d'âge",
+       y = "Proportion d'immigrants",
+       fill = "Age Group") +
+  theme_minimal() +
+  theme(legend.position = "bottom", plot.title = element_blank(),
+        legend.title = element_blank(), text = element_text(family = "KMR Apparat Regular"),
+        axis.title.x = element_blank()) +
+  guides(fill = guide_legend(reverse = TRUE))
+
+#Graphing numbers by age group
+imm_age_graph <- ggplot(data = age_21_rev, aes(x = Age, y = count, fill = gender)) +
+  geom_bar(stat = "identity", position = "dodge") +
+  geom_text(aes(label = percentage), position = position_dodge(width = 0.9),
+            vjust = 2.5, size = 4, color = "white") +
+  scale_fill_manual(values = c("Homme" = "#A3B0D1", "Femme" = "#CD718C")) +
+  scale_y_continuous(labels = label_number(big.mark = " ")) +
+  labs(x = "Gender",
+       y = "Count",
+       fill = "Age Group") +
+  theme_minimal() +
+  theme(legend.position = "bottom", plot.title = element_blank(),
+        legend.title = element_blank(), text = element_text(family = "KMR Apparat Regular"),
+        axis.title.x = element_blank())
+
+# Ethnic Origins ----------------------------------------------------------
+#Grabbing total immigration numbers
+imm_origin_total <- get_census(dataset = "CA21",
+                               regions = list(CSD = 2465005),
+                               level = "CSD",
+                               vectors = c("Brazil" = "v_CA21_4461",
+                                           "Colombia" = "v_CA21_4464",
+                                           "El Salvador" = "v_CA21_4467",
+                                           "Guyana" = "v_CA21_4470",
+                                           "Haiti" = "v_CA21_4473",
+                                           "Jamaica" = "v_CA21_4476",
+                                           "Mexico" = "v_CA21_4479",
+                                           "Peru" = "v_CA21_4482",
+                                           "Trinidad and Tobago" = "v_CA21_4485",
+                                           "Other in Americas" = "v_CA21_4491",
+                                           "États-Unis" = "v_CA21_4488",
+                                           "L'Europe" = "v_CA21_4494",
+                                           "Afrique" = "v_CA21_4545",
+                                           "Asie" = "v_CA21_4578",
+                                           "Océanie et autres" = "v_CA21_4632")) |>
+  mutate(`Les Caraïbes, l'Amérique centrale, l'Amérique du Sud et l'Amérique latine` = Brazil + Mexico +
+           + Colombia + `El Salvador` + Guyana + Haiti + Jamaica + Peru + `Trinidad and Tobago` +
+           `Other in Americas`,
+         `Type` = "Total") |> 
+  select(`Type`, `États-Unis`, `Les Caraïbes, l'Amérique centrale, l'Amérique du Sud et l'Amérique latine`, `L'Europe`,
+         `Afrique`, `Asie`, `Océanie et autres`) |> 
+  pivot_longer(cols = -Type, names_to = "origin", values_to = "count")
+
+#Grabbing recent numbers
+imm_origin_recent <- get_census(dataset = "CA21",
+                                regions = list(CSD = 2465005),
+                                level = "CSD",
+                                vectors = c("Brazil" = "v_CA21_4641",
+                                            "Colombia" = "v_CA21_4644",
+                                            "Haiti" = "v_CA21_4647",
+                                            "Jamaica" = "v_CA21_4650",
+                                            "Mexico" = "v_CA21_4653",
+                                            "Venezuela" = "v_CA21_4659",
+                                            "Other in Americas" = "v_CA21_4662",
+                                            "États-Unis" = "v_CA21_4656",
+                                            "L'Europe" = "v_CA21_4665",
+                                            "Afrique" = "v_CA21_4692",
+                                            "Asie" = "v_CA21_4740",
+                                            "Océanie et autres" = "v_CA21_4809")) |>
+  mutate(`Les Caraïbes, l'Amérique centrale, l'Amérique du Sud et l'Amérique latine` = Brazil + Mexico +
+           + Colombia + Haiti + Jamaica + `Other in Americas`,
+         `Type` = "Récent") |> 
+  select(`Type`, `États-Unis`, `Les Caraïbes, l'Amérique centrale, l'Amérique du Sud et l'Amérique latine`, `L'Europe`,
+         `Afrique`, `Asie`, `Océanie et autres`) |> 
+  pivot_longer(cols = -Type, names_to = "origin", values_to = "count")
+
+#Grabbing totals for later use
+imm_origin_total_count <- get_census(dataset = "CA21",
+                                     regions = list(CSD = 2465005),
+                                     level = "CSD",
+                                     vectors = c("total" = "v_CA21_4455")) |> 
+  pull(total)
+
+imm_origin_recent_count <- get_census(dataset = "CA21",
+                                     regions = list(CSD = 2465005),
+                                     level = "CSD",
+                                     vectors = c("total" = "v_CA21_4635")) |> 
+  pull(total)
+
+#Binding the data together and calculating the proportion
+imm_origin <- bind_rows(imm_origin_recent, imm_origin_total) |> 
+  mutate(origin = ifelse(origin == "Les Caraïbes, l'Amérique centrale, l'Amérique du Sud et l'Amérique latine",
+                         "Les Caraïbes, l'Amérique du Sud,\nl'Amérique centrale et\nl'Amérique latine", origin),
+         proportion = ifelse(Type == "Total", count / imm_origin_total_count, count / imm_origin_recent_count)) |> 
+  mutate(origin = factor(origin, levels = c("Asie", "Afrique", "Les Caraïbes, l'Amérique du Sud,\nl'Amérique centrale et\nl'Amérique latine",
+                                            "L'Europe", "États-Unis", "Océanie et autres"))) |> 
+  mutate(perc = convert_pct(proportion))
+
+# plot of Recent vs Total Immigrant Population Origins
+imm_origin_graph <- ggplot(data = imm_origin, aes(x = origin, y = proportion, fill = Type)) +
+  geom_bar(stat = "identity", position = position_dodge()) +
+  geom_text(aes(label = perc), position = position_dodge(width = 0.9),
+            vjust = -0.5, size = 4, color = "black") +
+  scale_y_continuous(labels = convert_pct) +
+  scale_fill_manual(values = c("Total" = "#A3B0D1", "Récent" = "#CD718C")) +
+  labs(x = "Lieu de naissance",
+       y = "Proportion d'immigrants") +
+  theme_minimal() +
+  theme(legend.position = "bottom", plot.title = element_blank(),
+        legend.title = element_blank(), text = element_text(family = "KMR Apparat Regular"),
+        axis.text.x = element_text(angle = 45, hjust = 1), axis.title.x = element_text(margin = margin(t = -10)),
+        legend.margin = margin(t = -5))
+
+#Grabbing specific percentages for the text
+imm_asia <- get_census(dataset = "CA21",
+                       regions = list(CSD = 2465005),
+                       level = "CSD",
+                       vectors = c("Asie" = "v_CA21_4578")) |> 
+  mutate(number = convert_pct(Asie / imm_origin_total_count)) |> 
+  pull(number)
+
+imm_africa <- get_census(dataset = "CA21",
+                         regions = list(CSD = 2465005),
+                         level = "CSD",
+                         vectors = c("Africa" = "v_CA21_4545")) |> 
+  mutate(number = convert_pct(Africa / imm_origin_total_count)) |> 
+  pull(number)
+
+imm_europe <- get_census(dataset = "CA21",
+                         regions = list(CSD = 2465005),
+                         level = "CSD",
+                         vectors = c("Europe" = "v_CA21_4494")) |> 
+  mutate(number = convert_pct(Europe / imm_origin_total_count)) |> 
+  pull(number)
+
+imm_CCSLA <- get_census(dataset = "CA21",
+                        regions = list(CSD = 2465005),
+                        level = "CSD",
+                        vectors = c("Brazil" = "v_CA21_4461",
+                                    "Colombia" = "v_CA21_4464",
+                                    "El Salvador" = "v_CA21_4467",
+                                    "Guyana" = "v_CA21_4470",
+                                    "Haiti" = "v_CA21_4473",
+                                    "Jamaica" = "v_CA21_4476",
+                                    "Mexico" = "v_CA21_4479",
+                                    "Peru" = "v_CA21_4482",
+                                    "Trinidad and Tobago" = "v_CA21_4485",
+                                    "Other in Americas" = "v_CA21_4491")) |>
+  mutate(number = convert_pct((Brazil + Mexico + Colombia + `El Salvador` + Guyana + Haiti +
+           Jamaica + Peru + `Trinidad and Tobago` + `Other in Americas`) / imm_origin_total_count)) |> 
+  pull(number)
+
+recent_asia <- get_census(dataset = "CA21",
+                          regions = list(CSD = 2465005),
+                          level = "CSD",
+                          vectors = c("Asie" = "v_CA21_4740")) |> 
+  mutate(number = convert_pct(Asie / imm_origin_recent_count)) |> 
+  pull(number)
+
+recent_africa <- get_census(dataset = "CA21",
+                          regions = list(CSD = 2465005),
+                          level = "CSD",
+                          vectors = c("Africa" = "v_CA21_4692")) |> 
+  mutate(number = convert_pct(Africa / imm_origin_recent_count)) |> 
+  pull(number)
+
+recent_syria <- get_census(dataset = "CA21",
+                           regions = list(CSD = 2465005),
+                           level = "CSD",
+                           vectors = c("country" = "v_CA21_4794")) |> 
+  mutate(number = convert_pct(country / imm_origin_recent_count)) |> 
+  pull(number)
+
+recent_lebanon <- get_census(dataset = "CA21",
+                             regions = list(CSD = 2465005),
+                             level = "CSD",
+                             vectors = c("country" = "v_CA21_4776")) |> 
+  mutate(number = convert_pct(country / imm_origin_recent_count)) |> 
+  pull(number)
+
+recent_algeria <- get_census(dataset = "CA21",
+                             regions = list(CSD = 2465005),
+                             level = "CSD",
+                             vectors = c("country" = "v_CA21_4695")) |> 
+  mutate(number = convert_pct(country / imm_origin_recent_count)) |> 
+  pull(number)
+
+recent_haiti <- get_census(dataset = "CA21",
+                             regions = list(CSD = 2465005),
+                             level = "CSD",
+                             vectors = c("country" = "v_CA21_4647")) |> 
+  mutate(number = convert_pct(country / imm_origin_recent_count)) |> 
+  pull(number)
+
+recent_morocco <- get_census(dataset = "CA21",
+                           regions = list(CSD = 2465005),
+                           level = "CSD",
+                           vectors = c("country" = "v_CA21_4719")) |> 
+  mutate(number = convert_pct(country / imm_origin_recent_count)) |> 
+  pull(number)
+
+# Visible Minorities ------------------------------------------------------
+#Grabbing the total for later proportion calculation
+vis_total <- get_census(dataset = "CA21",
+                        regions = list(CSD = 2465005),
+                        level = "CSD",
+                        vectors = c("total" = "v_CA21_4875")) |> 
+  pull(total)
+
+#Grabbing and cleaning the actual data
+vis_min <- get_census(dataset = "CA21",
+                      regions = list(CSD = 2465005),
+                      level = "CSD",
+                      vectors = c("Sud-Asiatique" = "v_CA21_4878",
+                                  "Chinois" = "v_CA21_4881",
+                                  "Noir" = "v_CA21_4884",
+                                  "Philippin" = "v_CA21_4887",
+                                  "Arabe" = "v_CA21_4890",
+                                  "Latino-Américain" = "v_CA21_4893",
+                                  "Asiatique du Sud-Est" = "v_CA21_4896",
+                                  "Asiatique occidental" = "v_CA21_4899",
+                                  "Coréen" = "v_CA21_4902",
+                                  "Japonais" = "v_CA21_4905",
+                                  "n.i.a." = "v_CA21_4908",
+                                  "Multiples" = "v_CA21_4911")) |> 
+  select("Sud-Asiatique", "Chinois", "Noir", "Philippin", "Arabe",
+         "Latino-Américain", "Asiatique du Sud-Est", "Asiatique occidental",
+         "Coréen", "Japonais", "n.i.a.", "Multiples") |> 
+  pivot_longer(cols = everything(), names_to = "type", values_to = "count") |> 
+  mutate(perc = convert_pct(count / vis_total),
+         type = fct_reorder(type, count, .desc = TRUE))
+
+#Graphing the data
+vis_min_graph <- ggplot(data = vis_min, aes(x = type, y = count, fill = type)) +
+  geom_bar(stat = "identity", position = position_dodge(), fill = "#A3B0D1") +
+  geom_text(aes(label = perc), position = position_dodge(width = 0.9),
+            vjust = -0.5, size = 4, color = "black") +
+  scale_y_continuous(labels = convert_number) +
+  labs(x = "Lieu de naissance",
+       y = "Personnes") +
+  theme_minimal() +
+  theme(legend.position = "none", plot.title = element_blank(),
+        legend.title = element_blank(), text = element_text(family = "KMR Apparat Regular"),
+        axis.text.x = element_text(angle = 45, hjust = 1), axis.title.x = element_blank())
+
+#Grabbing numbers for the text
+vis_min_laval <- get_census(dataset = "CA21",
+                      regions = list(CSD = 2465005),
+                      level = "CSD",
+                      vectors = c("total" = "v_CA21_4872", "vis" = "v_CA21_4875")) |> 
+  mutate(number = convert_pct(vis / total)) |> 
+  pull(number)
+
+vis_min_quebec <- get_census(dataset = "CA21",
+                             regions = list(PR = 24),
+                             level = "PR",
+                             vectors = c("total" = "v_CA21_4872", "vis" = "v_CA21_4875")) |> 
+  mutate(number = convert_pct(vis / total)) |> 
+  pull(number)
+
+vis_min_arab <- get_census(dataset = "CA21",
+                           regions = list(CSD = 2465005),
+                           level = "CSD",
+                           vectors = c("total" = "v_CA21_4872", "vis" = "v_CA21_4890")) |> 
+  mutate(number = convert_pct(vis / total)) |> 
+  pull(number)
+
+vis_min_black <- get_census(dataset = "CA21",
+                           regions = list(CSD = 2465005),
+                           level = "CSD",
+                           vectors = c("total" = "v_CA21_4872", "vis" = "v_CA21_4884")) |> 
+  mutate(number = convert_pct(vis / total)) |> 
+  pull(number)
+
+# Religion ----------------------------------------------------------------
+lvl_secular <- get_census(dataset = "CA21",
+                          regions = list(CSD = 2465005),
+                          level = "CSD",
+                          vectors = c("total" = "v_CA21_5670", "religion" = "v_CA21_5742")) |> 
+  mutate(number = convert_pct(religion / total)) |> 
+  pull(number)
+
+qc_secular <- get_census(dataset = "CA21",
+                          regions = list(PR = 24),
+                          level = "PR",
+                          vectors = c("total" = "v_CA21_5670", "religion" = "v_CA21_5742")) |> 
+  mutate(number = convert_pct(religion / total)) |> 
+  pull(number)
+
+lvl_christ <- get_census(dataset = "CA21",
+                          regions = list(CSD = 2465005),
+                          level = "CSD",
+                          vectors = c("total" = "v_CA21_5670", "religion" = "v_CA21_5676")) |> 
+  mutate(number = convert_pct(religion / total)) |> 
+  pull(number)
+
+qc_christ <- get_census(dataset = "CA21",
+                         regions = list(PR = 24),
+                         level = "PR",
+                         vectors = c("total" = "v_CA21_5670", "religion" = "v_CA21_5676")) |> 
+  mutate(number = convert_pct(religion / total)) |> 
+  pull(number)
+
+lvl_islam <- get_census(dataset = "CA21",
+                         regions = list(CSD = 2465005),
+                         level = "CSD",
+                         vectors = c("total" = "v_CA21_5670", "religion" = "v_CA21_5730")) |> 
+  mutate(number = convert_pct(religion / total)) |> 
+  pull(number)
+
+qc_islam <- get_census(dataset = "CA21",
+                        regions = list(PR = 24),
+                        level = "PR",
+                        vectors = c("total" = "v_CA21_5670", "religion" = "v_CA21_5730")) |> 
+  mutate(number = convert_pct(religion / total)) |> 
+  pull(number)
 
 # R Markdown --------------------------------------------------------------
 ggplot2::ggsave(filename = here::here("output/axe1/immigration/imm_evol_graph.png"), 
@@ -467,8 +873,26 @@ ggplot2::ggsave(filename = here::here("output/axe1/immigration/recimm_prop_map.p
                 plot = recimm_prop_map, width = 8, height = 6)
 ggplot2::ggsave(filename = here::here("output/axe1/immigration/period_imm_graph.png"), 
                 plot = period_imm_graph, width = 8, height = 6)
+ggplot2::ggsave(filename = here::here("output/axe1/immigration/ad_cat_graph.png"), 
+                plot = ad_cat_graph, width = 8, height = 6)
+ggplot2::ggsave(filename = here::here("output/axe1/immigration/imm_age_sex_graph.png"), 
+                plot = imm_age_sex_graph, width = 8, height = 6)
+ggplot2::ggsave(filename = here::here("output/axe1/immigration/imm_age_sex_prop_graph.png"), 
+                plot = imm_age_sex_prop_graph, width = 8, height = 6)
+ggplot2::ggsave(filename = here::here("output/axe1/immigration/imm_age_graph.png"), 
+                plot = imm_age_graph, width = 8, height = 6)
+ggplot2::ggsave(filename = here::here("output/axe1/immigration/imm_origin_graph.png"), 
+                plot = imm_origin_graph, width = 8, height = 6)
+ggplot2::ggsave(filename = here::here("output/axe1/immigration/vis_min_graph.png"), 
+                plot = vis_min_graph, width = 8, height = 6)
 
 qs::qsavem(imm_evol_graph, imm_21_lvl_prop, imm_21_mtl_prop, imm_21_qc_prop,
            imm_prop_map, imm_table, non_res_prop, recimm_prop_map, CanadianCitizensMtl,
-           CanadianCitizensQc, CanadianCitizensLaval, period_imm_graph,
+           CanadianCitizensQc, CanadianCitizensLaval, period_imm_graph, ad_cat_graph,
+           laval_ad_cat, imm_age_sex_graph, imm_age_sex_prop_graph, imm_age_graph,
+           imm_origin_graph, imm_asia, imm_africa, imm_europe, imm_CCSLA, recent_asia,
+           recent_africa, recent_syria, recent_lebanon, recent_algeria, recent_haiti,
+           recent_morocco, vis_min_graph, vis_min_laval, vis_min_quebec, vis_min_arab,
+           vis_min_black, lvl_secular, qc_secular, lvl_christ, qc_christ, lvl_islam,
+           qc_islam,
            file = "D://McGill/can_cache/data/immigration.qsm")
