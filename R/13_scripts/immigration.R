@@ -4,6 +4,7 @@ library(readxl)
 library(gt)
 library(forcats)
 library(extrafont)
+library(scales)
 
 #Setting CensusMapper API Key because it won't save
 set_cancensus_api_key("CensusMapper_4308d496f011429cf814385050f083dc")
@@ -556,6 +557,21 @@ imm_age_graph <- ggplot(data = age_21_rev, aes(x = Age, y = count, fill = gender
         legend.title = element_blank(), text = element_text(family = "KMR Apparat Regular"),
         axis.title.x = element_blank())
 
+imm_stackedage_graph <- ggplot(data = age_21, aes(x = Age, y = count, fill = gender)) +
+  geom_bar(stat = "identity", width = 0.6) +
+  geom_text(aes(label = percentage), 
+            position = position_stack(vjust = 0.5), 
+            color = "white") +
+  scale_fill_manual(values = c("Homme" = "#A3B0D1", "Femme" = "#CD718C")) +
+  scale_y_continuous(labels = label_number(big.mark = " ")) +
+  labs(x = "Gender",
+       y = "Personnes",
+       fill = "Age Group") +
+  theme_minimal() +
+  theme(legend.position = "bottom", plot.title = element_blank(),
+        legend.title = element_blank(), text = element_text(family = "KMR Apparat Regular"),
+        axis.title.x = element_blank())
+
 # Ethnic Origins ----------------------------------------------------------
 #Grabbing total immigration numbers
 imm_origin_total <- get_census(dataset = "CA21",
@@ -869,11 +885,13 @@ ggplot2::ggsave(filename = here::here("output/axe1/immigration/imm_origin_graph.
                 plot = imm_origin_graph, width = 8, height = 6)
 ggplot2::ggsave(filename = here::here("output/axe1/immigration/vis_min_graph.png"), 
                 plot = vis_min_graph, width = 8, height = 6)
+ggplot2::ggsave(filename = here::here("output/axe1/immigration/imm_stackedage_graph.png"), 
+                plot = imm_stackedage_graph, width = 8, height = 6)
 
 qs::qsavem(imm_evol_graph, imm_21_lvl_prop, imm_21_mtl_prop, imm_21_qc_prop,
            imm_prop_map, imm_table, non_res_prop, recimm_prop_map, CanadianCitizensMtl,
            CanadianCitizensQc, CanadianCitizensLaval, period_imm_graph, ad_cat_graph,
-           laval_ad_cat, imm_age_sex_graph, imm_age_sex_prop_graph, imm_age_graph,
+           laval_ad_cat, imm_age_sex_graph, imm_age_sex_prop_graph, imm_age_graph, imm_stackedage_graph,
            imm_origin_graph, imm_asia, imm_africa, imm_europe, imm_CCSLA, recent_asia,
            recent_africa, recent_syria, recent_lebanon, recent_algeria, recent_haiti,
            recent_morocco, vis_min_graph, vis_min_laval, vis_min_quebec, vis_min_arab,

@@ -102,7 +102,7 @@ Le groupe d'âge le plus représenté parmi les résident·e·s immigrant·e·s 
 
 ```{r immAgeGraph, include=TRUE, fig.cap="Âge à l’immigration, 2021", fig.align = 'center'}
 
-imm_age_graph
+imm_stackedage_graph
 
 ```
 
