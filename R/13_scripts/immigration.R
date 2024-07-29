@@ -3,6 +3,7 @@ library(scales)
 library(readxl)
 library(gt)
 library(forcats)
+library(extrafont)
 
 #Setting CensusMapper API Key because it won't save
 set_cancensus_api_key("CensusMapper_4308d496f011429cf814385050f083dc")
@@ -372,11 +373,6 @@ immigrant_decade_queb_percent <- immigrant_decade_queb |>
 immigrant_decade_queb_percent$name <- 
   factor(immigrant_decade_queb_percent$name, levels = unique(immigrant_decade_queb_percent$name))
 
-ggplot(data = immigrant_decade_queb_percent, aes(x = name, y = value)) +
-  geom_bar(stat = "identity") +
-  scale_y_continuous(labels = scales::comma)+
-  labs(x = "Decade", y = "Percent", title = "Period of Immigration Quebec")
-
 # combine percentage plots together
 combined_decade_data <- bind_rows(immigrant_decade_percent, immigrant_decade_queb_percent) |> 
   mutate(percentage = convert_pct(value))
@@ -410,13 +406,6 @@ immigrant_admissioncat_percent <- immigrant_admissioncat |>
          Autres = Autres/Total) |> 
   select(Region, Économique, Famille, Réfugiés, Autres)
 
-
-immigrant_admissioncat_percent_plot|> 
-  ggplot(aes(x = name, y = value)) +
-  geom_col() +
-  labs(x = "Admission Category", y = "Count")
-
-
 # compare to quebec
 
 immigrant_admissioncat_qc <- cancensus::get_census(dataset = "CA21", 
@@ -435,12 +424,6 @@ immigrant_admissioncat_percent_qc <- immigrant_admissioncat_qc |>
          Réfugiés = `Réfugiés`/Total,
          Autres = Autres/Total) |> 
   select(Region, Économique, Famille, Réfugiés, Autres)
-
-
-immigrant_admissioncat_percent_plot_qc|> 
-  ggplot(aes(x = name, y = value)) +
-  geom_col() +
-  labs(x = "Admission Category", y = "Count")
 
 # combine with laval
 
@@ -480,6 +463,7 @@ age_21_gender <- get_census(dataset = "CA21",
 
 age_21_male <- age_21_gender |> pull(male)
 age_21_female <- age_21_gender |> pull(female)
+age_21_total <- age_21_male + age_21_female
 
 #Grabbing actual data for age of immigration and cleaning it up
 age_21 <- get_census(dataset = "CA21",
@@ -520,9 +504,9 @@ age_21_rev <- get_census(dataset = "CA21",
          )) |> 
   mutate(Age = factor(Age, levels = c("Moins de 5 ans", "5 à 14", "15 à 24", "25 à 44",
                                       "45 et plus")),
-         prop = if_else(gender == "Homme", count / age_21_male, count / age_21_female)) |> 
+         prop = if_else(gender == "Homme", count / age_21_total, count / age_21_total)) |> 
   mutate(percentage = convert_pct(prop),
-         gender = factor(gender, levels = c("Moins de 5 ans", "5 à 14")))
+         gender = factor(gender, levels = c("Homme", "Femme")))
 
 #Graphing age of immigration by sex by numbers
 imm_age_sex_graph <- ggplot(data = age_21, aes(x = gender, y = count, fill = Age)) +
