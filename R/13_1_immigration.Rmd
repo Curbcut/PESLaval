@@ -1,22 +1,21 @@
 ---
-output: 
+title: "L'immigration"
+author: "Curbcut"
+output: html_document
+output:
   bookdown::html_document2: default
   bookdown::pdf_document2: default
-mainfont: "KMR Apparat Regular"
 ---
 
 ```{r setup_immigration, include=FALSE}
-library(knitr)
 library(gt)
-library(extrafont)
-loadfonts(device = "win")
 knitr::opts_chunk$set(echo = FALSE)
 ```
 
 ```{r imm}
 
 # Load the data that has been calculated and saved in the according script:
-qs::qload(here::here("D://McGill/can_cache/data/immigration.qsm"))
+qs::qload(here::here("data/axe1/immigration.qsm"))
 
 # In the text, we always refer to an object previously created using this: `r object_name`
 ```

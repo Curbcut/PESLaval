@@ -6,18 +6,6 @@ library(forcats)
 library(extrafont)
 library(scales)
 
-#Setting CensusMapper API Key because it won't save
-set_cancensus_api_key("CensusMapper_4308d496f011429cf814385050f083dc")
-
-#Caching census data to reduce amount of calls and speed up process.
-#Personal use only, change the folder to your own folder if you want to use it
-set_cancensus_cache_path("D:/McGill/can_cache", install = TRUE, overwrite = TRUE)
-set_cancensus_cache_path("/Users/justin/Documents/R/CurbCutSelf")
-
-#Curbcut scale
-curbcut_scale <- c("#C4CDE1", "#98A8CB", "#6C83B5", "#4C5C7F", "#2B3448")
-curbcut_fill <- c("#A3B0D1", "#73AD80", "#E08565", "#CD718C", "#C9C3FA",
-                  "#F5D574", "#ADB033", "#9E9090")
 
 # Immigration & Diversity -------------------------------------------------
 #Grabbing immigration numbers and total population for each census year
@@ -131,14 +119,15 @@ imm <- bind_rows(imm_96, imm_01, imm_06, imm_11, imm_16, imm_21) |>
   mutate(`Region Name` = if_else(`Region Name` == "Laval (V)", "Laval", `Region Name`),
          `Region Name` = if_else(`Region Name` == "Montréal (V)", "Montréal", `Region Name`))
 
-imm_evol_graph <- ggplot(data = imm, aes(x = factor(year), y = percentage, color = `Region Name`, group = `Region Name`)) +
+imm_evol_graph <- 
+  ggplot(data = imm, aes(x = factor(year), y = percentage, color = `Region Name`, group = `Region Name`)) +
   geom_line(linewidth = 1.35) +
   geom_point(size = 2.5) +
   scale_y_continuous(labels = convert_pct) +
   labs(y = "Proportion de la population") +
   scale_color_manual(values = c("Laval" = "#A3B0D1", "Montréal" = "#E08565",
                                 "Québec" = "#73AD80")) +
-  theme_minimal() +
+  gg_cc_theme_no_sf +
   theme(legend.position = "bottom", legend.box = "horizontal", axis.title.x = element_blank(),
         legend.title = element_blank(), text=element_text(family="KMR Apparat Regular"))
 
@@ -168,9 +157,9 @@ imm_21_qc_prop  <- get_census(dataset = "CA21",
 breaks <- c(-Inf, 0.2, 0.3, 0.4, 0.5, Inf)
 
 imm_lvl_21_ct <- get_census(dataset = "CA21", 
-                              regions = list(CSD = c(2465005)), 
-                              level = "DA",
-                              vectors = imm_21v, geo_format = "sf") |> 
+                            regions = list(CSD = c(2465005)), 
+                            level = "DA",
+                            vectors = imm_21v, geo_format = "sf") |> 
   mutate(percentage = imm / total) |> 
   mutate(percentage_category = cut(percentage, 
                                    breaks = breaks, 
@@ -178,13 +167,13 @@ imm_lvl_21_ct <- get_census(dataset = "CA21",
                                    include.lowest = TRUE))
 
 #Mapping the data
-imm_prop_map <- ggplot(data = imm_lvl_21_ct) +
+imm_prop_map <- 
+  ggplot(data = imm_lvl_21_ct) +
   gg_cc_tiles +
   geom_sf(aes(fill = percentage_category), color = NA) +
-  geom_sf(data = laval_sectors, fill = "transparent", color = "black") +
-  scale_fill_manual(values = curbcut_scale, na.value = "#B3B3BB") +
+  scale_fill_manual(values = curbcut_colors$left_5$fill[2:6], na.value = "#B3B3BB") +
   labs(fill = "Proportion de la population") +
-  theme_void() +
+  gg_cc_theme +
   theme(legend.position = "bottom", legend.box = "horizontal",
         text=element_text(family="KMR Apparat Regular")) +
   guides(fill = guide_legend(title.position = "top", title.hjust = 0.5,
@@ -281,9 +270,9 @@ recimm_prop_map <- ggplot(data = recimm_lvl_21_da) +
   gg_cc_tiles +
   geom_sf(aes(fill = percentage_category), color = NA) +
   geom_sf(data = laval_sectors, fill = "transparent", color = "black") +
-  scale_fill_manual(values = curbcut_scale, na.value = "#B3B3BB") +
+  scale_fill_manual(values = curbcut_colors$left_5$fill[2:6], na.value = "#B3B3BB") +
   labs(fill = "Proportion de la population") +
-  theme_void() +
+  gg_cc_theme +
   theme(legend.position = "bottom", legend.box = "horizontal",
         text=element_text(family="KMR Apparat Regular")) +
   guides(fill = guide_legend(title.position = "top", title.hjust = 0.5,
@@ -385,7 +374,7 @@ period_imm_graph <- ggplot(data = combined_decade_data, aes(x = name, y = value,
   labs(x = "Decade", y = "Proportion de la population", title = "Period of Immigration: Laval vs. Quebec") +
   scale_fill_manual(values = c("Laval" = "#A3B0D1", "Québec" = "#73AD80")) +
   scale_y_continuous(labels = function(x) paste0(scales::percent(x, accuracy = 1), " ")) +
-  theme_minimal() +
+  gg_cc_theme_no_sf +
   theme(legend.position = "bottom", plot.title = element_blank(), axis.title.x = element_blank(),
         legend.title = element_blank(), text = element_text(family = "KMR Apparat Regular"))
 
@@ -440,7 +429,7 @@ ad_cat_graph <- ggplot(data = admission_cat_combined, aes(x = Type, y = Percent,
   scale_y_continuous(labels = function(x) paste0(scales::percent(x, accuracy = 1), " ")) +
   scale_fill_manual(values = c("Laval" = "#A3B0D1", "Québec" = "#73AD80")) +
   labs(y = "Proportion d'immigrants", x = "Catégorie d'admission") +
-  theme_minimal() +
+  gg_cc_theme_no_sf +
   theme(legend.position = "bottom", plot.title = element_blank(),
         legend.title = element_blank(), text = element_text(family = "KMR Apparat Regular"))
 
@@ -515,11 +504,11 @@ imm_age_sex_graph <- ggplot(data = age_21, aes(x = gender, y = count, fill = Age
   geom_text(aes(label = percentage), 
             position = position_stack(vjust = 0.5), 
             color = "white") +
-  scale_y_continuous(labels = label_number(big.mark = " ")) +
-  scale_fill_manual(values = curbcut_scale) +
+  scale_y_continuous(labels = scales::label_number(big.mark = " ")) +
+  scale_fill_manual(values = curbcut_colors$left_5$fill[2:6]) +
   labs(y = "Personnes",
        fill = "Age Group") +
-  theme_minimal() +
+  gg_cc_theme_no_sf +
   theme(legend.position = "bottom", plot.title = element_blank(),
         legend.title = element_blank(), text = element_text(family = "KMR Apparat Regular"),
         axis.title.x = element_blank()) +
@@ -531,12 +520,12 @@ imm_age_sex_prop_graph <- ggplot(data = age_21, aes(x = gender, y = prop, fill =
   geom_text(aes(label = percentage), 
             position = position_stack(vjust = 0.5), 
             color = "white") +
-  scale_fill_manual(values = curbcut_scale) +
+  scale_fill_manual(values = curbcut_colors$left_5$fill[2:6]) +
   scale_y_continuous(labels = convert_pct) +
   labs(x = "Tranche d'âge",
        y = "Proportion d'immigrants",
        fill = "Age Group") +
-  theme_minimal() +
+  gg_cc_theme_no_sf +
   theme(legend.position = "bottom", plot.title = element_blank(),
         legend.title = element_blank(), text = element_text(family = "KMR Apparat Regular"),
         axis.title.x = element_blank()) +
@@ -548,11 +537,11 @@ imm_age_graph <- ggplot(data = age_21_rev, aes(x = Age, y = count, fill = gender
   geom_text(aes(label = percentage), position = position_dodge(width = 0.9),
             vjust = 2.5, size = 4, color = "white") +
   scale_fill_manual(values = c("Homme" = "#A3B0D1", "Femme" = "#CD718C")) +
-  scale_y_continuous(labels = label_number(big.mark = " ")) +
+  scale_y_continuous(labels = scales::label_number(big.mark = " ")) +
   labs(x = "Gender",
        y = "Count",
        fill = "Age Group") +
-  theme_minimal() +
+  gg_cc_theme_no_sf +
   theme(legend.position = "bottom", plot.title = element_blank(),
         legend.title = element_blank(), text = element_text(family = "KMR Apparat Regular"),
         axis.title.x = element_blank())
@@ -563,11 +552,11 @@ imm_stackedage_graph <- ggplot(data = age_21, aes(x = Age, y = count, fill = gen
             position = position_stack(vjust = 0.5), 
             color = "white") +
   scale_fill_manual(values = c("Homme" = "#A3B0D1", "Femme" = "#CD718C")) +
-  scale_y_continuous(labels = label_number(big.mark = " ")) +
+  scale_y_continuous(labels = scales::label_number(big.mark = " ")) +
   labs(x = "Gender",
        y = "Personnes",
        fill = "Age Group") +
-  theme_minimal() +
+  gg_cc_theme_no_sf +
   theme(legend.position = "bottom", plot.title = element_blank(),
         legend.title = element_blank(), text = element_text(family = "KMR Apparat Regular"),
         axis.title.x = element_blank())
@@ -654,7 +643,7 @@ imm_origin_graph <- ggplot(data = imm_origin, aes(x = origin, y = proportion, fi
   scale_fill_manual(values = c("Total" = "#A3B0D1", "Récent" = "#CD718C")) +
   labs(x = "Lieu de naissance",
        y = "Proportion d'immigrants") +
-  theme_minimal() +
+  gg_cc_theme_no_sf +
   theme(legend.position = "bottom", plot.title = element_blank(),
         legend.title = element_blank(), text = element_text(family = "KMR Apparat Regular"),
         axis.text.x = element_text(angle = 45, hjust = 1), axis.title.x = element_text(margin = margin(t = -10)),
@@ -787,7 +776,7 @@ vis_min_graph <- ggplot(data = vis_min, aes(x = type, y = count, fill = type)) +
   scale_y_continuous(labels = convert_number) +
   labs(x = "Lieu de naissance",
        y = "Personnes") +
-  theme_minimal() +
+  gg_cc_theme_no_sf +
   theme(legend.position = "none", plot.title = element_blank(),
         legend.title = element_blank(), text = element_text(family = "KMR Apparat Regular"),
         axis.text.x = element_text(angle = 45, hjust = 1), axis.title.x = element_blank())
@@ -896,5 +885,4 @@ qs::qsavem(imm_evol_graph, imm_21_lvl_prop, imm_21_mtl_prop, imm_21_qc_prop,
            recent_africa, recent_syria, recent_lebanon, recent_algeria, recent_haiti,
            recent_morocco, vis_min_graph, vis_min_laval, vis_min_quebec, vis_min_arab,
            vis_min_black, lvl_secular, qc_secular, lvl_christ, qc_christ, lvl_islam,
-           qc_islam,
-           file = "D://McGill/can_cache/data/immigration.qsm")
+           qc_islam, file = "data/axe1/immigration.qsm")

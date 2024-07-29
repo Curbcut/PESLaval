@@ -2,9 +2,10 @@
 title: "Axe 3 - Le soutien aux communautés de proximité"
 author: "Curbcut"
 output: html_document
+output:
+  bookdown::html_document2: default
+  bookdown::pdf_document2: default
 ---
-
-https://numerique.banq.qc.ca/patrimoine/details/52327/2773091
 
 ```{r setup3, include=FALSE}
 knitr::opts_chunk$set(echo = FALSE)

@@ -2,6 +2,20 @@ fig:popDensityPlot
 fig:agePyarmid
 fig:popProj
 fig:birthsGraph
+fig:immEvolutionGraph
+fig:immPropMap
+fig:recimmPropMap
+fig:periodImmGraph
+fig:adCatGraph
+fig:immAgeGraph
+fig:immOriginGraph
+fig:visMinGraph
+fig:knowledgeOfficial
+fig:knowOfficialLavalQcDiff
+fig:mostSpokenAtHome
+fig:mostSpokenAtHomeMaps
+fig:mixiteSociale
+fig:mixiteSocialeFacet
 la-démographie-de-laval
 structure-de-la-population
 croissance-de-la-population
@@ -21,3 +35,4 @@ connaissance-des-langues-officielles-du-canada
 population-dexpression-de-langue-anglaise
 langue-la-plus-souvent-parlée-à-la-maison
 les-langues-parlées-au-travail
+mixité-sociale

@@ -4,4 +4,5 @@ rmd_files:
   - R/12_demography.Rmd
   - R/13_1_immigration.Rmd
   - R/13_2_langues.Rmd
+  - R/14_axe2.Rmd
 output_dir: "_book"

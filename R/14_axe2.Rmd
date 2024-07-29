@@ -1,21 +1,35 @@
 ---
-title: "Axe 2 - La participation sociale et le vivre-ensemble "
+title: "Axe 2 - La participation sociale et le vivre-ensemble"
 author: "Curbcut"
 output: html_document
 ---
 
-https://numerique.banq.qc.ca/patrimoine/details/52327/2773091
-
-```{r setup2, include=FALSE}
+```{r setupAxe2, include=FALSE}
 knitr::opts_chunk$set(echo = FALSE)
+qs::qload(here::here("data/axe2/mixite.qsm"))
 ```
 
-## Le réseau social
+# Axe 2 - La participation sociale et le vivre-ensemble
 
-## La participation sociale
+## Mixité sociale
 
-## Le sentiment d'appartenance
+Pour calculer la mixité sociale, nous avons utilisé des données du recensement pour cinq grandes dimensions : les catégories socioprofessionnelles, les origines ethniques et culturelles, les tranches d'âge, les niveaux de revenu et les niveaux d'éducation.
 
-## La mixité sociale
+- Définition: Mixité sociale
+  - La mixité (parfois appelée diversité) sociale réfère à la présence simultanée ou la cohabitation, en un même secteur géographique, de personnes appartenant à des catégories socioprofessionnelles, à des cultures, à des nationalités, à des tranches d'âge différentes. Cette notion, appliquée à un milieu de vie (un quartier par exemple), suppose une forme d'hétérogénéité en opposition avec des milieux de vie homogènes destinés à une proportion restreinte de la population (communauté ou classe sociale précise).^[Collectivitesviables.org. (2024). Mixité sociale. Récupéré de https://collectivitesviables.org/sujets/mixite-sociale/]
 
-## La criminalité et le sentiment de sécurité
+Pour évaluer la mixité sociale dans chacune des zones, nous utilisons la méthode de l'entropie de Shannon. Cette méthode prend en compte à la fois la richesse des catégories (le nombre de groupes différents) et leur uniformité (comment les individus sont répartis entre ces groupes). Pour chaque dimension mentionnée ci-dessus, la formule attribue une valeur plus élevée lorsque les proportions des catégories, par exemple les niveaux d'éducation, sont plus uniformément réparties. Cela signifie qu'une zone avec une répartition plus équilibrée des individus entre différentes catégories aura une entropie plus élevée, indiquant une plus grande mixité sociale.
+
+Afin d'éviter que certaines dimensions ne dominent les autres, nous normalisons les valeurs pour chaque dimension. Cela garantit que chaque dimension contribue de manière égale à la mesure globale de la mixité sociale. Après normalisation, nous additionnons les entropies normalisées pour obtenir un indice composite de la mixité sociale dans chaque zone. Toutefois, même si chaque dimension est normalisée, une dimension particulière peut tout de même avoir un impact significatif sur l'indice composite si elle présente une diversité beaucoup plus marquée. Par exemple, une zone peut avoir une diversité culturelle exceptionnellement élevée qui influence fortement l'indice composite, même après normalisation.
+
+Le graphique \@ref(fig:mixiteSociale) présente donc une carte de l'indice composite combinant les cinq dimensions de la mixité sociale. Les zones plus foncées indiquent une diversité multi-dimensionnelle plus élevée. Chomedey, situé dans le centre-sud, présente une mixité relativement faible, comme le montre la teinte plus claire du secteur. Cela suggère une répartition moins équilibrée des différentes catégories sociales dans cette région. En revanche, les zones au nord-ouest de l'île et au nord-est de Laval-des-Rapides, Pont-Viau affichent une mixité plus élevée. 
+
+```{r mixiteSociale, include=TRUE, fig.cap="Indice de mixité sociale composite à Laval", fig.align = 'center'}
+mixite_sociale
+```
+
+Les figures en facettes montrent la mixité pour chaque dimension individuelle. Ces cartes permettent de visualiser les variations spécifiques à chaque dimension et d'identifier les zones où certaines formes de diversité sont plus ou moins présentes. Par exemple, on retrouve, au nord-est du secteur Vimont, Auteuil une haute mixité en terme de revenu et d'occupation professionnelle, mais une faible diversité en termes d'origines ethniques ou culturelles et de niveaux d'éducation. L'examination de chaque dimension séparément nous offre une compréhension plus nuancée et détaillée de la mixité sociale sur le territoire lavallois.
+
+```{r mixiteSocialeFacet, include=TRUE, fig.cap="Mixité sociale à Laval,", fig.align = 'center'}
+mixite_sociale_facet
+```

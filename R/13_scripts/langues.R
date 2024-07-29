@@ -73,14 +73,6 @@ LOffLang21 <- cancensus::get_census(
     "Both" = "v_CA21_1153",
     "Neither" = "v_CA21_1156"))
 
-# Defining the needed census variables 
-# 2016 Census
-# v_CA16_512 Total Total - Knowledge of official languages
-# v_CA16_515 Total English only
-# v_CA16_518 Total French only
-# v_CA16_521 Total English and French
-# v_CA16_524 Total Neither English nor French 
-
 #census Data for QC 2021
 QCoffLang21 <- cancensus::get_census(
   dataset = "CA21",
