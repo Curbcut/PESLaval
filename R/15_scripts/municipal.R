@@ -53,8 +53,6 @@ laval_bbox <- st_bbox(laval_ct)
 curbcut_scale <- c("#C4CDE1", "#98A8CB", "#6C83B5", "#4C5C7F", "#2B3448")
 curbcut_na <- "#B3B3BB"
 
-font_add("KMR Apparat", "C://Users/lolju/AppData/Local/Microsoft/Windows/Fonts/KMR-Apparat-Regular.ttf")
-
 # TTM Import ------------------------------------------------------------
 #Import 15 minute walking TTM and modifying it with necessary rows
 #Check mobility_transport.R to get the file
@@ -136,27 +134,24 @@ municipal_sf <- laval_db |>
 list(classInt::classIntervals(municipal_sf$public_sum, n = 5, style = "jenks")$brks)
 
 #Mapping municipal accessibility
-ggplot() +
+municipal_map <- ggplot() +
   gg_cc_tiles +
   geom_sf(data = municipal_sf, aes(fill = cut(public_sum, breaks = c(-Inf, 0, 3, 5, 7, Inf),
                          labels = c("0", "1-3", "3-5", "5-7", "> 7"))), color = NA) +
   geom_sf(data = laval_sectors, fill = "transparent", color = "black") +
-  scale_fill_manual(values = curbcut_scale, na.value = curbcut_na, name = "Nombre de lieux et édifices municipaux accessibles") +
+  scale_fill_manual(values = curbcut_scale, na.value = curbcut_na, name = "Édifices et lieux municipaux accessibles (n)") +
   geom_sf(data = municipal_csv, aes(color = "Lieux et édifices municipaux"), size = 0.8, alpha = 0.8 ) +
   scale_color_manual(values = c("Lieux et édifices municipaux" = "#CD718C")) +
-  labs(
-    fill = "Nombre de lieux et édifices municipaux accessibles",
-    color = ""
-  ) +
+  labs(color = "") +
   theme_void() +
   theme(axis.line = element_blank(), axis.text = element_blank(),
         axis.title = element_blank(), axis.ticks = element_blank(),
         legend.position = "bottom", legend.box = "horizontal",
         legend.title = element_text(hjust = 0.5, size = 9), legend.title.align = 0.5,
-        legend.text.align = 0.5, text=element_text(family="KMR Apparat")) +
+        legend.text.align = 0.5, text=element_text(family="KMR Apparat Regular")) +
   guides(
     fill = guide_legend(order = 2, label.position = "bottom", title.position = "top"), 
-    color = guide_legend(order = 1, label.position = "top", override.aes = list(size = 4)))
+    color = guide_legend(order = 1, label.position = "top", override.aes = list(size = 3)))
 
 # Tables ------------------------------------------------------------------
 #Prepping extra rows for TTM 15 for CTs
@@ -232,9 +227,16 @@ municipal_sf_ct <- table_sf |>
          "Population (%)" = round(`Population (n)` * 100 / sum(`Population (n)`), 2)) |> 
   arrange(`Lieux et édifices municipaux accessibles (n)`) |> 
   select(`Lieux et édifices municipaux accessibles (n)`, `Faible revenu (n)`, `Faible revenu (%)`,
-         `Les immigrants (n)`, `Les immigrants (%)`, `Population (n)`, `Population (%)`)
+         `Les immigrants (n)`, `Les immigrants (%)`, `Population (n)`, `Population (%)`) |> 
+  mutate("Faible revenu (n)" = convert_number(`Faible revenu (n)`),
+         "Les immigrants (n)" = convert_number(`Les immigrants (n)`),
+         "Population (n)" = convert_number(`Population (n)`))
 
-municipal_sf_ct |> gt() |> 
+municipal_table <- municipal_sf_ct |> gt() |> 
+  tab_options(
+    table.font.names = "KMR Apparat Regular",
+    table.font.size = px(14)
+  ) |> 
   data_color(
     columns = ends_with("%)"),
     colors = scales::col_numeric(
@@ -242,9 +244,124 @@ municipal_sf_ct |> gt() |>
       domain = NULL
     )
   ) |> 
-  fmt_number(
+  fmt(
     columns = ends_with("%)"),
-    suffixing = TRUE,
-    pattern = "{x}%",
-    decimals = 1,
+    fns = function(x) {
+      formatted <- sprintf("%.1f %%", x)
+      gsub("\\.", ",", formatted)
+    }
   )
+
+#Numbers for markdown
+municipal <- table_sf |> 
+  left_join(municipal_table_ttm, by = "GeoUID") |> 
+  st_drop_geometry() |> 
+  select(low, immigrant, Population, public_sum) |> 
+  group_by(public_sum) |> 
+  summarize("Faible revenu (n)" = sum(low, na.rm = TRUE),
+            "Les immigrants (n)" = sum(immigrant, na.rm = TRUE),
+            "Population (n)" = sum(Population, na.rm = TRUE)) |> 
+  mutate(`public_sum` = case_when(public_sum == 0 ~ "0",
+                                  public_sum >= 1 & public_sum <= 2 ~ "1-2",
+                                  public_sum > 2 & public_sum <= 6 ~ "3-6",
+                                  public_sum > 6 & public_sum <= 10 ~ "7-10",
+                                  public_sum > 10 ~ "> 10")) |> 
+  group_by(`public_sum`) |> 
+  summarize("Faible revenu (n)" = sum(`Faible revenu (n)`),
+            "Les immigrants (n)" = sum(`Les immigrants (n)`),
+            "Population (n)" = sum(`Population (n)`))
+
+#Municipal numbers but broken down
+municipal_breakdown <- table_sf |> 
+  left_join(municipal_table_ttm, by = "GeoUID") |> 
+  st_drop_geometry() |> 
+  select(low, immigrant, Population, public_sum) |> 
+  group_by(public_sum) |> 
+  summarize("Faible revenu (n)" = sum(low, na.rm = TRUE),
+            "Les immigrants (n)" = sum(immigrant, na.rm = TRUE),
+            "Population (n)" = sum(Population, na.rm = TRUE))
+
+municipal_population <- municipal_breakdown |> 
+  summarize(Population = sum(`Population (n)`, na.rm = TRUE)) |> 
+  pull(Population)
+
+municipal_lowincome <- municipal_breakdown |> 
+  summarize(low = sum(`Faible revenu (n)`, na.rm = TRUE)) |> 
+  pull(low)
+
+municipal_immigrant <- municipal_breakdown |> 
+  summarize(imm = sum(`Les immigrants (n)`, na.rm = TRUE)) |> 
+  pull(imm)
+
+municipal_access <- municipal |> 
+  filter(public_sum != 0) |> 
+  summarise(Population = sum(`Population (n)`, na.rm = TRUE)) |> 
+  mutate(Population = convert_pct(Population / municipal_population)) |> 
+  pull(Population)
+
+municipal_access_three <- municipal |> 
+  filter(public_sum != 0 & public_sum != "1-2") |> 
+  summarise(Population = sum(`Population (n)`, na.rm = TRUE)) |> 
+  mutate(Population = convert_pct(Population / municipal_population)) |> 
+  pull(Population)
+
+municipal_immigrant_ratio <- table_sf |> 
+  left_join(municipal_table_ttm, by = "GeoUID") |> 
+  st_drop_geometry() |> 
+  select(immigrant, public_sum) |>
+  mutate(total = immigrant * public_sum) |> 
+  summarise(immigrant = sum(immigrant, na.rm = TRUE),
+            total = sum(total, na.rm = TRUE)) |> 
+  mutate(ratio = round(total / immigrant, 1)) |> 
+  mutate(ratio = gsub("\\.", ",", as.character(ratio))) |> 
+  pull(ratio)
+
+municipal_population_ratio <- table_sf |> 
+  left_join(municipal_table_ttm, by = "GeoUID") |> 
+  st_drop_geometry() |> 
+  select(Population, public_sum) |>
+  mutate(total = Population * public_sum) |> 
+  summarise(Population = sum(Population, na.rm = TRUE),
+            total = sum(total, na.rm = TRUE)) |> 
+  mutate(ratio = round(total / Population, 1)) |> 
+  mutate(ratio = gsub("\\.", ",", as.character(ratio))) |> 
+  pull(ratio)
+
+municipal_lowincome_ratio <- table_sf |> 
+  left_join(municipal_table_ttm, by = "GeoUID") |> 
+  st_drop_geometry() |> 
+  select(low, public_sum) |>
+  mutate(total = low * public_sum) |> 
+  summarise(low = sum(low, na.rm = TRUE),
+            total = sum(total, na.rm = TRUE)) |> 
+  mutate(ratio = round(total / low, 1)) |> 
+  mutate(ratio = gsub("\\.", ",", as.character(ratio))) |> 
+  pull(ratio)
+
+municipal_lowincome_lowaccess <- municipal_breakdown |> 
+  filter(public_sum < 4) |> 
+  summarise(low = sum(`Faible revenu (n)`, na.rm = TRUE)) |> 
+  mutate(low = convert_pct(low / municipal_lowincome)) |> 
+  pull(low)
+
+municipal_immigrant_lowaccess <- municipal_breakdown |> 
+  filter(public_sum < 4) |> 
+  summarise(imm = sum(`Les immigrants (n)`, na.rm = TRUE)) |> 
+  mutate(imm = convert_pct(imm / municipal_immigrant)) |> 
+  pull(imm)
+
+municipal_pop_lowaccess <- municipal_breakdown |> 
+  filter(public_sum < 4) |> 
+  summarise(pop = sum(`Population (n)`, na.rm = TRUE)) |> 
+  mutate(pop = convert_pct(pop / municipal_population)) |> 
+  pull(pop)
+
+# R Markdown --------------------------------------------------------------
+ggplot2::ggsave(filename = here::here("output/axe3/access/municipal_map.png"), 
+                plot = municipal_map, width = 8, height = 6)
+
+qs::qsavem(municipal_map, municipal_table, municipal_access, municipal_access_three,
+           municipal_immigrant_ratio, municipal_population_ratio, municipal_lowincome_ratio,
+           municipal_lowincome_lowaccess, municipal_immigrant_lowaccess, municipal_pop_lowaccess,
+           file = "data/axe3/municipal.qsm")
+

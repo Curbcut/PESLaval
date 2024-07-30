@@ -25,7 +25,7 @@ laval_csd <- cancensus::get_census(dataset = "CA21",
 
 laval_ct <- cancensus::get_census(dataset = "CA21", 
                                   regions = list(CSD = 2465005), 
-                                  level = "CT", 
+                                  level = "CT",
                                   geo_format = "sf")
 
 laval_da <- cancensus::get_census(dataset = "CA21", 
@@ -35,7 +35,7 @@ laval_da <- cancensus::get_census(dataset = "CA21",
 
 laval_db <- cancensus::get_census(dataset = "CA21", 
                                   regions = list(CSD = 2465005), 
-                                  level = "DB", 
+                                  level = "DB",
                                   geo_format = "sf")
 
 #Grabbing the shapefile for the Montreal CMA
@@ -190,6 +190,17 @@ school_sf <- laval_db |>
     eng_secondary == 0 & fr_secondary == 0 ~ "sec_none"
   ))
 
+#Numbers for R markdown
+primary_school_total <- (sum(school$PRIM))
+secondary_school_total <- (sum(school$SEC))
+primary_franco <- school |> 
+  filter(TYPE_CS == "Franco") |> 
+  summarize(sum = sum(PRIM, na.rm = TRUE)) |> 
+  pull(sum)
+secondary_franco <- school |> 
+  filter(TYPE_CS == "Franco") |> 
+  summarize(sum = sum(SEC, na.rm = TRUE)) |> 
+  pull(sum)
 
 # Data for CT level -------------------------------------------------------
 #Prepping extra rows for TTM 15 for CTs
@@ -493,7 +504,7 @@ ggplot() +
 
 
 #Kevin Map
-ggplot() +
+primary_school_map <- ggplot() +
   gg_cc_tiles +
   geom_sf(data = school_sf, aes(fill = access_pri), color = NA) +
   geom_sf(data = primary_points, aes(color = type), size = 0.9, alpha = 0.8) +
@@ -511,14 +522,17 @@ ggplot() +
                                 "Francophone" = "#CD718C"),
                      na.value = curbcut_na) +
   theme_void() +
+  geom_sf(data = laval_sectors, fill = "transparent", color = "black") +
+  theme_void() +
   theme(plot.title = element_blank(), axis.text = element_blank(),
         legend.position = "bottom", legend.title = element_blank(),
-        axis.title = element_blank(), axis.ticks = element_blank(),
-        panel.grid = element_blank()) +
+        axis.title = element_blank(), panel.grid = element_blank(),
+        text=element_text(family="KMR Apparat Regular"),
+        legend.text = element_text(size = 6)) +
   guides(fill = guide_legend(ncol = 2),
          color = guide_legend(ncol = 1, override.aes = list(size = 3)))
 
-ggplot() +
+secondary_school_map <- ggplot() +
   gg_cc_tiles +
   geom_sf(data = school_sf, aes(fill = access_sec), color = NA) +
   geom_sf(data = secondary_points, aes(color = type), size = 0.9, alpha = 0.8) +
@@ -538,12 +552,15 @@ ggplot() +
   theme_void() +
   theme(plot.title = element_blank(), axis.text = element_blank(),
         legend.position = "bottom", legend.title = element_blank(),
-        axis.title = element_blank(), panel.grid = element_blank()) +
+        axis.title = element_blank(), panel.grid = element_blank(),
+        text=element_text(family="KMR Apparat Regular"),
+        legend.text = element_text(size = 6)) +
   guides(fill = guide_legend(ncol = 2),
          color = guide_legend(ncol = 1, override.aes = list(size = 3)))
 
 noprimary <- school_sf |> 
   filter(eng_secondary >= 1)
+
 
 # Bivariate CT Maps ---------------------------------------------------------
 #Cross tabulation data for immigrants and low income (only run if school_sf is at CT level)
@@ -552,7 +569,7 @@ low_imm_ct <- school_sf |>
   left_join(lowincome_imm, by = "GeoUID") |> 
   left_join(st_drop_geometry(school_sf), by = "GeoUID") |> 
   select(notimm_low_child, imm_low_child, notimm_notlow_child, imm_notlow_child,
-         fr_primary, fr_secondary) |> 
+         fr_primary, fr_secondary, eng_primary, eng_secondary) |> 
   mutate(
     notimm_low_child = as.numeric(notimm_low_child), imm_low_child = as.numeric(imm_low_child),
     notimm_notlow_child = as.numeric(notimm_notlow_child), imm_notlow_child = as.numeric(imm_notlow_child),
@@ -811,6 +828,46 @@ ggdraw() +
   draw_plot(sec_notimm_notlow_child_map, 0, 0, 1, 1) +
   draw_plot(sec_notimm_notlow_child_legend, 0.675, 0.041, 0.32, 0.32)
 
+#Numbers for R Markdown
+laval_families <- sum(low_imm_ct$total)
+
+primary_access <- low_imm_ct |> 
+  st_drop_geometry() |> 
+  filter(fr_primary >= 1 | eng_primary >= 1) |> 
+  summarize(total = sum(total, na.rm = TRUE)) |> 
+  mutate(total = convert_pct(total / laval_families)) |> 
+  pull(total)
+primary_fr_access <- low_imm_ct |> 
+  st_drop_geometry() |> 
+  filter(fr_primary >= 1) |> 
+  summarize(total = sum(total, na.rm = TRUE)) |> 
+  mutate(total = convert_pct(total / laval_families)) |> 
+  pull(total)
+primary_eng_access <- low_imm_ct |> 
+  st_drop_geometry() |> 
+  filter(eng_primary >= 1) |> 
+  summarize(total = sum(total, na.rm = TRUE)) |> 
+  mutate(total = convert_pct(total / laval_families)) |> 
+  pull(total)
+
+secondary_access <- low_imm_ct |> 
+  st_drop_geometry() |> 
+  filter(fr_secondary >= 1 | eng_secondary >= 1) |> 
+  summarize(total = sum(total, na.rm = TRUE)) |> 
+  mutate(total = convert_pct(total / laval_families)) |> 
+  pull(total)
+secondary_fr_access <- low_imm_ct |> 
+  st_drop_geometry() |> 
+  filter(fr_secondary >= 1) |> 
+  summarize(total = sum(total, na.rm = TRUE)) |> 
+  mutate(total = convert_pct(total / laval_families)) |> 
+  pull(total)
+secondary_eng_access <- low_imm_ct |> 
+  st_drop_geometry() |> 
+  filter(eng_secondary >= 1) |> 
+  summarize(total = sum(total, na.rm = TRUE)) |> 
+  mutate(total = convert_pct(total / laval_families)) |> 
+  pull(total)
 
 # Tables ------------------------------------------------------------------
 #Cross-tabulation table, ONLY use if CT data was used in school_sf
@@ -825,15 +882,15 @@ ct_table_primary <- low_imm_ct |>
       .names = "{.col}_{.fn}")
   ) |> 
   mutate(
-    ratio_notimm_low_child = round(notimm_low_child_sum_filtered / notimm_low_child_total_sum * 100, 1),
-    ratio_imm_low_child = round(imm_low_child_sum_filtered / imm_low_child_total_sum * 100, 1),
-    ratio_notimm_notlow_child = round(notimm_notlow_child_sum_filtered / notimm_notlow_child_total_sum * 100, 1),
-    ratio_imm_notlow_child = round(imm_notlow_child_sum_filtered / imm_notlow_child_total_sum * 100, 1)) |> 
+    ratio_notimm_low_child = convert_pct(notimm_low_child_sum_filtered / notimm_low_child_total_sum ),
+    ratio_imm_low_child = convert_pct(imm_low_child_sum_filtered / imm_low_child_total_sum),
+    ratio_notimm_notlow_child = convert_pct(notimm_notlow_child_sum_filtered / notimm_notlow_child_total_sum),
+    ratio_imm_notlow_child = convert_pct(imm_notlow_child_sum_filtered / imm_notlow_child_total_sum)) |> 
   mutate(school = "Primary",
-         families = round(notimm_low_child_sum_filtered + imm_low_child_sum_filtered +
-                            notimm_notlow_child_sum_filtered + imm_notlow_child_sum_filtered)) |> 
-  mutate(families_ratio = round(families / (notimm_low_child_total_sum + imm_low_child_total_sum +
-                                              notimm_notlow_child_total_sum + imm_notlow_child_total_sum) * 100, 1)) |> 
+         families = notimm_low_child_sum_filtered + imm_low_child_sum_filtered +
+                            notimm_notlow_child_sum_filtered + imm_notlow_child_sum_filtered) |> 
+  mutate(families_ratio = convert_pct(families / (notimm_low_child_total_sum + imm_low_child_total_sum +
+                                              notimm_notlow_child_total_sum + imm_notlow_child_total_sum))) |> 
   select(school, notimm_low_child_sum_filtered, ratio_notimm_low_child, 
          imm_low_child_sum_filtered, ratio_imm_low_child,
          notimm_notlow_child_sum_filtered, ratio_notimm_notlow_child,
@@ -850,39 +907,48 @@ ct_table_secondary <- low_imm_ct |>
     .names = "{.col}_{.fn}")
   ) |> 
   mutate(
-    ratio_notimm_low_child = round(notimm_low_child_sum_filtered / notimm_low_child_total_sum * 100, 1),
-    ratio_imm_low_child = round(imm_low_child_sum_filtered / imm_low_child_total_sum * 100, 1),
-    ratio_notimm_notlow_child = round(notimm_notlow_child_sum_filtered / notimm_notlow_child_total_sum * 100, 1),
-    ratio_imm_notlow_child = round(imm_notlow_child_sum_filtered / imm_notlow_child_total_sum * 100, 1)) |> 
+    ratio_notimm_low_child = convert_pct(notimm_low_child_sum_filtered / notimm_low_child_total_sum),
+    ratio_imm_low_child = convert_pct(imm_low_child_sum_filtered / imm_low_child_total_sum),
+    ratio_notimm_notlow_child = convert_pct(notimm_notlow_child_sum_filtered / notimm_notlow_child_total_sum),
+    ratio_imm_notlow_child = convert_pct(imm_notlow_child_sum_filtered / imm_notlow_child_total_sum)) |> 
   mutate(school = "Secondary",
-         families = round(notimm_low_child_sum_filtered + imm_low_child_sum_filtered +
-           notimm_notlow_child_sum_filtered + imm_notlow_child_sum_filtered)) |> 
-  mutate(families_ratio = round(families / (notimm_low_child_total_sum + imm_low_child_total_sum +
-                                              notimm_notlow_child_total_sum + imm_notlow_child_total_sum) * 100, 1)) |>
+         families = notimm_low_child_sum_filtered + imm_low_child_sum_filtered +
+           notimm_notlow_child_sum_filtered + imm_notlow_child_sum_filtered) |> 
+  mutate(families_ratio = convert_pct(families / (notimm_low_child_total_sum + imm_low_child_total_sum +
+                                              notimm_notlow_child_total_sum + imm_notlow_child_total_sum))) |>
   select(school, notimm_low_child_sum_filtered, ratio_notimm_low_child, 
          imm_low_child_sum_filtered, ratio_imm_low_child,
          notimm_notlow_child_sum_filtered, ratio_notimm_notlow_child,
          imm_notlow_child_sum_filtered, ratio_imm_notlow_child, families, families_ratio)
 
 ct_table <- bind_rows(ct_table_primary, ct_table_secondary) |>
-  rename("Low-Income Non-Immigrant (n)" = "notimm_low_child_sum_filtered",
-         "Low-Income Non-Immigrant (%)" = "ratio_notimm_low_child",
-         "Low-Income Immigrant (n)" = "imm_low_child_sum_filtered",
-         "Low-Income Immigrant (%)" = "ratio_imm_low_child",
+  rename("Non-immigrant et faible revenu (n)" = "notimm_low_child_sum_filtered",
+         "Non-immigrant et faible revenu (%)" = "ratio_notimm_low_child",
+         "Immigrant et faible revenu (n)" = "imm_low_child_sum_filtered",
+         "Immigrant et faible revenu (%)" = "ratio_imm_low_child",
          "Non-Immigrant (n)" = "notimm_notlow_child_sum_filtered",
          "Non-Immigrant (%)" = "ratio_notimm_notlow_child",
          "Immigrant (n)" = "imm_notlow_child_sum_filtered",
          "Immigrant (%)" = "ratio_imm_notlow_child",
          "School Type" = "school",
-         "Families with Children (n)" = "families",
-         "Families with Children (%)" = "families_ratio") |>
-  select("School Type", "Families with Children (n)", "Families with Children (%)",
+         "Familles avec enfants (n)" = "families",
+         "Familles avec enfants (%)" = "families_ratio") |>
+  select("School Type", "Familles avec enfants (n)", "Familles avec enfants (%)",
          "Non-Immigrant (n)", "Non-Immigrant (%)",
          "Immigrant (n)", "Immigrant (%)",
-         "Low-Income Non-Immigrant (n)", "Low-Income Non-Immigrant (%)",
-         "Low-Income Immigrant (n)", "Low-Income Immigrant (%)")
+         "Non-immigrant et faible revenu (n)", "Non-immigrant et faible revenu (%)",
+         "Immigrant et faible revenu (n)", "Immigrant et faible revenu (%)") |> 
+  mutate(`Familles avec enfants (n)` = convert_number(`Familles avec enfants (n)`),
+         `Non-Immigrant (n)` = convert_number(`Non-Immigrant (n)`),
+         `Immigrant (n)` = convert_number(`Immigrant (n)`),
+         `Non-immigrant et faible revenu (n)` = convert_number(`Non-immigrant et faible revenu (n)`),
+         `Immigrant et faible revenu (n)` = convert_number(`Immigrant et faible revenu (n)`))
 
-ct_table |> gt() |> 
+school_table <- ct_table |> gt() |> 
+  tab_options(
+    table.font.names = "KMR Apparat Regular",
+    table.font.size = px(14)
+  ) |> 
   tab_style(
     style = cell_fill(color = "#F0F0F0"),
     locations = cells_body(rows = 2, columns = everything())
@@ -903,12 +969,62 @@ ct_table |> gt() |>
     ),
     locations = cells_body(columns = 7)
   ) |> 
-  fmt_number(
-    columns = ends_with("%)"),
-    suffixing = TRUE,
-    pattern = "{x}%",
-    decimals = 0,
-  ) |> 
   cols_label(
     `School Type` = ""
   )
+
+#Exporting the gt table to get around errors
+write.csv(school_table, file = "data/school.csv", row.names = FALSE)
+
+school_table <- read.csv("data/school.csv") |> 
+  gt() |> 
+  tab_options(
+    table.font.names = "KMR Apparat Regular",
+    table.font.size = px(14)
+  ) |> 
+  tab_style(
+    style = cell_fill(color = "#F0F0F0"),
+    locations = cells_body(rows = 2, columns = everything())
+  ) |> 
+  tab_style(
+    style = cell_borders(
+      sides = "right",
+      color = "darkgrey",
+      weight = px(2)
+    ),
+    locations = cells_body(columns = 3)
+  ) |> 
+  tab_style(
+    style = cell_borders(
+      sides = "right",
+      color = "darkgrey",
+      weight = px(2)
+    ),
+    locations = cells_body(columns = 7)
+  ) |> 
+  cols_label(
+    `School.Type` = "",
+    `Familles.avec.enfants..n.` = "Familles avec enfants (n)",
+    `Familles.avec.enfants....` = "Familles avec enfants (%)",
+    `Non.Immigrant..n.` = "Non-Immigrant (n)",
+    `Non.Immigrant....` = "Non-Immigrant (%)",
+    `Immigrant..n.` = "Immigrant (n)",
+    `Immigrant....` = "Immigrant (%)",
+    `Non.immigrant.et.faible.revenu..n.` = "Non-immigrant et faible revenu (n)",
+    `Non.immigrant.et.faible.revenu....` = "Non-immigrant et faible revenu (%)",
+    `Immigrant.et.faible.revenu..n.` = "Immigrant et faible revenu (n)",
+    `Immigrant.et.faible.revenu....` = "Immigrant et faible revenu (%)"
+  )
+
+# R Markdown --------------------------------------------------------------
+ggplot2::ggsave(filename = here::here("output/axe3/access/primary_school_map.png"), 
+                plot = primary_school_map, width = 8, height = 6)
+ggplot2::ggsave(filename = here::here("output/axe3/access/secondary_school_map.png"), 
+                plot = secondary_school_map, width = 8, height = 6)
+ggplot2::ggsave(filename = here::here("output/axe3/access/school_table.png"), 
+                plot = school_table, width = 8, height = 3)
+
+qs::qsavem(primary_school_map, secondary_school_map, primary_school_total, secondary_school_total,
+           primary_franco, secondary_franco, primary_access, primary_fr_access,
+           primary_eng_access, secondary_access, secondary_fr_access, secondary_eng_access, school_table,
+           file = "data/axe3/schools.qsm")

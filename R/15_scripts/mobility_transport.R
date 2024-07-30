@@ -8,6 +8,8 @@ library(RMySQL)
 library(classInt)
 library(ggnewscale)
 library(cowplot)
+library(sf)
+library(extrafont)
 
 
 #Grabbing the Laval shapefiles
@@ -44,6 +46,17 @@ curbcut_na <- curbcut_colors$left_5$fill[1]
 #Import 15 minute walking TTM and modifying it with necessary rows
 ttm_walk_7 <- ttm(under_x_minutes = 7)
 
+extrarows <- laval_db |> 
+  st_drop_geometry() |> 
+  select(GeoUID) |> 
+  rename("from" = "GeoUID") |> 
+  mutate(from = as.double(from),
+         to = as.double(from),
+         travel_seconds = 0)
+
+ttm_walk_7 <- read.csv("data/axe3/ttm.csv") |> 
+  bind_rows(extrarows) |> 
+  arrange("from")
 
 # Bus Stop Location -------------------------------------------------------
 #Importing GTFS data. Available in the data folder under justin
@@ -54,6 +67,19 @@ stl_gtfs <- tidytransit::read_gtfs("data/axe3/GTF_STL.zip")
 #two stops at one intersection, but makes map readability significantly better
 bus_stops <- sf::st_as_sf(stl_gtfs$stops, coords = c("stop_lon", "stop_lat"), crs = 4326) |> 
   distinct(stop_name, .keep_all = TRUE)
+
+bus_stops_cleaned <- sf::st_as_sf(stl_gtfs$stops, coords = c("stop_lon", "stop_lat"), crs = 4326) |> 
+  distinct(stop_name, .keep_all = TRUE) |> 
+  mutate(number = 1) |> 
+  summarize(total_number = convert_number(sum(number))) |> 
+  pull(total_number)
+
+#Finding number of bus stops on the island
+bus_stops_laval <- sf::st_as_sf(stl_gtfs$stops, coords = c("stop_lon", "stop_lat"), crs = 4326) |> 
+  st_intersects(laval_csd, sparse = FALSE) |> 
+  as.logical() |> 
+  sum() |> 
+  convert_number()
 
 # Plot accessibility to bus stops in 7 minutes walk
 bs_db_int <- sf::st_intersects(bus_stops, laval_db["GeoUID"], prepared = TRUE)
@@ -116,10 +142,24 @@ t |>
   theme(legend.spacing.x = unit(2, 'cm'),
         legend.spacing.y = unit(1, 'cm'))
 
+bus_stops_map <- ggplot(data = t) +
+  gg_cc_tiles +
+  geom_sf(aes(fill = binned_variable), color = "transparent") +
+  scale_fill_manual(values = curbcut_colors$left_5$fill[c(2:6)],
+                    name = "Arrêts d'autobus (n)",
+                    labels = labels,
+                    guide = guide_legend(title.position = "top",
+                                         label.position = "bottom", nrow = 1)) +
+  geom_sf(data = bus_stops, color = color_theme("greenurbanlife"),
+          size = 0.2, alpha = 0.5) +
+  geom_sf(data = laval_sectors, fill = "transparent", color = "black") +
+  gg_cc_theme_no_sf +
+  theme_void() +
+  default_theme
 
 # Values
-sum(access_busstops$Population[access_busstops$busstops == 0])
-sum(access_busstops$Population[access_busstops$busstops %in% c(1,2)])
+no_bus_stops <- convert_number(sum(access_busstops$Population[access_busstops$busstops == 0]))
+one_two_bus_stops <- convert_number(sum(access_busstops$Population[access_busstops$busstops %in% c(1,2)]))
 
 
 # Bus routes accessibles ---------------------------------------------------
@@ -196,9 +236,23 @@ t |>
   theme(legend.spacing.x = unit(2, 'cm'),
         legend.spacing.y = unit(1, 'cm'))
 
+bus_lines_map <- ggplot(data = t) +
+  gg_cc_tiles +
+  geom_sf(aes(fill = binned_variable), color = "transparent") +
+  scale_fill_manual(values = curbcut_colors$left_5$fill[c(2:6)],
+                    name = "Trajets d'autobus (n)",
+                    labels = labels,
+                    guide = guide_legend(title.position = "top",
+                                         label.position = "bottom", nrow = 1)) +
+  geom_sf(data = laval_sectors, fill = "transparent", color = "black") +
+  gg_cc_theme_no_sf +
+  theme_void() +
+  default_theme
+
 # Values
-sum(trips$Population[trips$trips == 0])
-sum(trips$Population[trips$trips %in% c(1,2)])
+no_bus_lines <- convert_number(sum(trips$Population[trips$trips == 0]))
+one_two_bus_lines <- convert_number(sum(trips$Population[trips$trips %in% c(1,2)]))
+one_two_bus_lines_prop <- convert_pct(sum(trips$Population[trips$trips %in% c(1,2)]) / sum(trips$Population))
 
 # Bus vehicles accessibles ---------------------------------------------------
 
@@ -272,12 +326,27 @@ t |>
   theme(legend.spacing.x = unit(2, 'cm'),
         legend.spacing.y = unit(1, 'cm'))
 
+bus_trips_map <- ggplot(data = t) +
+  gg_cc_tiles +
+  geom_sf(aes(fill = binned_variable), color = "transparent") +
+  scale_fill_manual(values = curbcut_colors$left_5$fill[c(2:6)],
+                    name = "Véhicules (autobus) (n)",
+                    labels = labels,
+                    guide = guide_legend(title.position = "top",
+                                         label.position = "bottom", nrow = 1)) +
+  geom_sf(data = laval_sectors, fill = "transparent", color = "black") +
+  gg_cc_theme_no_sf +
+  theme_void() +
+  default_theme +
+  theme(legend.spacing.x = unit(2, 'cm'),
+        legend.spacing.y = unit(1, 'cm'))
 
 # Values
-sum(stop_times$Population[stop_times$vehicles == 0])
-sum(stop_times$Population[stop_times$vehicles < 6])
-sum(stop_times$Population[stop_times$vehicles > 24])
-
+no_bus_trips <- convert_number(sum(stop_times$Population[stop_times$vehicles == 0]))
+twenty_min_bus_trip <- convert_number(sum(stop_times$Population[stop_times$vehicles < 6]))
+twenty_min_bus_trip_prop <- convert_pct(sum(stop_times$Population[stop_times$vehicles < 6]) / sum(stop_times$Population))
+five_min_bus_trip <- convert_number(sum(stop_times$Population[stop_times$vehicles > 24]))
+five_min_bus_trip_prop <- convert_pct(sum(stop_times$Population[stop_times$vehicles > 24]) / sum(stop_times$Population))
 
 # POIs accessible ---------------------------------------------------------
 
@@ -414,8 +483,23 @@ t |>
   theme(legend.spacing.x = unit(2, 'cm'),
         legend.spacing.y = unit(1, 'cm'))
 
+transit_usage_map <- ggplot(data = t) +
+  gg_cc_tiles +
+  geom_sf(aes(fill = binned_variable), color = "transparent") +
+  scale_fill_manual(values = curbcut_colors$left_5$fill[c(2:6)],
+                    name = "Utilisation du transport en commun pour les déplacements domicile-travail (%)",
+                    labels = labels,
+                    guide = guide_legend(title.position = "top",
+                                         label.position = "bottom", nrow = 1)) +
+  geom_sf(data = laval_sectors, fill = "transparent", color = "black") +
+  gg_cc_theme_no_sf +
+  theme_void() +
+  default_theme +
+  theme(legend.spacing.x = unit(2, 'cm'),
+        legend.spacing.y = unit(1, 'cm'))
+
 # Values
-sum(flows$Public.transit) / sum(flows$`v_CA21_7614: Usual place of work`)
+transit_usage <- convert_pct(sum(flows$Public.transit) / sum(flows$`v_CA21_7614: Usual place of work`))
 
 
 # # Charging Stations -------------------------------------------------------
@@ -733,3 +817,19 @@ ggplot(data = laval_accessibility) +
            ylim = c(lvlbbox$ymin, lvlbbox$ymax))
 
 test <- filter(laval_accessibility, laval_accessibility$stop_count == 0)
+
+# R Markdown --------------------------------------------------------------
+ggplot2::ggsave(filename = here::here("output/axe3/mobility/bus_stops_map.png"), 
+                plot = bus_stops_map, width = 8, height = 6)
+ggplot2::ggsave(filename = here::here("output/axe3/mobility/bus_lines_map.png"), 
+                plot = bus_lines_map, width = 8, height = 6)
+ggplot2::ggsave(filename = here::here("output/axe3/mobility/bus_trips_map.png"), 
+                plot = bus_trips_map, width = 8, height = 6)
+ggplot2::ggsave(filename = here::here("output/axe3/mobility/transit_usage_map.png"), 
+                plot = transit_usage_map, width = 8, height = 6)
+
+qs::qsavem(bus_stops_map, bus_stops_laval, bus_stops_cleaned, no_bus_stops, one_two_bus_stops,
+           bus_lines_map, no_bus_lines, one_two_bus_lines, one_two_bus_lines_prop,
+           no_bus_trips, twenty_min_bus_trip, twenty_min_bus_trip_prop, five_min_bus_trip,
+           five_min_bus_trip_prop ,bus_trips_map, transit_usage_map, transit_usage,
+           file = "data/axe3/transport.qsm")

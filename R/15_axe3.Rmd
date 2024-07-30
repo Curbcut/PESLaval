@@ -1,58 +1,291 @@
 ---
 title: "Axe 3 - Le soutien aux communautés de proximité"
 author: "Curbcut"
-output: html_document
 output:
   bookdown::html_document2: default
   bookdown::pdf_document2: default
+mainfont: "KMR Apparat Regular"
 ---
 
 ```{r setup3, include=FALSE}
+library(knitr)
+library(gt)
+library(extrafont)
+loadfonts(device = "win")
 knitr::opts_chunk$set(echo = FALSE)
 ```
 
-## Les services de proximité et les équipements collectifs
+# Axe 3: Le soutien aux communautés de proximité
 
+## Services de proximité et équipements collectifs
+
+L’accessibilité aux services de proximité est un facteur crucial pour évaluer la qualité des services urbains. Pour l’accessibilité à proprement parler, la marche est utilisée comme métrique clé. Effectivement, une distance de marche de 15 minutes constitue une mesure tangible et fiable permettant de comprendre l’accessibilité des services essentiels pour les résidents.
+
+Pourquoi utiliser la métrique d'un temps de marche de 15 minutes pour évaluer l’accessibilité? Bien que Laval compte une grande population d’individus qui préfèrent l’automobile pour ses déplacements quotidiens^[], l’utilisation de la métrique mentionnée présente plusieurs avantages :
+
+1. **La santé et le bien-être** : La marche est une activité physique, bénéfique pour la santé générale. Encourager ce type d’activité, tel que les déplacements au quotidien, contribue à des modes de vie plus sains.
+2. **L’équité sociale** : Ce ne sont pas tous les résidents qui ont accès à une automobile. L'utilisation de la marche comme mesure de l'accessibilité garantit que les personnes qui dépendent de la marche sont également prises en compte.
+3. **La qualité de vie urbaine** : Les quartiers accessibles à pied sont souvent plus dynamiques et plus cohésifs sur le plan social.
+4. **Les avantages environnementaux** : De réduire la dépendance sur les véhicules à moteur réduit la congestion routière et réduit les émissions de carbone.
+
+```{r childcare}
+
+qs::qload(here::here("data/axe3/daycare.qsm"))
+
+```
 ### Accès aux places en garderie
 
+Dans le contexte des places en garderie, en juillet 2024, il y avait 209 garderies dans la Ville de Laval, pour un total de 13 314 places en garderie. Durant la même année (2024), il y avait `r kinder_children` enfants en âge de fréquenter la garderie (2 à 5 ans)^[Institut de la statistique du Québec. (2022). Projections de population - Régions administratives et régions métropolitaines (RMR). Récupéré de https://statistique.quebec.ca/fr/document/projections-de-population-regions-administratives-et-regions-metropolitaines-rmr]. Il y avait donc `r kinder_ratio` places en garderie par enfant.
+
+Sans tenir compte de la disponibilité des places, le nombre d’enfants qui ne peuvent accéder à une garderie en 15 minutes à pied est de 1 780, ce qui représente environ un enfant sur 10.
+
+Pour les places en garderie accessibles, nous devons tenir compte de la dynamique entre la capacité (le nombre de places) et la demande (le nombre d’enfants en âge de fréquenter la garderie) dans chaque quartier. En effet, les places en garderie sont mutuellement exclusives : si un enfant occupe une place, celle-ci n’est pas disponible pour un autre enfant. Ainsi, avoir accès à un grand nombre de places en garderie n'est utile que si le nombre d'enfants pouvant être servis par ces places est inférieur ou égal au nombre de places accessibles.
+
+C'est dans ce contexte, où les places sont mutuellement exclusives, que l'on inclut la notion de concurrence dans l'accès au service. En d’autres termes, ce n’est pas parce qu’une famille peut accéder à 1 000 places en garderie à 15 minutes à pied qu’elle bénéficie d’un bon accès, surtout si 5 000 enfants doivent se partager ces mêmes places.
+
+Notre méthode consiste donc à identifier le nombre de places en garderie dans une zone de 15 minutes de marche, puis à prendre en compte le nombre d’enfants dans cette même zone. Nous prenons aussi en compte le contexte plus large de l'environnement, car chaque enfant vivant dans une zone à accès à d’autres zones (à 15 minutes de marche également), où les places en garderie sont réparties différemment. En divisant le nombre de places par le nombre d’enfants enconcurrence pour y accéder, nous obtenons une valeur qui reflète l'accessibilité réelle, considérant de la concurrence pour un service mutuellement exclusif.
+
+La figure ci-dessous représente donc cette mesure d’accessibilité en tenant compte de la concurrence pour les places en garderie. Il existe certaines pochettes claires sur le territoire où l'accès, compte tenu de la concurrence, est beaucoup plus élevé qu'ailleurs. C’est le cas dans le centre-Sud de l’île, dans le Sud de Vimont, ainsi que pour deux autres pochettes à Sainte-Dorothé et à Laval-Ouest. 
+
+Ce sont 5 000 enfants qui n’ont soit aucun accès, soit un faible accès aux places en garderie, considérant la compétitivité pour ces places dans leur zone. Au contraire, ce sont 3 600 enfants, soit un enfant sur 5, qui ont relativement un très bon accès.
+
+<!--```{r daycareGraph, include=TRUE, fig.cap="Accessibilité des places en garderie à Laval", fig.align = 'center'}
+
+daycare_graph
+
+```--> 
+
+La prochaine carte donne davantage de contexte en présentant la densité du nombre d’enfants par kilomètre carré. En général, on remarque que les zones ayant une densité d’enfants faible sont aussi les zones où il n’y a aucun ou un très faible accès aux garderies à 15 minutes à pied. Ceci-dit, il n’existe pas de corrélation entre les deux mesures. En d’autres mots, à Laval, ce n’est pas parce qu’une zone a une densité d’enfant plus élevée qu’elle a nécessairement une accessibilité plus grande aux places en garderie.
+
+<!--```{r childGraph, include=TRUE, fig.cap="Densité de population des enfants à Laval", fig.align = 'center'}
+
+child_graph
+
+```--> 
+
+```{r schools}
+
+qs::qload(here::here("data/axe3/schools.qsm"))
+
+```
 ### Accès aux établissements d'éducation
+Selon les dernières données publiées par le ministère de l’Éducation, il y avait en 2024 `r primary_school_total` écoles primaires et `r secondary_school_total` écoles secondaires dans la ville de Laval. `r primary_franco` des écoles primaires et `r secondary_franco` des écoles secondaires étaient francophones. En utilisant la distance de marche de 15 minutes décrite au début de cette présente section comme mesure d’accessibilité, ce sont `r primary_access` des familles avec enfants qui ont accès à au moins une école primaire dans ce temps de marche. Ce chiffre tombe à `r primary_fr_access` et `r primary_eng_access` pour les écoles primaires francophones et anglophones respectivement (Le graphique \@ref(fig:primarySchoolMap)).
+
+```{r primarySchoolMap, include=TRUE, fig.cap="Accès aux écoles primaires", fig.align = 'center'}
+
+primary_school_map
+
+```
+
+Comme son nombre est inférieur, l’accessibilité aux écoles secondaires de Laval est naturellement significativement réduite par rapport à celle des écoles primaires. Seulement `r secondary_access` des familles avec enfants de Laval ont accès à une école secondaire à moins de 15 minutes de marche. Ce chiffre tombe à `r secondary_fr_access` et `r secondary_eng_access` pour les écoles primaires francophones et anglophones respectivement.
+
+```{r secondarySchoolMap, include=TRUE, fig.cap="Accès aux écoles secondaires", fig.align = 'center'}
+
+secondary_school_map
+
+```
+
+Le tableau suivant montre que les familles présentant des facteurs de vulnérabilité, comme le fait d’être issues de l’immigration ou d’avoir un faible revenu, ont un accès similaire ou meilleur aux écoles primaires et secondaires de Laval, principalement en raison des endroits où ils vivent. Les écoles primaires et secondaires, bien qu'assez bien réparties sur l'ensemble de l'île, gravitent autour des quartiers plus peuplés de Laval, comme Chomedey et Laval-des-Rapides, qui comptent tous deux une plus grande proportion de familles immigrantes que les autres quartiers de Laval.
+
+```{r schoolTable, include=TRUE, fig.cap="Tableau des familles et accès aux écoles", fig.align = 'center'}
+
+school_table
+
+```
 
 ### Accès aux installations du réseau de la santé et des services sociaux
+Typiquement, un individu nécessite généralement d’un accès régulier et facile à un établissement de services de soins de santé primaires et généraux. Nous nous concentrons donc sur les centres hospitaliers de soins généraux et spécialisés (CHSGS) et les centres locaux de services communautaires (CLSC) puisqu’ils offrent une couverture relativement complète en termes de services, les rendant indispensables à la population générale. De plus, ces centres constituent fréquemment le premier point de contact pour les habitants à la recherche de services de santé. 
+
+Par conséquent, notre approche implique une méthode différente pour évaluer cette accessibilité. Nous évaluons plutôt en termes de temps nécessaire pour accéder à l’un de ces deux types d’établissements de soins de santé: centre hospitalier de soins généraux et spécialisés (CHSGS) et centre local de services communautaires (CLSC)^[Ministère de la Santé et des services sociaux. (2024). Fichiers cartographiques M02 des installations et établissements. Récupéré de https://www.donneesquebec.ca/recherche/dataset/fichiers-cartographiques-m02-des-installations-et-etablissements]. 
+
+Comme les résidents ont généralement besoin d’avoir accès à un seul établissement de soins de santé généraux, la carte ci-dessous présente le temps nécessaire pour atteindre le centre le plus proche. Le temps de marche nécessaire pour en atteindre un est plus petit dans les pochettes les plus densément peuplées. Toutefois, Sainte-Dorothée se démarque par son manque d’accès. Selon les données de population du recensement de 2021, ce sont 68.700 (16%) lavallois·e·s qui ont accès à l’un de ces centres en moins de 15 minutes, et la moitié de la population lavalloise (211 500 ou 48%) qui peuvent y accéder en moins de 30 minutes de marches. En revanche, 56 500  personnes n’ont pas d’accès réaliste à la marche et doivent marcher plus d'une heure pour accéder à ces services.
+
+<!--```{r healthcareGraph, include=TRUE, fig.cap="Accès aux services de santé et aux services sociaux", fig.align = 'center'}
+
+healthcare_graph
+
+```--> 
+
+Qu’en est-il des populations plus vulnérables nécessitant un meilleur accès à ces services? Toujours selon le recensement de 2021, 11 000 enfants âgés de 0 à 14 ans (15 %) pouvaient marcher moins de 15 minutes pour se rendre à ces établissements, et 34 500 (46 %) en moins de 30 minutes. 10 900 (15 %) n'ont virtuellement aucun accès à pied à ces établissements. Ces mêmes chiffres, ainsi que ceux concernant la population plus âgée (65+), sont détaillés dans le tableau suivant. Tandis que les enfants ont généralement un moins bon accès à ces établissements à la marche en comparaison à la population générale, la population des 65 ans et plus en a davantage. Ces services sont donc davantage localisés dans des zones accessibles par des démographies plus âgées. Le tableau indique aussi que la majorité des groupes ont accès à ces services dans un délai de 15 à 45 minutes de marche. 
+
+<!--```{r healthcareTable, include=TRUE, fig.cap="Accessibilité aux services de santé et sociaux en temps de marche", fig.align = 'center'}
+
+healthcare_table
+
+```--> 
+
+```{r municipal}
+
+qs::qload(here::here("data/axe3/municipal.qsm"))
+
+```
 
 ### Accès aux lieux et édifices municipaux
+Les lieux et édifices municipaux, incluant des lieux comme les bibliothèques et les centres communautaires, mais aussi les arénas et les sites avec équipements de parcs, offrent des espaces aux résidents pour interagir et entretenir des relations sociales, accéder aux services municipaux et participer à des activités récréatives et de loisirs.
 
-#### Bibliothèques
+```{r municipalMap, include=TRUE, fig.cap="Accessibilité aux lieux et bâtiments municipaux", fig.align = 'center'}
 
-#### Centres communautaires
+municipal_map
 
-#### Places publiques
+```
 
-#### Centres sportifs
+La quasi-totalité des Lavallois·e·s (`r municipal_access`) ont accès à au moins l’un des ces lieux et édifices dans un rayon de 15 minutes de marche, avec les deux tiers (`r municipal_access_three`) de la population ayant accès à 3 ou plus. Les personnes à faible revenu (`r municipal_lowincome_ratio` lieux et édifices municipaux par personne à faible revenu) ont davantage d’accessibilité à ces lieux que l'ensemble de la population (`r municipal_population_ratio`), tandis que les immigrants ont un accès inférieur (`r municipal_immigrant_ratio`). Dans la même ligne, moins de personnes à faible revenu ont un accès limité (`r municipal_lowincome_lowaccess`), défini comme trois ou moins, aux lieux et édifices municipaux, par rapport à l'ensemble de la population (`r municipal_pop_lowaccess`) et aux immigrants (`r municipal_immigrant_lowaccess`). Bien que les immigrants sont parmis les groupes qui se sentent très bien desservis par les services de la Ville, ils sont parmi ceux qui ont le moins d’accès aux lieux et édifices municipaux comparativement à d’autres groupes^[Service des communications et du marketing. (2024). Étude de segmentation: Rapport détaillé de recherche marketing]. 
 
-#### Piscines
+```{r municipalTable, include=TRUE, fig.cap="Comparaison des facteurs démographiques pour l'accessibilité aux lieux municipaux.", fig.align = 'center'}
 
-#### Parcs
+municipal_table
 
-#### Lieux culturels non-institutionnels
+```
 
-## La mobilité et le transport
+### Accès aux parcs et espaces verts
 
-### Accès au réseau d'autobus
+Pour évaluer l’accessibilité aux parcs, nous mesurons la quantité d’espace de parcs d'un minimum de 2 000m² accessibles à une distance de 15 minutes de marche. Dans la ville, 275 espaces verts remplissent cette définition. De ces espaces, 36 sont des berges et 225 sont soit des parcs ou des parc-écoles. Le reste sont l’un des suivants : halte, place publique, site avec équipement de parc et stade d’athlétisme.
 
-#### Densité de trajets disponibles
+<!--```{r parkMap, include=TRUE, fig.cap="Accessibilité aux parcs", fig.align = 'center'}
 
-#### Fréquence du nombre de véhicules accessibles
+park_map
 
-#### Points de vente pour le transport collectif
+```--> 
 
+Comme les résidents de ménages à faible revenu peuvent davantage avoir moins accès à des activités de récréations privées, les parcs publics leur sont particulièrement utiles pour l'exercice, la relaxation, ou l’engagement communautaire. En outre, les parcs offrent aux enfants des environnements sûrs où ils peuvent jouer et pratiquer des activités physiques diverses. L’accès à ces installations est donc essentiel pour les familles avec enfants afin de promouvoir un développement sain et d’offrir des possibilités d’interaction sociale.
+
+En intégrant les données du dernier recensement (2021), nos résultats confirment que c’est la grande majorité (71 %) de la population lavalloise qui a accès à au moins 4 parcs de plus de 2 000m². Tandis que l’accessibilité aux parcs pour les familles avec enfants ressemble à celle de la population générale, les ménages à faible revenu ont quant à eux davantage d’accès. Effectivement, 3 ménages à faible revenu sur 4 ont accès à au moins 4 de ces parcs. La mesure de faible revenu choisie pour cette analyse est la mesure de faible revenu après impôt (MFR-ApI).
+
+<!--```{r parkTable, include=TRUE, fig.cap="Accessibilité aux parcs selon la démographie", fig.align = 'center'}
+
+park_table
+
+```--> 
+
+### Accès aux commerces d’alimentation
+
+En ce qui concerne l’accessibilité aux commerces d’alimentation, nous utilisons les données ouvertes de localisation des supermarchés provenant d'OpenStreetMap, qui fournit des informations complètes et actualisées de ces emplacements. Ces magasins sont classifiés comme offrant un service complet d’épicerie, y compris la viande et les produits frais. Ces supermarchés sont préférés aux autres types de magasins d’alimentation puisqu’ils offrent généralement une grande variété d’options alimentaires, y compris des produits frais, des produits laitiers, etc. En outre, les supermarchés proposent souvent des produits alimentaires à des prix inférieurs à ceux des petites épiceries ou des magasins de proximité, ce qui en fait une option plus abordable pour de nombreux habitants, en particulier pour les ménages à faibles revenus. 
+
+Pour évaluer l’accessibilité aux supermarchés, nous la mesurons selon deux aspects : le temps de transport à la marche nécessaire pour atteindre le supermarché le plus proche, et la variété des supermarchés accessibles à moins de 15 minutes de marche, donnant une idée de la variété et du choix offerts aux résidents. Cette technique de double carte permet d’identifier les zones qui peuvent être bien desservies par un supermarché proche mais qui manque de variété, ou vice versa.
+
+<!--```{r foodMap, include=TRUE, fig.cap="Temps de marche jusqu'à l'épicerie la plus proche (à gauche) et nombre d'épiceries accessibles en 15 minutes (à droite)", fig.align = 'center'}
+
+food_map
+
+```--> 
+
+Les résidents des ménages à faible revenu peuvent avoir un accès plus limité aux transports privés et peuvent donc compter davantage sur la marche à pied pour se rendre aux supermarchés. Les personnes âgées, en particulier celles qui ne conduisent plus, peuvent aussi être confrontées à d’importantes difficultés d’accès aux supermarchés s’ils ne sont pas accessibles dans une distance de marche raisonnable. Tant les ménages à faible revenu (mesure de faible revenu après taxes (MFR-ApI)) que les personnes âgées (65 ans et plus) tendent à vivre dans des zones avec un meilleur accès aux supermarchés. Ce sont 77 % des ménages à faible revenu qui y ont accès en moins de 20 minutes, 74 % des personnes de plus de 65 ans, et 69 % pour la population générale. 
+
+<!--```{r foodTable, include=TRUE, fig.cap="Accessibilité aux épiceries selon la démographie", fig.align = 'center'}
+
+food_table
+
+```--> 
+
+### Accès aux installations culturelles et artistiques
+
+Les installations culturelles et artistiques permettent aux habitants de participer à diverses activités culturelles, artistiques et éducatives, favorisant une communauté dynamique et ouverte. La variété de ces installations accessibles à courte distance est étudiée, puisqu’un accès à un éventail diversifié de ces installations offre aux résidents des possibilités de divertissement, d’apprentissage et d’interaction sociale, enrichissant leur vie quotidienne et favorisant un sentiment d’appartenance à la communauté.
+
+Nous utilisons les données de la Base de données ouvertes sur les installations culturelles et artistiques (BDOICA) de Statistique Canada, qui inclut les sources des gouvernements provinciaux, les autorités municipales ainsi que les associations professionnelles^[Statistique Canada. (2020). La Base de données ouvertes sur les installations culturelles et artistiques. Récupéré de https://www.statcan.gc.ca/fr/ecdo/bases-donnees/bdoica]. Bien que ces données ne prétendent pas à une couverture parfaite et exhaustive, elles représentent une option de départ valable pour qualifier l'accessibilité. À Laval, 28 installations sont représentées dans ce jeu de données. Nous avons ajouté les 3 installations manquantes listées par Signé Laval (Studio Synapses, [co]motion agitateur de culture et House of Jazz Laval)^[Signé Laval. (2024). Répertoire culturel. Récupéré de https://signelaval.com/fr/repertoire-culturel/lieu-de-diffusion]. De plus, des 66 installations municipales ou autres listées dans le Diagnostic culturel de la région de Laval de 2017, nous avons réussi à en géocoder et donc à en ajouter 56^[Conseil régional de la culture de Laval. (2017). Diagnostic culturel de la région de Laval. Récupéré de https://www.repensonslaval.ca/vieculturelle/news_feed/diagnostic-culturel]. Les autres installations peuvent avoir été fermées depuis. Après suppression des doublons potentiels dû à l’incorporation de sources diverses, nous avons recensé 65 installations dans la ville de Laval.
+
+<!--```{r cultureNap, include=TRUE, fig.cap="Accessibilité aux installations culturelles", fig.align = 'center'}
+
+culture_map
+
+```--> 
+
+Il y existe trois pochettes où les résidents peuvent accéder à davantage d’installations culturelles et artistiques, se trouvant dans Sainte-Rose (Nord-Est), où l’on y retrouve notamment le Centre d'interprétation de l’eau ainsi que la Bibliothèque Sylvain-Garneau, ainsi qu’à Laval-des-Rapides (Centre-Sud) où l’on y retrouve la Place Bell, la Maison des Arts de Laval et la Bibliothèque Émile-Nelligan. Une autre pochette, bien que plus petite, se trouve au Centre de la nature à Duvernay.
+
+Ce sont 54 % des lavallois·e·s qui n’ont accès à aucune de ces installations. Chez la démographie à faible revenu, ce pourcentage diminue à 41 %. Comme cette démographie a souvent un accès plus limité aux ressources culturelles et récréatives privées, ces installations, majoritairement publiques, deviennent des ressources essentielles pour ces familles. Ce sont aussi les ménages à faible revenu qui représentent une plus grande proportion des groupes qui peuvent accéder à 3 installations ou plus (15 %, contre 11 % pour la population générale).
+
+<!--```{r cultureTable, include=TRUE, fig.cap="Accès aux installations culturelles et facteurs démographiques", fig.align = 'center'}
+
+culture_table
+
+```--> 
+
+```{r transport}
+
+qs::qload(here::here("data/axe3/transport.qsm"))
+
+```
+## Mobilité et transport
+
+Des systèmes de mobilité et de transport efficaces sont essentiels au bon fonctionnement des environnements urbains, permettant aux résidents de se déplacer efficacement et d'accéder à tous types de services et milieux d’intérêt. Nous analysons donc divers aspects des transports publics dans cette section. En utilisant les données GTFS (General Transit Feed Specification), nous évaluons des paramètres clés tels que la densité des arrêts d’autobus accessibles, le nombre de lignes et la fréquence des autobus accessibles dans chacune des zones.
+
+### Accès aux arrêts d’autobus
+La Société de transport de Laval (STL) opère `r bus_stops_laval` arrêts d’autobus au travers de la ville de Laval, permettant à la vaste majorité des Lavallois·e·s d’avoir accès à au moins un arrêt d’autobus à moins de 7 minutes de marche (400 mètres). Toutefois, le nombre d’arrêts d’autobus accessibles varie de manière drastique, tant inter- qu’intra-secteur. 
+
+La prochaine carte indique le nombre d’arrêts d’autobus accessibles à 7 minutes de marche. Cette durée est considérée comme un compromis optimal entre accessibilité et confort pour les usagers. Elle est suffisamment courte pour être pratique et encourager l'utilisation du transport en commun, tout en couvrant une distance raisonnable pour desservir un large nombre de résidents. En choisissant cette mesure, nous pouvons évaluer efficacement l'accessibilité des arrêts de bus dans les différents quartiers de Laval. 
+
+```{r busStopMap, include=TRUE, fig.cap="Nombre d’arrêts d’autobus accessibles en 7 minutes de marche", fig.align = 'center'}
+
+bus_stops_map
+
+``` 
+
+Il y a `r bus_stops_cleaned` arrêts d’autobus distincts dans le réseau de la STL. Ils sont représentés par de petits points de couleur vert sur la carte. Bien que la couverture du réseau semble assez bien couvrir le territoire habité de la ville, ce sont `r no_bus_stops` lavallois·e·s qui n’ont pas accès à un arrêt d’autobus à moins de 7 minutes de marche, et `r one_two_bus_stops` n’ont seulement accès à un ou deux arrêts. 
+
+### Accès aux lignes d'autobus
+
+Nous suivons le même processus que précédemment pour le nombre de lignes d’autobus accessibles par chacune des zones. Un plus grand nombre de trajets accessibles indique une meilleure connectivité et offre aux résidents davantage d'options de ligne, ce qui peut réduire les temps de déplacement et les besoins de correspondance. Cette mesure permet également de mettre en lumière, d’une différente façon, les disparités dans l'accès aux services de transport en commun.
+
+La carte ci-dessous montre donc le nombre de lignes d’autobus accessibles à moins de 7 minutes de marche pendant les heures de pointe du matin en semaine, c’est-à-dire entre 7 et 9 heures. Une ligne est définie comme une route spécifique d’autobus, peu importe la fréquence à laquelle les autobus passent sur cette ligne. Par exemple, si une ligne d’autobus particulière passe toutes les 10 minutes pendant une période de deux heures, cela est considéré comme une seule ligne. Le nombre de passages du bus sur cette ligne n'affecte pas cette définition ; c'est toujours une ligne unique. Chomedey et Laval-des-Rapides, Pont-Viau se démarquent par une haute connectivitée, tout comme le long du boulevard des Laurentides dans le secteur Vimont, Auteuil. Ce sont `r no_bus_lines` Lavallois·e·s qui n'ont accès à aucune ligne d’autobus en 7 minutes de marche entre 7 et 9 heures en semaine, et plus du quart de la population (`r one_two_bus_lines` ou `r one_two_bus_lines_prop`) qui n’ont accès qu’à une ou deux lignes.
+
+```{r busLineMap, include=TRUE, fig.cap="Nombre de lignes de bus accessibles en 7 minutes de marche aux heures de pointe du matin en semaine, entre 7 à 9 heures", fig.align = 'center'}
+
+bus_lines_map
+
+```
+### Fréquence des passages d'autobus
+
+Comme avoir accès à un grand nombre de lignes d’autobus est essentiel pour une bonne connectivité, il est tout aussi crucial de considérer la fréquence de passage des autobus sur ces lignes. La fréquence détermine la flexibilité et la commodité avec lesquelles les résidents peuvent utiliser les transports en commun. Plus les autobus passent fréquemment, plus il est probable que les passagers pourront trouver un véhicule à l’heure souhaitée, rendant le transport en commun plus attractif. Parallèlement à cette attractivité, avoir accès à un grand nombre de passages est particulièrement bénéfique pour les populations dépendantes du transport en commun, comme les personnes âgées ne conduisant plus ou n’importe quelle population qui n’a pas accès à un véhicule personnel. C’est aussi important pour les individus ayant des horaires serrés ou des besoins de déplacements urgents.
+
+Les pochettes avec un accès à un plus large nombre de véhicules accessibles en 7 minutes de marche, aux heures de pointe du matin en semaine, sont naturellement près des terminus d’autobus et des stations de métro. Chomedey et Laval-des-Rapides, Pont-Viau se démarquent encore une fois par lettre haute connectivité, tout comme le long du boulevard des Laurentides dans le secteur Vimont, Auteuil. 
+
+```{r busTripMap, include=TRUE, fig.cap="Nombre de véhicules accessibles en 7 minutes de marche aux heures de pointe du matin en semaine, entre 7 à 9 heures", fig.align = 'center'}
+
+bus_trips_map
+
+```
+
+Comme à la section précédente, ce sont encore `r no_bus_trips` Lavallois·e·s qui n’ont accès à aucun véhicule à 7 minutes de marche aux heures de pointe du matin en semaine. `r twenty_min_bus_trip` Lavallois·e·s (`r twenty_min_bus_trip_prop`) ont accès à seulement 12 véhicules au cours de la même période, ce qui représente un seul véhicule, peu importe le trajet, à chaque 20 minutes ou plus. Pour ces usagers, il est essentiel que cette ligne mène à leur destination ou offre une bonne connexion avec d’autres lignes pour faciliter leur trajet. En revanche, `r five_min_bus_trip` (`r five_min_bus_trip_prop`) Lavallois·e·s ont accès à au moins un véhicule tous les 5 minutes durant la même période.
+
+### Accessibilité aux lieux d’intérêt en transport en commun
+
+En plus de l'accès aux lignes d'autobus et de la fréquence des passages, il est également essentiel d'évaluer combien de lieux d’intérêt sont accessibles en transport en commun depuis chaque zone. Les lieux d’intérêt, dans le cadre de cette analyse, incluent des lieux tels que les épiceries, les pharmacies, les écoles, les parcs, mais aussi tout autre service qui enrichit la vie quotidienne des résidents comme les points d'intérêt commerciaux et récréatifs. Pour cette analyse, nous utilisons l'ensemble de données DMTI, sous licence académique, qui englobe tous ces lieux d’intérêt disponibles. Il y a 15 881 de ces lieux à Laval, dans ce jeu de données. Nous incluons aussi les points d’intérêt à l’extérieur de Laval, tant et autant qu’ils soient accessibles en transport en commun à partir de Laval, par exemple en employant la ligne orange du métro de la STM. C’est un ensemble de 183 936 lieux d’intérêt dans la Communauté Métropolitaine de Montréal.
+
+La carte ci-dessous représente donc, pour chaque zone, le nombre de lieux d’intérêts accessibles en 20 minutes en transport en commun aux heures de pointe du matin en semaine, entre 7 à 9 heures. Tandis que les deux pointes de l'île sont connectées à moins de lieux d’intérêts, il y a un dégradé entre le Nord et le Sud de l’île: la proximité aux lieux d’intérêts se trouvant sur l’île de Montréal explique cette tendance. Ce sont donc les habitants de Chomedey et de Laval-des-Rapides, Pont-Viau, plus précisément au Sud près de l’autoroute des Laurentides (15) qui ont accès à une plus grande variété de points d’intérêts ou de services en 20 minutes de transport en commun.
+
+<!--```{r poiMap, include=TRUE, fig.cap="Nombre de lieux d’intérêts accessibles en 20 minutes en transport en commun aux heures de pointe du matin en semaine, entre 7 à 9 heures", fig.align = 'center'}
+
+poi_map
+
+```-->
+
+### Utilisation des transports en commun pour les déplacements domicile-travail
+
+À l’échelle de la ville de Laval, `r transit_usage` des Lavallois·e·s utilisent le transport en commun pour se rendre au travail. La proportion utilisée est celle des utilisateurs du transport en commun par rapport aux personnes qui ont un lieu de travail fixe habituel auquel elles se rendent quotidiennement, donc qui ne travaillent pas à la maison et qui ne travaillent pas sur la route.
+
+Les zones où la connectivité au réseau de transport en commun est plus élevée sont aussi celles où la proportion d'utilisateurs de ce mode de déplacement est plus importante, soulignant l'importance de l'accessibilité et de la fréquence des transports en commun pour encourager leur utilisation. Laval-des-Rapides, Pont-Viau et le long du boulevard des Laurentides dans le secteur Vimont, Auteuil se démarquent par leur meilleure connectivité et utilisation effectivement plus grande. Une exception notable à cette tendance est la région de Chomedey, où malgré une bonne connectivité, l'utilisation du transport en commun pour les déplacements domicile-travail est relativement plus faible.
+
+```{r transitUseMap, include=TRUE, fig.cap="Proportion des travailleurs se déplaçant au travail utilisant les transports en commun pour se rendre au travail", fig.align = 'center'}
+
+transit_use_map
+
+```
+
+```{r bike}
+
+qs::qload(here::here("data/axe3/bike.qsm"))
+
+```
 ### Réseau cyclable
 
-### Système de vélos en libre-service et service d'autoapartage
+En été 2024, la ville de Laval avait près de 270 kilomètres de pistes cyclables. Concentrées principalement dans les quartiers plus peuplés tels que Chomedey, Laval-des-Rapides, Pont-Viau et Sainte-Rose, les infrastructures cyclables contribuent à promouvoir le transport actif et durable, avec `r bixi_stations_number` stations Bixi supplémentaires pour soutenir cet objectif.
 
-#### Bixi
+La carte suivante montre non seulement les infrastructures cyclables, mais aussi le confort et la sécurité des pistes cyclables^[Ville de Laval. (2022). Pistes cyclables et piétonnières. Récupéré de https://www.donneesquebec.ca/recherche/dataset/pistes-cyclables-et-pietonnieres]. Pour ce faire, nous utilisons le Système de classification du confort et de la sécurité des voies cyclables canadiennes (ou Can-BICS)^[Winters et al. (2020). Système de classification du confort et de la sécurité des voies
+cyclables canadiennes (Can-BICS) : convention d’appellation commune des aménagements cyclables. Récupéré de https://doi.org/10.24095/hpcdp.40.9.04f]. Ce système classifie les aménagements cyclables pour définir le degré de sécurité et de confort pour les usagers. Les voies cyclables les plus confortables et les moins stressantes sont principalement les pistes cyclables sur la chaussée longeant les rues principales, celles sur les rues secondaires, et les pistes en site propre. Les moins confortables et les plus stressantes sont principalement les bandes cyclables peintes au sol sur des routes achalandées.
 
-#### Communauto
+La carte révèle une nette différence entre les zones les plus densément peuplées et celles qui le sont moins. Le centre-sud de l’île présente des niveaux de confort et de sécurité plus élevés grâce à une densité d’infrastructures cyclables de qualité. Cette zone bénéficie d’ailleurs d’une meilleure accessibilité aux stations Bixi. En revanche, les zones en périphéries affichent des niveaux plus bas, potentiellement en raison d’une densité de la population plus faible.
 
-### Bornes de recharge pour véhicules électriques
+```{r bikeMap, include=TRUE, fig.cap="Can-BICS, pistes cyclables et stations Bixi", fig.align = 'center'}
 
-## Les ressources de soutien et la concertation de quartier
+bike_map
+
+```

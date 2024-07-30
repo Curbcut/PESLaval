@@ -62,7 +62,10 @@ places_garderie <- sum(daycares$PLACE_TOTAL)
 # Number of children in age of kindergarden (projections ISQ)
 inage <- 17650
 
-places_garderie/inage
+kinder_children <- convert_number(inage)
+
+kinder_ratio <- round(places_garderie / inage, 2)
+kinder_ratio <- gsub("\\.", ",", as.character(kinder_ratio))
 
 
 # Rework a travel time matrix which is really from X daycare to Y  --------
@@ -355,4 +358,11 @@ ggplot(DAs) +
                                          nrow = 1,
                                          override.aes = list(size = 5, stroke = 0.5))) +
   gg_cc_theme
+
+# R Markdown --------------------------------------------------------------
+#ggplot2::ggsave(filename = here::here("output/axe3/mobility/bike_map.png"), 
+                #plot = bike_map, width = 8, height = 6)
+
+qs::qsavem(kinder_children, kinder_ratio,
+           file = "data/axe3/daycare.qsm")
 
