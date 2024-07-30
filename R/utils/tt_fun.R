@@ -21,8 +21,8 @@ ttm <- function(mode = "foot", under_x_minutes = 15) {
                             sprintf("SELECT * FROM ttm_%s_DB WHERE `from` IN (%s) AND travel_seconds < %s", 
                                     mode, ids, travel_seconds))
   # Add self
-  self <- tibble::tibble(from = tt$from,
-                         to = tt$from,
+  self <- tibble::tibble(from = matrix$from,
+                         to = matrix$from,
                          travel_seconds = 0)
   matrix <- rbind(matrix, self)
   
