@@ -355,7 +355,7 @@ five_min_bus_trip_prop <- convert_pct(sum(stop_times$Population[stop_times$vehic
 # pois2 <- cc.data::bucket_read_object_zip_shp(object = "poi/poi_2022_2.zip", bucket = "curbcut.amenities")
 # pois <- rbind(pois, pois2)
 # qs::qsave(pois, file = "data/axe3/pois.qs")
-pois <- qs::qload("data/axe3/pois.qs")
+pois <- qs::qread("data/axe3/pois.qs")
 
 
 # Travel time matrix in transit
