@@ -12,8 +12,10 @@ read_method <- function(file) {
   suppressWarnings(utils::read.csv(paste0(tempdir(), "\\", 
                                           csv_file)))
 }
-cultural <- tibble::as_tibble(cc.data::bucket_read_object(object = "open_db_cultural_facilities.zip", 
-                                                          bucket = "curbcut.amenities", objectext = ".zip", method = read_method))
+# cultural <- tibble::as_tibble(cc.data::bucket_read_object(object = "open_db_cultural_facilities.zip", 
+#                                                           bucket = "curbcut.amenities", objectext = ".zip", method = read_method))
+# qs::qsave(cultural, file = "data/axe3/cultural_data.qs")
+cultural <- qs::qload("data/axe3/cultural_data.qs")
 cultural$Longitude <- suppressWarnings(as.numeric(cultural$Longitude))
 cultural <- cultural[!is.na(cultural$Longitude), ]
 cultural$Latitude <- suppressWarnings(as.numeric(cultural$Latitude))
