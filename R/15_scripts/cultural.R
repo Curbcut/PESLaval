@@ -134,7 +134,7 @@ t <- Reduce(rbind,
 ) |> sf::st_as_sf()
 names(t)[1] <- "binned_variable"
 
-t |> 
+cultural_map <- t |> 
   ggplot() +
   gg_cc_tiles +
   geom_sf(aes(fill = binned_variable), color = "transparent") +
@@ -199,8 +199,8 @@ cultural_demo <-
 
 cultural_demo$lowincome <- convert_hundreds(x = cultural_demo$lowincome)
 cultural_demo$immigrant <- convert_hundreds(x = cultural_demo$immigrant)
-cultural_demo$lowincome_pct <- curbcut:::convert_unit.pct(x = cultural_demo$lowincome_pct, decimal = 0)
-cultural_demo$immigrant_pct <- curbcut:::convert_unit.pct(x = cultural_demo$immigrant_pct, decimal = 0)
+cultural_demo$lowincome_pct <- curbcut:::convert_unit.pct(x = cultural_demo$lowincome_pct)
+cultural_demo$immigrant_pct <- curbcut:::convert_unit.pct(x = cultural_demo$immigrant_pct)
 
 names(cultural_demo) <- c("Installations culturelles (n)", "Faible revenu (n)", 
                       "Immigrants (n)", "Faible revenu (%)", 
@@ -209,13 +209,17 @@ cultural_demo <- cultural_demo[c(1,2,4,3,5)]
 
 # Add general population
 cultural_demo$`Population (n)` <- curbcut::convert_unit(x = cultural_pop$pop)
-cultural_demo$`Population (%)` <- curbcut:::convert_unit.pct(x = cultural_pop$pop / sum(cultural_pop$pop), decimal = 0)
+cultural_demo$`Population (%)` <- curbcut:::convert_unit.pct(x = cultural_pop$pop / sum(cultural_pop$pop))
 
 # Format for the table
 cultural_demo$`Immigrants (%)` <- gsub("%", "", cultural_demo$`Immigrants (%)`) |> as.numeric()
 cultural_demo$`Faible revenu (%)` <- gsub("%", "", cultural_demo$`Faible revenu (%)`) |> as.numeric()
 cultural_demo$`Population (%)` <- gsub("%", "", cultural_demo$`Population (%)`) |> as.numeric()
-cultural_demo |> 
+
+modified_columns <- c("Faible revenu (n)", "Immigrants (n)", "Population (n)")
+cultural_demo <- cultural_demo |> mutate(across(all_of(modified_columns), ~ gsub(",", " ", .)))
+
+cultural_table <- cultural_demo |> 
   gt() |> 
   data_color(
     columns = ends_with("%)"),
@@ -224,9 +228,32 @@ cultural_demo |>
       domain = NULL
     )
   ) |> 
-  fmt_number(
+  fmt(
     columns = ends_with("%)"),
-    suffixing = TRUE,
-    pattern = "{x}%",
-    decimals = 0,
+    fns = function(x) {
+      formatted <- sprintf("%.1f %%", x)
+      gsub("\\.", ",", formatted)
+    }
   )
+
+# R Markdown --------------------------------------------------------------
+cultural_no_access <- cultural_demo |> 
+  filter(`Installations culturelles (n)` == 0) |> 
+  mutate(`Population (%)` = convert_pct(`Population (%)` / 100)) |> 
+  pull(`Population (%)`)
+cultural_no_access_low <- cultural_demo |> 
+  filter(`Installations culturelles (n)` == 0) |> 
+  mutate(`Faible revenu (%)` = convert_pct(`Faible revenu (%)` / 100)) |> 
+  pull(`Faible revenu (%)`)
+cultural_high_access <- cultural_demo |> 
+  filter(`Installations culturelles (n)` == "3+") |> 
+  mutate(`Population (%)` = convert_pct(`Population (%)` / 100)) |> 
+  pull(`Population (%)`)
+cultural_high_access_low <- cultural_demo |> 
+  filter(`Installations culturelles (n)` == "3+") |> 
+  mutate(`Faible revenu (%)` = convert_pct(`Faible revenu (%)` / 100)) |> 
+  pull(`Faible revenu (%)`)
+
+qs::qsavem(cultural_map, cultural_table, cultural_no_access, cultural_no_access_low,
+           cultural_high_access, cultural_high_access_low,
+           file = "data/axe3/culture.qsm")

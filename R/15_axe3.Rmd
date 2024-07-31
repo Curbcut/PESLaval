@@ -35,9 +35,9 @@ qs::qload(here::here("data/axe3/daycare.qsm"))
 ```
 ### Accès aux places en garderie
 
-Dans le contexte des places en garderie, en juillet 2024, il y avait 209 garderies dans la Ville de Laval, pour un total de 13 314 places en garderie. Durant la même année (2024), il y avait `r kinder_children` enfants en âge de fréquenter la garderie (2 à 5 ans)^[Institut de la statistique du Québec. (2022). Projections de population - Régions administratives et régions métropolitaines (RMR). Récupéré de https://statistique.quebec.ca/fr/document/projections-de-population-regions-administratives-et-regions-metropolitaines-rmr]. Il y avait donc `r kinder_ratio` places en garderie par enfant.
+Dans le contexte des places en garderie, en juillet 2024, il y avait `r daycare_total` garderies dans la Ville de Laval, pour un total de `r daycare_spots` places en garderie. Durant la même année (2024), il y avait `r kinder_children` enfants en âge de fréquenter la garderie (2 à 5 ans)^[Institut de la statistique du Québec. (2022). Projections de population - Régions administratives et régions métropolitaines (RMR). Récupéré de https://statistique.quebec.ca/fr/document/projections-de-population-regions-administratives-et-regions-metropolitaines-rmr]. Il y avait donc `r kinder_ratio` places en garderie par enfant.
 
-Sans tenir compte de la disponibilité des places, le nombre d’enfants qui ne peuvent accéder à une garderie en 15 minutes à pied est de 1 780, ce qui représente environ un enfant sur 10.
+Sans tenir compte de la disponibilité des places, le nombre d’enfants qui ne peuvent accéder à une garderie en 15 minutes à pied est de `r zero_access`, ce qui représente environ un enfant sur 10.
 
 Pour les places en garderie accessibles, nous devons tenir compte de la dynamique entre la capacité (le nombre de places) et la demande (le nombre d’enfants en âge de fréquenter la garderie) dans chaque quartier. En effet, les places en garderie sont mutuellement exclusives : si un enfant occupe une place, celle-ci n’est pas disponible pour un autre enfant. Ainsi, avoir accès à un grand nombre de places en garderie n'est utile que si le nombre d'enfants pouvant être servis par ces places est inférieur ou égal au nombre de places accessibles.
 
@@ -47,21 +47,21 @@ Notre méthode consiste donc à identifier le nombre de places en garderie dans 
 
 La figure ci-dessous représente donc cette mesure d’accessibilité en tenant compte de la concurrence pour les places en garderie. Il existe certaines pochettes claires sur le territoire où l'accès, compte tenu de la concurrence, est beaucoup plus élevé qu'ailleurs. C’est le cas dans le centre-Sud de l’île, dans le Sud de Vimont, ainsi que pour deux autres pochettes à Sainte-Dorothé et à Laval-Ouest. 
 
-Ce sont 5 000 enfants qui n’ont soit aucun accès, soit un faible accès aux places en garderie, considérant la compétitivité pour ces places dans leur zone. Au contraire, ce sont 3 600 enfants, soit un enfant sur 5, qui ont relativement un très bon accès.
+Ce sont `r poor_no_access` enfants qui n’ont soit aucun accès, soit un faible accès aux places en garderie, considérant la compétitivité pour ces places dans leur zone. Au contraire, ce sont `r good_access` enfants, soit un enfant sur 5, qui ont relativement un très bon accès.
 
-<!--```{r daycareGraph, include=TRUE, fig.cap="Accessibilité des places en garderie à Laval", fig.align = 'center'}
+```{r daycareMap, include=TRUE, fig.cap="Accessibilité des places en garderie à Laval", fig.align = 'center'}
 
-daycare_graph
+daycare_map
 
-```--> 
+```
 
 La prochaine carte donne davantage de contexte en présentant la densité du nombre d’enfants par kilomètre carré. En général, on remarque que les zones ayant une densité d’enfants faible sont aussi les zones où il n’y a aucun ou un très faible accès aux garderies à 15 minutes à pied. Ceci-dit, il n’existe pas de corrélation entre les deux mesures. En d’autres mots, à Laval, ce n’est pas parce qu’une zone a une densité d’enfant plus élevée qu’elle a nécessairement une accessibilité plus grande aux places en garderie.
 
-<!--```{r childGraph, include=TRUE, fig.cap="Densité de population des enfants à Laval", fig.align = 'center'}
+```{r childMap, include=TRUE, fig.cap="Densité de population des enfants à Laval", fig.align = 'center'}
 
-child_graph
+child_map
 
-```--> 
+```
 
 ```{r schools}
 
@@ -93,26 +93,31 @@ school_table
 
 ```
 
+```{r healthcare}
+
+qs::qload(here::here("data/axe3/healthcare.qsm"))
+
+```
 ### Accès aux installations du réseau de la santé et des services sociaux
 Typiquement, un individu nécessite généralement d’un accès régulier et facile à un établissement de services de soins de santé primaires et généraux. Nous nous concentrons donc sur les centres hospitaliers de soins généraux et spécialisés (CHSGS) et les centres locaux de services communautaires (CLSC) puisqu’ils offrent une couverture relativement complète en termes de services, les rendant indispensables à la population générale. De plus, ces centres constituent fréquemment le premier point de contact pour les habitants à la recherche de services de santé. 
 
 Par conséquent, notre approche implique une méthode différente pour évaluer cette accessibilité. Nous évaluons plutôt en termes de temps nécessaire pour accéder à l’un de ces deux types d’établissements de soins de santé: centre hospitalier de soins généraux et spécialisés (CHSGS) et centre local de services communautaires (CLSC)^[Ministère de la Santé et des services sociaux. (2024). Fichiers cartographiques M02 des installations et établissements. Récupéré de https://www.donneesquebec.ca/recherche/dataset/fichiers-cartographiques-m02-des-installations-et-etablissements]. 
 
-Comme les résidents ont généralement besoin d’avoir accès à un seul établissement de soins de santé généraux, la carte ci-dessous présente le temps nécessaire pour atteindre le centre le plus proche. Le temps de marche nécessaire pour en atteindre un est plus petit dans les pochettes les plus densément peuplées. Toutefois, Sainte-Dorothée se démarque par son manque d’accès. Selon les données de population du recensement de 2021, ce sont 68.700 (16%) lavallois·e·s qui ont accès à l’un de ces centres en moins de 15 minutes, et la moitié de la population lavalloise (211 500 ou 48%) qui peuvent y accéder en moins de 30 minutes de marches. En revanche, 56 500  personnes n’ont pas d’accès réaliste à la marche et doivent marcher plus d'une heure pour accéder à ces services.
+Comme les résidents ont généralement besoin d’avoir accès à un seul établissement de soins de santé généraux, la carte ci-dessous présente le temps nécessaire pour atteindre le centre le plus proche. Le temps de marche nécessaire pour en atteindre un est plus petit dans les pochettes les plus densément peuplées. Toutefois, Sainte-Dorothée se démarque par son manque d’accès. Selon les données de population du recensement de 2021, ce sont `r less_15` (`r less_15_prop`) lavallois·e·s qui ont accès à l’un de ces centres en moins de 15 minutes, et la moitié de la population lavalloise (`r less_30` ou `r less_30_prop`) qui peuvent y accéder en moins de 30 minutes de marches. En revanche, `r more_60` personnes n’ont pas d’accès réaliste à la marche et doivent marcher plus d'une heure pour accéder à ces services.
 
-<!--```{r healthcareGraph, include=TRUE, fig.cap="Accès aux services de santé et aux services sociaux", fig.align = 'center'}
+```{r healthcareMap, include=TRUE, fig.cap="Accès aux services de santé et aux services sociaux", fig.align = 'center'}
 
-healthcare_graph
+healthcare_map
 
-```--> 
+``` 
 
-Qu’en est-il des populations plus vulnérables nécessitant un meilleur accès à ces services? Toujours selon le recensement de 2021, 11 000 enfants âgés de 0 à 14 ans (15 %) pouvaient marcher moins de 15 minutes pour se rendre à ces établissements, et 34 500 (46 %) en moins de 30 minutes. 10 900 (15 %) n'ont virtuellement aucun accès à pied à ces établissements. Ces mêmes chiffres, ainsi que ceux concernant la population plus âgée (65+), sont détaillés dans le tableau suivant. Tandis que les enfants ont généralement un moins bon accès à ces établissements à la marche en comparaison à la population générale, la population des 65 ans et plus en a davantage. Ces services sont donc davantage localisés dans des zones accessibles par des démographies plus âgées. Le tableau indique aussi que la majorité des groupes ont accès à ces services dans un délai de 15 à 45 minutes de marche. 
+Qu’en est-il des populations plus vulnérables nécessitant un meilleur accès à ces services? Toujours selon le recensement de 2021, `r less_15_child` enfants âgés de 0 à 14 ans (`r less_15_child_prop`) pouvaient marcher moins de 15 minutes pour se rendre à ces établissements, et `r less_30_child` (`r less_30_child_prop`) en moins de 30 minutes. `r more_60_child` (`r more_60_child_prop`) n'ont virtuellement aucun accès à pied à ces établissements. Ces mêmes chiffres, ainsi que ceux concernant la population plus âgée (65+), sont détaillés dans le tableau suivant. Tandis que les enfants ont généralement un moins bon accès à ces établissements à la marche en comparaison à la population générale, la population des 65 ans et plus en a davantage. Ces services sont donc davantage localisés dans des zones accessibles par des démographies plus âgées. Le tableau indique aussi que la majorité des groupes ont accès à ces services dans un délai de 15 à 45 minutes de marche. 
 
-<!--```{r healthcareTable, include=TRUE, fig.cap="Accessibilité aux services de santé et sociaux en temps de marche", fig.align = 'center'}
+```{r healthcareTable, include=TRUE, fig.cap="Accessibilité aux services de santé et sociaux en temps de marche", fig.align = 'center'}
 
 healthcare_table
 
-```--> 
+``` 
 
 ```{r municipal}
 
@@ -139,65 +144,75 @@ municipal_table
 
 ### Accès aux parcs et espaces verts
 
-Pour évaluer l’accessibilité aux parcs, nous mesurons la quantité d’espace de parcs d'un minimum de 2 000m² accessibles à une distance de 15 minutes de marche. Dans la ville, 275 espaces verts remplissent cette définition. De ces espaces, 36 sont des berges et 225 sont soit des parcs ou des parc-écoles. Le reste sont l’un des suivants : halte, place publique, site avec équipement de parc et stade d’athlétisme.
+Pour évaluer l’accessibilité aux parcs, nous mesurons la quantité d’espace de parcs d'un minimum de 2 000m² accessibles à une distance de 15 minutes de marche. Dans la ville, `r parks_total` espaces verts remplissent cette définition. De ces espaces, `r only_berge` sont des berges et `r only_parks` sont soit des parcs ou des parc-écoles. Le reste sont l’un des suivants : halte, place publique, site avec équipement de parc et stade d’athlétisme.
 
-<!--```{r parkMap, include=TRUE, fig.cap="Accessibilité aux parcs", fig.align = 'center'}
+```{r parkMap, include=TRUE, fig.cap="Accessibilité aux parcs", fig.align = 'center'}
 
-park_map
+parks_map
 
-```--> 
+```
 
 Comme les résidents de ménages à faible revenu peuvent davantage avoir moins accès à des activités de récréations privées, les parcs publics leur sont particulièrement utiles pour l'exercice, la relaxation, ou l’engagement communautaire. En outre, les parcs offrent aux enfants des environnements sûrs où ils peuvent jouer et pratiquer des activités physiques diverses. L’accès à ces installations est donc essentiel pour les familles avec enfants afin de promouvoir un développement sain et d’offrir des possibilités d’interaction sociale.
 
-En intégrant les données du dernier recensement (2021), nos résultats confirment que c’est la grande majorité (71 %) de la population lavalloise qui a accès à au moins 4 parcs de plus de 2 000m². Tandis que l’accessibilité aux parcs pour les familles avec enfants ressemble à celle de la population générale, les ménages à faible revenu ont quant à eux davantage d’accès. Effectivement, 3 ménages à faible revenu sur 4 ont accès à au moins 4 de ces parcs. La mesure de faible revenu choisie pour cette analyse est la mesure de faible revenu après impôt (MFR-ApI).
+En intégrant les données du dernier recensement (2021), nos résultats confirment que c’est la grande majorité (`r park_access`) de la population lavalloise qui a accès à au moins 3 parcs de plus de 2 000m². Tandis que l’accessibilité aux parcs pour les familles avec enfants ressemble à celle de la population générale, les ménages à faible revenu ont quant à eux davantage d’accès. Effectivement, 3 ménages à faible revenu sur 4 ont accès à au moins 3 de ces parcs. La mesure de faible revenu choisie pour cette analyse est la mesure de faible revenu après impôt (MFR-ApI).
 
-<!--```{r parkTable, include=TRUE, fig.cap="Accessibilité aux parcs selon la démographie", fig.align = 'center'}
+```{r parkTable, include=TRUE, fig.cap="Accessibilité aux parcs selon la démographie", fig.align = 'center'}
 
-park_table
+parks_table
 
-```--> 
+```
 
+```{r grocery}
+
+qs::qload(here::here("data/axe3/grocery.qsm"))
+
+```
 ### Accès aux commerces d’alimentation
 
 En ce qui concerne l’accessibilité aux commerces d’alimentation, nous utilisons les données ouvertes de localisation des supermarchés provenant d'OpenStreetMap, qui fournit des informations complètes et actualisées de ces emplacements. Ces magasins sont classifiés comme offrant un service complet d’épicerie, y compris la viande et les produits frais. Ces supermarchés sont préférés aux autres types de magasins d’alimentation puisqu’ils offrent généralement une grande variété d’options alimentaires, y compris des produits frais, des produits laitiers, etc. En outre, les supermarchés proposent souvent des produits alimentaires à des prix inférieurs à ceux des petites épiceries ou des magasins de proximité, ce qui en fait une option plus abordable pour de nombreux habitants, en particulier pour les ménages à faibles revenus. 
 
 Pour évaluer l’accessibilité aux supermarchés, nous la mesurons selon deux aspects : le temps de transport à la marche nécessaire pour atteindre le supermarché le plus proche, et la variété des supermarchés accessibles à moins de 15 minutes de marche, donnant une idée de la variété et du choix offerts aux résidents. Cette technique de double carte permet d’identifier les zones qui peuvent être bien desservies par un supermarché proche mais qui manque de variété, ou vice versa.
 
-<!--```{r foodMap, include=TRUE, fig.cap="Temps de marche jusqu'à l'épicerie la plus proche (à gauche) et nombre d'épiceries accessibles en 15 minutes (à droite)", fig.align = 'center'}
+```{r foodMap, include=TRUE, fig.cap="Temps de marche jusqu'à l'épicerie la plus proche (à gauche) et nombre d'épiceries accessibles en 15 minutes (à droite)", fig.align = 'center'}
 
-food_map
+grocery_maps
 
-```--> 
+```
 
-Les résidents des ménages à faible revenu peuvent avoir un accès plus limité aux transports privés et peuvent donc compter davantage sur la marche à pied pour se rendre aux supermarchés. Les personnes âgées, en particulier celles qui ne conduisent plus, peuvent aussi être confrontées à d’importantes difficultés d’accès aux supermarchés s’ils ne sont pas accessibles dans une distance de marche raisonnable. Tant les ménages à faible revenu (mesure de faible revenu après taxes (MFR-ApI)) que les personnes âgées (65 ans et plus) tendent à vivre dans des zones avec un meilleur accès aux supermarchés. Ce sont 77 % des ménages à faible revenu qui y ont accès en moins de 20 minutes, 74 % des personnes de plus de 65 ans, et 69 % pour la population générale. 
+Les résidents des ménages à faible revenu peuvent avoir un accès plus limité aux transports privés et peuvent donc compter davantage sur la marche à pied pour se rendre aux supermarchés. Les personnes âgées, en particulier celles qui ne conduisent plus, peuvent aussi être confrontées à d’importantes difficultés d’accès aux supermarchés s’ils ne sont pas accessibles dans une distance de marche raisonnable. Tant les ménages à faible revenu (mesure de faible revenu après taxes (MFR-ApI)) que les personnes âgées (65 ans et plus) tendent à vivre dans des zones avec un meilleur accès aux supermarchés. Ce sont `r low_income_20` des ménages à faible revenu qui y ont accès en moins de 20 minutes, `r age_65_20` des personnes de plus de 65 ans, et `r population_20` pour la population générale. 
 
-<!--```{r foodTable, include=TRUE, fig.cap="Accessibilité aux épiceries selon la démographie", fig.align = 'center'}
+```{r foodTable, include=TRUE, fig.cap="Accessibilité aux épiceries selon la démographie", fig.align = 'center'}
 
-food_table
+grocery_table
 
-```--> 
+``` 
 
+```{r culture}
+
+qs::qload(here::here("data/axe3/culture.qsm"))
+
+```
 ### Accès aux installations culturelles et artistiques
 
 Les installations culturelles et artistiques permettent aux habitants de participer à diverses activités culturelles, artistiques et éducatives, favorisant une communauté dynamique et ouverte. La variété de ces installations accessibles à courte distance est étudiée, puisqu’un accès à un éventail diversifié de ces installations offre aux résidents des possibilités de divertissement, d’apprentissage et d’interaction sociale, enrichissant leur vie quotidienne et favorisant un sentiment d’appartenance à la communauté.
 
 Nous utilisons les données de la Base de données ouvertes sur les installations culturelles et artistiques (BDOICA) de Statistique Canada, qui inclut les sources des gouvernements provinciaux, les autorités municipales ainsi que les associations professionnelles^[Statistique Canada. (2020). La Base de données ouvertes sur les installations culturelles et artistiques. Récupéré de https://www.statcan.gc.ca/fr/ecdo/bases-donnees/bdoica]. Bien que ces données ne prétendent pas à une couverture parfaite et exhaustive, elles représentent une option de départ valable pour qualifier l'accessibilité. À Laval, 28 installations sont représentées dans ce jeu de données. Nous avons ajouté les 3 installations manquantes listées par Signé Laval (Studio Synapses, [co]motion agitateur de culture et House of Jazz Laval)^[Signé Laval. (2024). Répertoire culturel. Récupéré de https://signelaval.com/fr/repertoire-culturel/lieu-de-diffusion]. De plus, des 66 installations municipales ou autres listées dans le Diagnostic culturel de la région de Laval de 2017, nous avons réussi à en géocoder et donc à en ajouter 56^[Conseil régional de la culture de Laval. (2017). Diagnostic culturel de la région de Laval. Récupéré de https://www.repensonslaval.ca/vieculturelle/news_feed/diagnostic-culturel]. Les autres installations peuvent avoir été fermées depuis. Après suppression des doublons potentiels dû à l’incorporation de sources diverses, nous avons recensé 65 installations dans la ville de Laval.
 
-<!--```{r cultureNap, include=TRUE, fig.cap="Accessibilité aux installations culturelles", fig.align = 'center'}
+```{r cultureMap, include=TRUE, fig.cap="Accessibilité aux installations culturelles", fig.align = 'center'}
 
-culture_map
+cultural_map
 
-```--> 
+```
 
 Il y existe trois pochettes où les résidents peuvent accéder à davantage d’installations culturelles et artistiques, se trouvant dans Sainte-Rose (Nord-Est), où l’on y retrouve notamment le Centre d'interprétation de l’eau ainsi que la Bibliothèque Sylvain-Garneau, ainsi qu’à Laval-des-Rapides (Centre-Sud) où l’on y retrouve la Place Bell, la Maison des Arts de Laval et la Bibliothèque Émile-Nelligan. Une autre pochette, bien que plus petite, se trouve au Centre de la nature à Duvernay.
 
-Ce sont 54 % des lavallois·e·s qui n’ont accès à aucune de ces installations. Chez la démographie à faible revenu, ce pourcentage diminue à 41 %. Comme cette démographie a souvent un accès plus limité aux ressources culturelles et récréatives privées, ces installations, majoritairement publiques, deviennent des ressources essentielles pour ces familles. Ce sont aussi les ménages à faible revenu qui représentent une plus grande proportion des groupes qui peuvent accéder à 3 installations ou plus (15 %, contre 11 % pour la population générale).
+Ce sont `r cultural_no_access` des lavallois·e·s qui n’ont accès à aucune de ces installations. Chez la démographie à faible revenu, ce pourcentage diminue à `r cultural_no_access_low`. Comme cette démographie a souvent un accès plus limité aux ressources culturelles et récréatives privées, ces installations, majoritairement publiques, deviennent des ressources essentielles pour ces familles. Ce sont aussi les ménages à faible revenu qui représentent une plus grande proportion des groupes qui peuvent accéder à 3 installations ou plus (`r cultural_high_access_low`, contre `r cultural_high_access` pour la population générale).
 
-<!--```{r cultureTable, include=TRUE, fig.cap="Accès aux installations culturelles et facteurs démographiques", fig.align = 'center'}
+```{r cultureTable, include=TRUE, fig.cap="Accès aux installations culturelles et facteurs démographiques", fig.align = 'center'}
 
-culture_table
+cultural_table
 
-```--> 
+```
 
 ```{r transport}
 
@@ -248,15 +263,15 @@ Comme à la section précédente, ce sont encore `r no_bus_trips` Lavallois·e·
 
 ### Accessibilité aux lieux d’intérêt en transport en commun
 
-En plus de l'accès aux lignes d'autobus et de la fréquence des passages, il est également essentiel d'évaluer combien de lieux d’intérêt sont accessibles en transport en commun depuis chaque zone. Les lieux d’intérêt, dans le cadre de cette analyse, incluent des lieux tels que les épiceries, les pharmacies, les écoles, les parcs, mais aussi tout autre service qui enrichit la vie quotidienne des résidents comme les points d'intérêt commerciaux et récréatifs. Pour cette analyse, nous utilisons l'ensemble de données DMTI, sous licence académique, qui englobe tous ces lieux d’intérêt disponibles. Il y a 15 881 de ces lieux à Laval, dans ce jeu de données. Nous incluons aussi les points d’intérêt à l’extérieur de Laval, tant et autant qu’ils soient accessibles en transport en commun à partir de Laval, par exemple en employant la ligne orange du métro de la STM. C’est un ensemble de 183 936 lieux d’intérêt dans la Communauté Métropolitaine de Montréal.
+En plus de l'accès aux lignes d'autobus et de la fréquence des passages, il est également essentiel d'évaluer combien de lieux d’intérêt sont accessibles en transport en commun depuis chaque zone. Les lieux d’intérêt, dans le cadre de cette analyse, incluent des lieux tels que les épiceries, les pharmacies, les écoles, les parcs, mais aussi tout autre service qui enrichit la vie quotidienne des résidents comme les points d'intérêt commerciaux et récréatifs. Pour cette analyse, nous utilisons l'ensemble de données DMTI, sous licence académique, qui englobe tous ces lieux d’intérêt disponibles. Il y a `r poi_laval` de ces lieux à Laval, dans ce jeu de données. Nous incluons aussi les points d’intérêt à l’extérieur de Laval, tant et autant qu’ils soient accessibles en transport en commun à partir de Laval, par exemple en employant la ligne orange du métro de la STM. C’est un ensemble de `r poi_total` lieux d’intérêt dans la Communauté Métropolitaine de Montréal.
 
 La carte ci-dessous représente donc, pour chaque zone, le nombre de lieux d’intérêts accessibles en 20 minutes en transport en commun aux heures de pointe du matin en semaine, entre 7 à 9 heures. Tandis que les deux pointes de l'île sont connectées à moins de lieux d’intérêts, il y a un dégradé entre le Nord et le Sud de l’île: la proximité aux lieux d’intérêts se trouvant sur l’île de Montréal explique cette tendance. Ce sont donc les habitants de Chomedey et de Laval-des-Rapides, Pont-Viau, plus précisément au Sud près de l’autoroute des Laurentides (15) qui ont accès à une plus grande variété de points d’intérêts ou de services en 20 minutes de transport en commun.
 
-<!--```{r poiMap, include=TRUE, fig.cap="Nombre de lieux d’intérêts accessibles en 20 minutes en transport en commun aux heures de pointe du matin en semaine, entre 7 à 9 heures", fig.align = 'center'}
+```{r poiMap, include=TRUE, fig.cap="Nombre de lieux d’intérêts accessibles en 20 minutes en transport en commun aux heures de pointe du matin en semaine, entre 7 à 9 heures", fig.align = 'center'}
 
 poi_map
 
-```-->
+```
 
 ### Utilisation des transports en commun pour les déplacements domicile-travail
 

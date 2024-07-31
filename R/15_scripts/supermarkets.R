@@ -246,8 +246,16 @@ supermarkets_demo$`Population (%)` <- curbcut:::convert_unit.pct(x = supermarket
 supermarkets_demo$`65 ans et plus (%)` <- gsub("%", "", supermarkets_demo$`65 ans et plus (%)`) |> as.numeric()
 supermarkets_demo$`Faible revenu (%)` <- gsub("%", "", supermarkets_demo$`Faible revenu (%)`) |> as.numeric()
 supermarkets_demo$`Population (%)` <- gsub("%", "", supermarkets_demo$`Population (%)`) |> as.numeric()
-supermarkets_demo |> 
+
+modified_columns <- c("Faible revenu (n)", "65 ans et plus (n)", "Population (n)")
+supermarkets_demo <- supermarkets_demo |> mutate(across(all_of(modified_columns), ~ gsub(",", " ", .)))
+
+grocery_table <- supermarkets_demo |> 
   gt() |> 
+  tab_options(
+    table.font.names = "KMR Apparat Regular",
+    table.font.size = px(14)
+  ) |>
   data_color(
     columns = ends_with("%)"),
     colors = scales::col_numeric(
@@ -255,11 +263,12 @@ supermarkets_demo |>
       domain = NULL
     )
   ) |> 
-  fmt_number(
+  fmt(
     columns = ends_with("%)"),
-    suffixing = TRUE,
-    pattern = "{x}%",
-    decimals = 0,
+    fns = function(x) {
+      formatted <- sprintf("%.1f %%", x)
+      gsub("\\.", ",", formatted)
+    }
   )
 
 CTs <- cancensus::get_census("CA21", regions = list(CSD = 2465005), level = "CT",
@@ -269,3 +278,35 @@ CTs <- sf::st_centroid(CTs)
 CTs$ID <- CTs$GeoUID
 
 cc.data::tt_calculate(centroids = CTs, max_dist = 5000)
+
+# R Markdown --------------------------------------------------------------
+grocery_maps <- combined_plot
+grocery_data <- merge(DB_lowincome, 
+                      sf::st_drop_geometry(access_supermarkets),
+                      by.x = "GeoUID", by.y = "from") |> 
+  sf::st_drop_geometry() |> 
+  group_by(binned_variable) |> 
+  summarize(lowincome = sum(lowincome, na.rm = TRUE),
+            elderly = sum(elderly, na.rm = TRUE)) |> 
+  mutate(lowincome_pct = lowincome / sum(lowincome), 
+         elderly_pct = elderly / sum(elderly))
+
+low_income_20 <- grocery_data |> 
+  filter(binned_variable == "0-10" | binned_variable == "10-20") |> 
+  summarise(lowincome_pct = sum(lowincome_pct)) |> 
+  mutate(lowincome_pct = convert_pct(lowincome_pct)) |> 
+  pull(lowincome_pct)
+age_65_20 <- grocery_data |> 
+  filter(binned_variable == "0-10" | binned_variable == "10-20") |> 
+  summarise(elderly_pct = sum(elderly_pct)) |> 
+  mutate(elderly_pct = convert_pct(elderly_pct)) |> 
+  pull(elderly_pct)
+population_20 <- grocery_data |> 
+  mutate(population_pct = supermarkets_pop$pop / sum(supermarkets_pop$pop)) |> 
+  filter(binned_variable == "0-10" | binned_variable == "10-20") |> 
+  summarise(population_pct = sum(population_pct)) |> 
+  mutate(population_pct = convert_pct(population_pct)) |> 
+  pull(population_pct)
+
+qs::qsavem(grocery_maps, grocery_table, low_income_20, age_65_20, population_20,
+           file = "data/axe3/grocery.qsm")

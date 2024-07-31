@@ -96,7 +96,7 @@ t <- Reduce(rbind,
 ) |> sf::st_as_sf()
 names(t)[1] <- "binned_variable"
 
-t |> 
+healthcare_map <- t |> 
   ggplot() +
   gg_cc_tiles +
   geom_sf(aes(fill = binned_variable), color = "transparent") +
@@ -202,8 +202,16 @@ sante_age$`Population (%)` <- curbcut:::convert_unit.pct(x = sante_pop$pop / sum
 sante_age$`0 à 14 ans (%)` <- gsub("%", "", sante_age$`0 à 14 ans (%)`) |> as.numeric()
 sante_age$`65 ans et plus (%)` <- gsub("%", "", sante_age$`65 ans et plus (%)`) |> as.numeric()
 sante_age$`Population (%)` <- gsub("%", "", sante_age$`Population (%)`) |> as.numeric()
-sante_age |> 
+
+sante_age_modified_columns <- c("0 à 14 ans (n)", "65 ans et plus (n)", "Population (n)")
+sante_age <- sante_age |> mutate(across(all_of(sante_age_modified_columns), ~ gsub(",", " ", .)))
+
+healthcare_table <- sante_age |> 
   gt() |> 
+  tab_options(
+    table.font.names = "KMR Apparat Regular",
+    table.font.size = px(14)
+  ) |> 
   data_color(
     columns = vars(`0 à 14 ans (%)`, `65 ans et plus (%)`, `Population (%)`),
     colors = scales::col_numeric(
@@ -211,12 +219,74 @@ sante_age |>
       domain = NULL
     )
   ) |> 
-  fmt_number(
-    columns = vars(`0 à 14 ans (%)`, `65 ans et plus (%)`, `Population (%)`),
-    suffixing = TRUE,
-    pattern = "{x}%",
-    decimals = 0,
+  fmt(
+    columns = ends_with("%)"),
+    fns = function(x) {
+      formatted <- sprintf("%.1f %%", x)
+      gsub("\\.", ",", formatted)
+    }
   )
 
 
+# R Markdown --------------------------------------------------------------
+sante_age_uncleaned <- merge(DB_children, 
+              sf::st_drop_geometry(access_sante),
+              by.x = "GeoUID", by.y = "from") |> 
+  sf::st_drop_geometry() |> 
+  group_by(binned_variable) |> 
+  summarize(children = sum(children, na.rm = TRUE),
+            elderly = sum(elderly, na.rm = TRUE)) |> 
+  mutate(children_pct = children / sum(children), 
+         elderly_pct = elderly / sum(elderly))
 
+laval_pop <- laval_csd |> 
+  pull(Population)
+
+less_15 <- convert_number(less15)
+less_15_prop <- convert_pct(less15 / laval_pop)
+less_30 <- sante_pop |> 
+  filter(binned_variable == "0-15" | binned_variable == "15-30") |> 
+  summarise(pop = sum(pop)) |> 
+  mutate(pop = convert_number(pop)) |> 
+  pull(pop)
+less_30_prop <- sante_pop |> 
+  filter(binned_variable == "0-15" | binned_variable == "15-30") |> 
+  summarise(pop = sum(pop)) |> 
+  mutate(pop = convert_pct(pop/ laval_pop)) |> 
+  pull(pop)
+more_60 <- sante_pop |> 
+  filter(binned_variable == "60+") |> 
+  summarise(pop = sum(pop)) |> 
+  mutate(pop = convert_number(pop)) |> 
+  pull(pop)
+less_15_child <- sante_age_uncleaned |> 
+  filter(binned_variable == "0-15") |> 
+  mutate(children = convert_number(children)) |> 
+  pull(children)
+less_15_child_pct <- sante_age_uncleaned |> 
+  filter(binned_variable == "0-15") |> 
+  mutate(children_pct = convert_pct(children_pct)) |> 
+  pull(children_pct)
+less_30_child <- sante_age_uncleaned |> 
+  filter(binned_variable == "0-15" | binned_variable == "15-30") |> 
+  summarise(children = sum(children)) |> 
+  mutate(children = convert_number(children)) |> 
+  pull(children)
+less_30_child_pct <- sante_age_uncleaned |> 
+  filter(binned_variable == "0-15" | binned_variable == "15-30") |> 
+  summarise(children_pct = sum(children_pct)) |> 
+  mutate(children_pct = convert_pct(children_pct)) |> 
+  pull(children_pct)
+more_60_child <- sante_age_uncleaned |> 
+  filter(binned_variable == "60+") |> 
+  mutate(children = convert_number(children)) |> 
+  pull(children)
+more_60_child_pct <- sante_age_uncleaned |> 
+  filter(binned_variable == "60+") |> 
+  mutate(children_pct = convert_pct(children_pct)) |> 
+  pull(children_pct)
+
+qs::qsavem(healthcare_map, healthcare_table, less_15, less_15_prop, less_30,
+           less_30_prop, more_60, less_15_child, less_15_child_pct, less_30_child,
+           less_30_child_pct, more_60_child, more_60_child_pct,
+           file = "data/axe3/healthcare.qsm")

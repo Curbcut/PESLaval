@@ -414,7 +414,7 @@ t <- Reduce(rbind,
 ) |> sf::st_as_sf()
 names(t)[1] <- "binned_variable"
 
-t |> 
+poi_map <- t |> 
   ggplot() +
   gg_cc_tiles +
   geom_sf(aes(fill = binned_variable), color = "transparent") +
@@ -427,7 +427,20 @@ t |>
   theme(legend.spacing.x = unit(2, 'cm'),
         legend.spacing.y = unit(1, 'cm'))
 
+#R Markdown Numbers
+poi_total <- pois |> 
+  mutate(number = 1) |> 
+  summarise(number = sum(number)) |> 
+  mutate(number = convert_number(number)) |> 
+  pull(number)
 
+poi_laval <- pois |> 
+  mutate(intersect = map_lgl(st_intersects(pois, laval_csd), ~ length(.) > 0)) |>
+  filter(intersect == TRUE) |> 
+  mutate(number = 1) |> 
+  summarise(number = sum(number)) |> 
+  mutate(number = convert_number(number)) |> 
+  pull(number)
 
 # Transit usage -----------------------------------------------------------
 
@@ -834,5 +847,6 @@ ggplot2::ggsave(filename = here::here("output/axe3/mobility/transit_usage_map.pn
 qs::qsavem(bus_stops_map, bus_stops_laval, bus_stops_cleaned, no_bus_stops, one_two_bus_stops,
            bus_lines_map, no_bus_lines, one_two_bus_lines, one_two_bus_lines_prop,
            no_bus_trips, twenty_min_bus_trip, twenty_min_bus_trip_prop, five_min_bus_trip,
-           five_min_bus_trip_prop ,bus_trips_map, transit_usage_map, transit_usage,
+           five_min_bus_trip_prop ,bus_trips_map, transit_usage_map, transit_usage, poi_map,
+           poi_laval, poi_total,
            file = "data/axe3/transport.qsm")

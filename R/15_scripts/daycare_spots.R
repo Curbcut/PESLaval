@@ -307,7 +307,7 @@ place_colors <- c("0-20" = "#fee5e9", "21-40" = "#fbccce", "41-60" = "#f6b3af",
                   "80+" = curbcut_colors$brandbook$color[curbcut_colors$brandbook$theme == "redhousing"])
 
 # Plotting the sf map with custom bins
-ggplot(t) +
+daycare_map <- ggplot(t) +
   gg_cc_tiles +
   geom_sf(aes(fill = binned_variable), color = "transparent", lwd = 0) +
   scale_fill_manual(values = curbcut_colors$left_5$fill[2:6],
@@ -333,9 +333,6 @@ combien_pas_peu <- sum(DB_children$children[DB_children$GeoUID %in% low])
 high <- t$GeoUID[t$binned_variable %in% c("Bon accès")]
 combien_haut <- sum(DB_children$children[DB_children$GeoUID %in% high], na.rm = TRUE)
 
-
-
-
 # Plot the number of children ---------------------------------------------
 
 curbcut_green_scale <- c("#C7DFCC", "#9DC6A6", "#73AE80", "#517A5A", "#2E4633")
@@ -354,7 +351,7 @@ DAs$binned_variable <- cut(DAs$children_density,
 children_colors <- curbcut_green_scale
 names(children_colors) <- c("0-50", "50-100", "100-200", "200-400", "400+")
 
-ggplot(DAs) +
+child_map <- ggplot(DAs) +
   gg_cc_tiles +
   geom_sf(aes(fill = binned_variable), color = NA) +
   scale_fill_manual(values = children_colors, 
@@ -365,10 +362,22 @@ ggplot(DAs) +
                                          override.aes = list(size = 5, stroke = 0.5))) +
   gg_cc_theme
 
+
+# R Markdown Numbers ------------------------------------------------------
+
+daycare_spots <- convert_number(places_garderie)
+daycare_total <- daycares |> 
+  mutate(number = 1) |> 
+  summarise(number = sum(number)) |> 
+  pull(number)
+zero_access <- convert_number(children_cant_reach)
+poor_no_access <- convert_number(combien_pas_peu)
+good_access <- convert_number(combien_haut)
 # R Markdown --------------------------------------------------------------
 #ggplot2::ggsave(filename = here::here("output/axe3/mobility/bike_map.png"), 
                 #plot = bike_map, width = 8, height = 6)
 
-qs::qsavem(kinder_children, kinder_ratio,
+qs::qsavem(kinder_children, kinder_ratio, daycare_map, child_map, daycare_spots,
+           daycare_total, zero_access, poor_no_access, good_access,
            file = "data/axe3/daycare.qsm")
 

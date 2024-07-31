@@ -63,7 +63,7 @@ t <- Reduce(rbind,
 ) |> sf::st_as_sf()
 names(t)[1] <- "binned_variable"
 
-t |> 
+parks_map <- t |> 
   ggplot() +
   gg_cc_tiles +
   geom_sf(aes(fill = binned_variable), color = "transparent") +
@@ -141,25 +141,107 @@ park_demo$`Population (n)` <- curbcut::convert_unit(x = parks_pop$pop)
 park_demo$`Population (%)` <- curbcut:::convert_unit.pct(x = parks_pop$pop / sum(parks_pop$pop), decimal = 0)
 
 # Format for the table
-park_demo$`Familles avec enfant(s) (%)` <- gsub("%", "", park_demo$`Familles avec enfant(s) (%)`) |> as.numeric()
-park_demo$`Faible revenu (%)` <- gsub("%", "", park_demo$`Faible revenu (%)`) |> as.numeric()
-park_demo$`Population (%)` <- gsub("%", "", park_demo$`Population (%)`) |> as.numeric()
-park_demo |> 
+park_demo$`Familles avec enfant(s) (%)` <- gsub(" %", "", park_demo$`Familles avec enfant(s) (%)`) |> as.numeric()
+park_demo$`Faible revenu (%)` <- gsub(" %", "", park_demo$`Faible revenu (%)`) |> as.numeric()
+park_demo$`Population (%)` <- gsub(" %", "", park_demo$`Population (%)`) |> as.numeric()
+
+park_table_data <- merge(DB_lowincome, 
+                         sf::st_drop_geometry(parks_access),
+                         by = "GeoUID") |> 
+  sf::st_drop_geometry() |> 
+  group_by(binned_variable) |> 
+  summarize(lowincome = sum(lowincome, na.rm = TRUE),
+            withchildren = sum(withchildren, na.rm = TRUE)) |> 
+  mutate(lowincome_pct = round(lowincome / sum(lowincome) * 100, 1), 
+         withchildren_pct = round(withchildren / sum(withchildren) * 100, 1)) |> 
+  mutate(lowincome = convert_number(lowincome),
+         withchildren = convert_number(withchildren),
+         `Population (n)` = convert_number(parks_pop$pop),
+         `Population (%)` = round(parks_pop$pop / sum(parks_pop$pop) * 100, 1)) |> 
+  select(binned_variable, lowincome, lowincome_pct, withchildren, withchildren_pct, `Population (n)`, `Population (%)`) |> 
+  rename("Parcs accessibles (n)" = "binned_variable",
+         "Faible revenu (n)" = "lowincome",
+         "Faible revenu (%)" = "lowincome_pct",
+         "Familles avec enfant(s) (n)" = "withchildren",
+         "Familles avec enfant(s) (%)" = "withchildren_pct")
+
+percent_columns <- c("Faible revenu (%)", "Familles avec enfant(s) (%)", "Population (%)")
+
+park_table <- park_table_data |> 
   gt() |> 
+  tab_options(
+    table.font.names = "KMR Apparat Regular",
+    table.font.size = px(14)
+  ) |> 
   data_color(
-    columns = ends_with("%)"),
+    columns = all_of(percent_columns),
     colors = scales::col_numeric(
       palette = c("white", color_theme("purpletransport")),
       domain = NULL
     )
   ) |> 
-  fmt_number(
+  fmt(
     columns = ends_with("%)"),
-    suffixing = TRUE,
-    pattern = "{x}%",
-    decimals = 0,
+    fns = function(x) {
+      formatted <- sprintf("%.1f %%", x)
+      gsub("\\.", ",", formatted)
+    }
   )
 
+#Numbers for markdown
+laval_pop <- parks_pop |> 
+  summarise(pop = sum(pop)) |> 
+  pull(pop)
 
+laval_low_income_pop <- merge(DB_lowincome, 
+                              sf::st_drop_geometry(parks_access),
+                              by = "GeoUID") |> 
+  sf::st_drop_geometry() |> 
+  group_by(binned_variable) |> 
+  summarize(lowincome = round(sum(lowincome, na.rm = TRUE))) |> 
+  summarize(pop = sum(`lowincome`)) |> 
+  pull(pop)
 
+parks_total <- parks |> 
+  mutate(number = 1) |> 
+  summarise(number = sum(number, na.rm = TRUE)) |> 
+  pull(number)
 
+only_parks <- parks |> 
+  filter(TYPE == "Parc et Parc-école" | TYPE == "Parc") |> 
+  mutate(number = 1) |> 
+  summarise(number = sum(number, na.rm = TRUE)) |> 
+  pull(number)
+
+only_berge <- parks |> 
+  filter(TYPE == "Berge") |> 
+  mutate(number = 1) |> 
+  summarise(number = sum(number, na.rm = TRUE)) |> 
+  pull(number)
+
+park_access <- merge(DBs[c("GeoUID", "Population")], 
+              sf::st_drop_geometry(parks_access),
+              by = "GeoUID") |> 
+  filter(parks >= 3) |> 
+  summarise(Pop = sum(Population)) |> 
+  mutate(Pop = convert_pct(Pop / laval_pop)) |> 
+  pull(Pop)
+
+low_income_access <- merge(DB_lowincome, 
+                           sf::st_drop_geometry(parks_access),
+                           by = "GeoUID") |> 
+  sf::st_drop_geometry() |> 
+  group_by(binned_variable) |> 
+  summarize(lowincome = round(sum(lowincome, na.rm = TRUE))) |> 
+  filter(binned_variable == "3-4" | binned_variable == "5+") |> 
+  summarise(pop = sum(lowincome)) |> 
+  mutate(pop = convert_pct(pop / laval_low_income_pop)) |> 
+  pull(pop)
+  
+# R Markdowbn -------------------------------------------------------------
+ggplot2::ggsave(filename = here::here("output/axe3/parks_map.png"), 
+                plot = parks_map, width = 8, height = 6)
+
+qs::qsavem(parks_map, parks_total, only_parks, only_berge, park_access, low_income_access,
+           park_table,
+           file = "data/axe3/parks.qsm")
