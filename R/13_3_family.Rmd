@@ -1,10 +1,42 @@
 ---
-title: "Famille et ménages"
+title: "Familles et ménages"
 author: "Curbcut"
 output: html_document
+output:
+  bookdown::html_document2: default
+  bookdown::pdf_document2: default
 ---
 
-
-```{r setup1, include=FALSE}
+```{r setup_familles, include=FALSE}
 knitr::opts_chunk$set(echo = FALSE)
 ```
+
+## Familles et ménages
+
+### Les familles lavalloises
+
+#### Caractéristiques des familles
+
+Bien qu'il y ait plus de petites familles (moins de de X personnes) que de familles nombreuses (de X personnes et plus) tant à Laval q'au Québec, la proportion de familles nombreuses est plus élevée à Laval (X%) qu'au Québec (X%).
+
+En 2021, la taille moyenne d'une famille lavalloise était de X personnes par famille, comparativement à X pour l'ensemble du Québec. Le graphique \@ref(fig:familleRepartition) illustre la répartition de la taille des familles à Laval au cours des 25 dernières années, mettant en évidence à la fois la stabilité et les changements. Les familles composées de deux personnes ont toujours représenté environ 45 % de la population. La proportion des familles de trois membres, bien que généralement restée entre 20 et 25 %, a connu une légère baisse depuis les derniers 25 ans, ce qui indique une augmentation des unités familiales plus grandes depuis lors. Dans le même temps, la proportion des familles de cinq membres ou plus, tout en restant le groupe le plus petit, a affiché une tendance progressive à la hausse, dépassant les 5 % et suggérant une croissance lente mais persistante vers des ménages plus nombreux. Ces observations reflètent une stabilité des ménages de petite taille à Laval, associée à une augmentation progressive des structures familiales de grande taille au fil du temps.
+
+```{r familleRepartition, include=TRUE, fig.cap="Évolution de la taille des familles à Laval entre 1996 et 2021", fig.align = 'center'}
+
+```
+
+En 2021, Laval compte `r famille_couple_enfants` couples avec enfants. La proportion de couples lavallois avec au moins un enfant (`r famille_couple_aumoins1`) a légèrement diminué depuis 2016 (`r famille_couple_aumoins1_2016`). Au Québec, il y a aussi eu une diminution de `r famille_couple_aumoins1_qc_2016` (2016) à `r famille_couple_aumoins1_qc` (2021), en plus d'une baisse significative observée depuis 2006. Le nombre moyen d'enfants par famille à Laval est le même que celui du Québec, soit `r famille_nb_enf_moyen`.
+
+#### Structure de la famille
+
+La composition des familles à Laval diffère de celle de l'ensemble du Québec. La plupart des familles lavalloises sont composées de couples mariés (`r famille_marie`), comparativement à un peu moins de la moitié (`r famille_marie_qc`) au Québec, où les couples optent aussi pour l'union civile.
+
+À Laval, les familles avec enfants sont aussi plus susceptibles d'être mariées que dans le reste du Québec, où la proportion de couples mariés et de couples en union libre avec enfants est d'environ la même. De plus, la plupart des couples mariés de Laval ont des enfants (`r famille_marie_avecenf`), ce qui n’est pas la réalité dans l'ensemble de la province. 
+
+```{r familleComposition, include=TRUE, fig.cap="Composition de la famille à Laval et au Québec par type de famille en 2021", fig.align = 'center'}
+
+```
+
+#### Familles monoparentales
+
+Les famniu
