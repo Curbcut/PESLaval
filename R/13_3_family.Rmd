@@ -9,6 +9,7 @@ output:
 
 ```{r setup_familles, include=FALSE}
 knitr::opts_chunk$set(echo = FALSE)
+qs::qload("data/axe1/family.qsm")
 ```
 
 ## Familles et ménages
@@ -17,12 +18,12 @@ knitr::opts_chunk$set(echo = FALSE)
 
 #### Caractéristiques des familles
 
-Bien qu'il y ait plus de petites familles (moins de de X personnes) que de familles nombreuses (de X personnes et plus) tant à Laval q'au Québec, la proportion de familles nombreuses est plus élevée à Laval (X%) qu'au Québec (X%).
+Bien qu'il y ait plus de petites familles (de trois personnes) que de familles nombreuses (de quatre personnes et plus) tant à Laval qu'au Québec, la proportion de familles nombreuses est plus élevée à Laval (`r familles_nombreuse_pct`) qu'au Québec (`r familles_nombreuse_qc_pct`).
 
-En 2021, la taille moyenne d'une famille lavalloise était de X personnes par famille, comparativement à X pour l'ensemble du Québec. Le graphique \@ref(fig:familleRepartition) illustre la répartition de la taille des familles à Laval au cours des 25 dernières années, mettant en évidence à la fois la stabilité et les changements. Les familles composées de deux personnes ont toujours représenté environ 45 % de la population. La proportion des familles de trois membres, bien que généralement restée entre 20 et 25 %, a connu une légère baisse depuis les derniers 25 ans, ce qui indique une augmentation des unités familiales plus grandes depuis lors. Dans le même temps, la proportion des familles de cinq membres ou plus, tout en restant le groupe le plus petit, a affiché une tendance progressive à la hausse, dépassant les 5 % et suggérant une croissance lente mais persistante vers des ménages plus nombreux. Ces observations reflètent une stabilité des ménages de petite taille à Laval, associée à une augmentation progressive des structures familiales de grande taille au fil du temps.
+En 2021, la taille moyenne d'une famille lavalloise était de `r familles_taillemoy` personnes par famille, comparativement à `r familles_taillemoy_qc` pour l'ensemble du Québec. Le graphique \@ref(fig:familleRepartition) illustre la répartition de la taille des familles à Laval au cours des 25 dernières années, mettant en évidence à la fois la stabilité et les changements. Les familles composées de deux personnes ont toujours représenté environ 45 % de la population. La proportion des familles de trois membres, bien que généralement restée entre 20 et 25 %, a connu une légère baisse depuis les derniers 25 ans, ce qui indique une augmentation des unités familiales plus grandes depuis lors. Dans le même temps, la proportion des familles de cinq membres ou plus, tout en restant le groupe le plus petit, a affiché une tendance progressive à la hausse, dépassant les 5 % et suggérant une croissance lente mais persistante vers des ménages plus nombreux. Ces observations reflètent une stabilité des ménages de petite taille à Laval, associée à une augmentation progressive des structures familiales de grande taille au fil du temps.
 
 ```{r familleRepartition, include=TRUE, fig.cap="Évolution de la taille des familles à Laval entre 1996 et 2021", fig.align = 'center'}
-
+family_size_graph
 ```
 
 En 2021, Laval compte `r famille_couple_enfants` couples avec enfants. La proportion de couples lavallois avec au moins un enfant (`r famille_couple_aumoins1`) a légèrement diminué depuis 2016 (`r famille_couple_aumoins1_2016`). Au Québec, il y a aussi eu une diminution de `r famille_couple_aumoins1_qc_2016` (2016) à `r famille_couple_aumoins1_qc` (2021), en plus d'une baisse significative observée depuis 2006. Le nombre moyen d'enfants par famille à Laval est le même que celui du Québec, soit `r famille_nb_enf_moyen`.
@@ -34,9 +35,31 @@ La composition des familles à Laval diffère de celle de l'ensemble du Québec.
 À Laval, les familles avec enfants sont aussi plus susceptibles d'être mariées que dans le reste du Québec, où la proportion de couples mariés et de couples en union libre avec enfants est d'environ la même. De plus, la plupart des couples mariés de Laval ont des enfants (`r famille_marie_avecenf`), ce qui n’est pas la réalité dans l'ensemble de la province. 
 
 ```{r familleComposition, include=TRUE, fig.cap="Composition de la famille à Laval et au Québec par type de famille en 2021", fig.align = 'center'}
-
+famille_structure_plot
 ```
 
 #### Familles monoparentales
 
-Les famniu
+Les familles monoparentales représentent moins d'un cinquième de toutes les familles de Laval (`r famille_monop`) en 2021, ce qui est légèrement supérieur à la moyenne provinciale (16,5 %). Parmi ces `r familles_monop_nb` familles monoparentales, `r famille_monop_f` sont dirigées par des femmes, ce qui est légèrement supérieur à la moyenne provinciale de `r famille_monop_h`. 
+
+La monoparentalité a légèrement augmenté, aussi bien à Laval que dans l'ensemble du Québec. À Laval, la part des familles monoparentales parmi celles ayant au moins un enfant est passée de 25,6 % en 2006 à 26,3 % en 2021^[Direction de santé publique, Centre intégré de santé et de services sociaux de Laval. (2023). Portrait lavallois 2023: Démographie et caractéristiques socioéconomiques. Récupéré de www.lavalensante.com.]. Depuis 2006, les proportions dans l'ensemble du Québec sont plus élevées que celles de Laval^[Direction de santé publique, Centre intégré de santé et de services sociaux de Laval. (2023). Portrait lavallois 2023: Démographie et caractéristiques socioéconomiques. Récupéré de www.lavalensante.com.].
+
+#### Les ménages lavallois
+
+En 2021, Laval comptait `r famille_nb_menages`, marquant une augmentation de `r famille_nb_menages_aug` (+`r famille_nb_menages_aug_pct`) depuis 2016. Historiquement, les ménages lavallois sont plus grands que ceux du dans l’ensemble du Québec. En 2021, la taille moyenne des ménages lavallois était de `r famille_taille_menage` personnes, alors qu'elle était de `r famille_taille_menage_qc` au Québec. La distribution de la taille des ménages reflète cette différence. Le graphique \@ref(fig:householdComp) indique ces différences de distributions. En effect, on y retrouve des pourcentages plus élevés de ménages de trois, quatre et cinq personnes et plus à Laval, ce qui correspond à la tendance des familles plus nombreuses.
+
+```{r householdComp, include=TRUE, fig.cap="Taille des ménages à Laval et au Québec en 2021", fig.align = 'center'}
+household_comp_graph
+```
+
+Le graphique \@ref(fig:householdSizeEv) ci-dessous montre l'évolution de la taille des ménages. Il y a davantage de ménages de petite taille à Laval, bien qu'ils contiennent moins d'individus. En 2021, si l'on considère les deux graphiques, davantage de personnes vivent dans des ménages de quatre personnes ou plus, mais il y a davantage de ménages d'une ou deux personnes.
+
+```{r householdSizeEv, include=TRUE, fig.cap="Evolution de la taille des ménages à Laval entre 1996 et 2021", fig.align = 'center'}
+household_evol_graph
+```
+
+#### Personnes vivant seules
+
+En 2021, 47 400 (15,9 %) Lavalloise·e·s vivent seul·e·s^[Direction de santé publique, Centre intégré de santé et de services sociaux de Laval. (2023). Portrait lavallois 2023: Démographie et caractéristiques socioéconomiques. Récupéré de www.lavalensante.com.]. Après une hausse entre 2006 et 2016, les proportions de personnes vivant seules ont diminué entre 2016 et 2021, passant de 12,4 % à 11,0 %^[Direction de santé publique, Centre intégré de santé et de services sociaux de Laval. (2023). Portrait lavallois 2023: Démographie et caractéristiques socioéconomiques. Récupéré de www.lavalensante.com.]. Cette tendance est également visible dans l’ensemble du Québec. Cependant, Laval présente des proportions de personnes vivant seules inférieures à celles observées dans l’ensemble du Québec (11 %)^[Direction de santé publique, Centre intégré de santé et de services sociaux de Laval. (2023). Portrait lavallois 2023: Démographie et caractéristiques socioéconomiques. Récupéré de www.lavalensante.com.]. 
+
+
