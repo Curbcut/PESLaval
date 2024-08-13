@@ -4,6 +4,10 @@ library(tidyverse)
 library(cancensus)
 library(curbcut)
 
+# loadfonts(device = "win")
+# windowsFonts(`KMR Apparat Regular`=windowsFont("KMR Apparat Regular"))
+# "KMR Apparat Regular" %in% names(windowsFonts())
+
 source("R/utils/tt_fun.R")
 
 # Addition of colors ------------------------------------------------------
@@ -37,8 +41,8 @@ tiles <- mapboxapi::get_static_tiles(location = lvlbbox,
 gg_cc_tiles <- list(ggspatial::layer_spatial(tiles, alpha = 0.7))
 default_theme <- theme(legend.position = "bottom",
                         legend.box = "horizontal",
-                        legend.title = element_text(size = 8),
-                        legend.text = element_text(size = 6),
+                        legend.title = element_text(size = 8, family="KMR Apparat Regular"),
+                        legend.text = element_text(size = 6, family="KMR Apparat Regular"),
                         legend.title.align = 0.5,
                         legend.text.align = 0.5,
                         text=element_text(family="KMR Apparat Regular"))
@@ -88,8 +92,16 @@ convert_number <- function(x) {
   gsub(",", " ", x)
 }
 
+convert_number_noround <- function(x) {
+  scales::comma(x, 1, accuracy = 1, big.mark = " ")
+}
+
 convert_pct <- function(x) {
   out <- curbcut:::convert_unit.pct(x = x, decimal = 1)
   out <- gsub("\\.", ",", out)
-  gsub("\\%", " %", out)
+  out <- gsub("\\%", " %", out)
+  for (i in seq_along(out)) {
+    if (!grepl("\\,", out[[i]])) out[[i]] <- gsub(" %", ",0 %", out[[i]])
+  }
+  out
 }

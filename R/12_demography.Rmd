@@ -26,9 +26,7 @@ Fondée en 1965 par la fusion de 14 anciennes municipalités, Laval s'étend sur
 En 2024, la population de Laval est estimée à `r laval_population_ISQ_pretty`^[Institut de la statistique du Québec. (2024). Projections de population: Régions administratives et régions métropolitaines (RMR). Récupéré de https://statistique.quebec.ca/fr/document/projections-de-population-regions-administratives-et-regions-metropolitaines-rmr], avec une densité moyenne de `r density_pretty` personnes par kilomètre carré. Comme le montre le graphique \@ref(fig:popDensityPlot), les secteurs les plus densément peuplés se retrouvent à  Chomedey, Laval-des-Rapides, et Pont-Viau.
 
 ```{r popDensityPlot, include=TRUE, fig.cap="Densité de la population lavalloise par km², 2021", fig.align = 'center'}
-
 pop_density_plot
-
 ```
 
 ## Structure de la population
@@ -38,9 +36,7 @@ En 2021, l'âge moyen des Lavallois·e·s était de `r age_moyen_pretty` ans, co
 La répartition par sexe à Laval est de `r homme_pct_pretty` pour les hommes et de `r femme_pct_pretty` pour les femmes. La surreprésentation des femmes se creuse au-delà de 60 ans et continue de creuser particulièrement au-delà des 85 ans.
 
 ```{r agePyarmid, include=TRUE, fig.cap="Répartition de la population par âge et par sexe, Laval et Ensemble du Québec, 2021", fig.align = 'center'}
-
 age_pyramid
-
 ```
 
 Laval a une population diversifiée sur le plan ethnique et culturel, et l'une des façons de mesurer cette diversité est l'origine ethnique des résidents. 
@@ -56,18 +52,14 @@ En 2021, plus du tiers de la population lavalloise (`r ethnic_origins$europe`) a
 En 1966, la population de Laval était légèrement inférieure à 200 000 habitant·e·s. Lors du dernier recensement (2021), la Ville de Laval comptait `r laval_population_census_pretty` résident·e·s, ce qui, entre les deux derniers recensements (2016-2021), représente une augmentation de `r population_change`, un taux de croissance inférieur à celui de l’ensemble du Québec (`r quebec_pop_change`).  La croissance a surtout été observée dans les secteurs du centre et du sud de la ville, et est principalement due à l’augmentation rapide de l’immigration. Le graphique suivant (\@ref(fig:popProj)) présente l'évolution de la population lavalloise depuis 1966, ainsi que la population projetée d'ici 2041. D'ici 2041, la population est estimée à un peu moins de 500 000 habitant·e·s
 
 ```{r popProj, include=TRUE, fig.cap="Évolution de la population de Laval 1966-2041", fig.align = 'center'}
-
 pop_et_proj
-
 ```
 MISSING SOURCES
 
 En 2023, il y a eu `r naissances_laval` naissances à Laval, ce qui est légèrement inférieur à la moyenne annuelle de `r naissances_laval_moyenne_5` au cours des cinq dernières années (2019-2023). Il s'agit en fait du nombre de naissances annuelles le plus bas depuis 2005. De plus, même si le graphique montre des fluctuations avec des périodes de hausse d'une année sur l'autre, la tendance générale depuis 2010 est à la baisse^[Institut de la statistique du Québec. (2024). Naissances, décès, accroissement naturel et mariages par région administrative, Québec. Récupéré de https://statistique.quebec.ca/fr/document/naissances-regions-administratives/tableau/naissances-deces-accroissement-naturel-mariages-par-region-administrative-quebec#tri_phe=10&tri_ra=13].
 
 ```{r birthsGraph, include=TRUE, fig.cap="Évolution des naissances annuelles à Laval 1986-2023", fig.align = 'center'}
-
 laval_births_graph
-
 ```
 
 D'après les projections démographiques de l'Institut de la statistique du Québec (2022), le nombre de naissances annuelles devrait atteindre environ 4 380 d'ici 2041. En 2020, près de la moitié (44,2 %) des nouveau-nés lavallois étaient nées dans les secteurs 3 (Chomedey) et 2 (Pont-Viau, Renaud-Coursol et Laval-des-Rapides), chacun représentant 22,1 % des naissances. Parmi les 3 976 naissances de cette année-là, un peu plus de la moitié (55,5 %) ont eu lieu sur le territoire de la ville de Laval^[Institut de la statistique du Québec. (2024). Naissances, décès, accroissement naturel et mariages par région administrative, Québec. Récupéré de https://statistique.quebec.ca/fr/document/naissances-regions-administratives/tableau/naissances-deces-accroissement-naturel-mariages-par-region-administrative-quebec#tri_phe=10&tri_ra=13].

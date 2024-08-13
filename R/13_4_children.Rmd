@@ -2,9 +2,53 @@
 title: "Développement des enfants"
 author: "Curbcut"
 output: html_document
+output:
+  bookdown::html_document2: default
+  bookdown::pdf_document2: default
 ---
 
-
-```{r setup1, include=FALSE}
+```{r setup_children, include=FALSE}
 knitr::opts_chunk$set(echo = FALSE)
+qs::qload(here::here("data/axe1/children.qsm"))
 ```
+
+## Développement des enfants 
+
+### Vulnérabilité des enfant à la maternelle 
+
+Selon l'Enquête québécoise sur le développement des enfants à la maternelle (2022), un peu plus du tiers (34, 0 %) des enfants lavallois fréquentant la maternelle sont considérés comme vulnérables dans au moins un domaine de développement.^[Institut de la statistique du Québec. (2023). Enquête québécoise sur le développement des enfants à la maternelle 2022: Principaux résultats pour les enfants lavallois. Direction de santé publique du Centre intégré de santé et de services sociaux de Laval.] Entre 2017 et 2022, la proportion d'enfants vulnérables dans au moins un domaine de développement a augmenté d'environ 3 points de pourcentage. Elle était de 31,3 % en 2017.^[Institut de la statistique du Québec. (2023). Enquête québécoise sur le développement des enfants à la maternelle 2022: Principaux résultats pour les enfants lavallois. Direction de santé publique du Centre intégré de santé et de services sociaux de Laval.]
+
+L’instrument de mesure du développement de la petite enfance (IMDPE) évalue les aptitudes des enfants de maternelle selon cinq domaines de développement : 
+1. La santé physique et le bien-être ;
+2. Les compétences sociales ;
+3. La maturité affective ;
+4. Le développement cognitif et langagier
+5. Les habiletés de communication et les connaissances générales 
+
+```{r childrenVuln, include=TRUE, fig.cap="Vulnérabilité des enfants fréquentant la maternelle, Laval et Québec, 2022. Données : Institut de la statistique du Québec, Enquête québécoise sur le développement des enfants à la maternelle (2022)", fig.align = 'center'}
+children_vulnerability_plot
+```
+
+La proportion d’enfants vulnérables à la maternelle est supérieure à Laval dans tous les domaines de développement, par rapport à l’ensemble de la province. Le domaine des habiletés de communication et les connaissances générales présente le taux de vulnérabilité le plus élevé avec 17,1 % des enfants lavallois de la maternelle 5 ans considérés comme vulnérables.^[Institut de la statistique du Québec. (2023). Enquête québécoise sur le développement des enfants à la maternelle 2022: Principaux résultats pour les enfants lavallois. Direction de santé publique du Centre intégré de santé et de services sociaux de Laval.] Ce domaine affiche également le plus grand écart entre les proportions lavalloise et québécoise en termes de vulnérabilité.
+
+#### Littératie
+
+En 2022, 12,1 % des enfants dans l'ensemble de la province du Québec étaient considérés comme vulnérables dans le domaine du « Développement cognitif et langagier ».^[Institut de la statistique du Québec. (2023). Enquête québécoise sur le développement des enfants à la maternelle 2022: Principaux résultats pour les enfants lavallois. Direction de santé publique du Centre intégré de santé et de services sociaux de Laval.] Cependant, à Laval, cette proportion était non seulement plus élevée que la moyenne provinciale, atteignant 14,4 %, mais elle représentait également le taux le plus élevé du Québec.^[Institut de la statistique du Québec. (2023). Enquête québécoise sur le développement des enfants à la maternelle 2022: Principaux résultats pour les enfants lavallois. Direction de santé publique du Centre intégré de santé et de services sociaux de Laval.]
+
+À Laval, la proportion d'enfants qui ont été moins engagés dans des activités de littératie l'année précédant la maternelle 5 ans s’élevait à 17,8 %.^[Institut de la statistique du Québec. (2024). Enquête québécoise sur le parcours préscolaire des enfants à la maternelle 2022: Principaux résultats lavallois. Direction de santé publique du Centre intégré de santé et de services sociaux de Laval.] Cette proportion est également plus élevée que la moyenne provinciale, qui se situe à 15,3 %.^[Institut de la statistique du Québec. (2024). Enquête québécoise sur le parcours préscolaire des enfants à la maternelle 2022: Principaux résultats lavallois. Direction de santé publique du Centre intégré de santé et de services sociaux de Laval.] De plus, 4,8 % des enfants lavallois n’avaient pas eu accès à une bibliothèque l’année précédant  l’Enquête québécoise sur le parcours préscolaire des enfants à la maternelle 2022, un autre indicateur qui dépasse la moyenne provinciale de 3,6 %.^[Institut de la statistique du Québec. (2024). Enquête québécoise sur le parcours préscolaire des enfants à la maternelle 2022: Principaux résultats lavallois. Direction de santé publique du Centre intégré de santé et de services sociaux de Laval.]
+
+#### Répartition de vulnérabilité selon le sexe
+
+En 2022, les garçons de Laval fréquentant la maternelle 5 ans étaient plus susceptibles d'être vulnérables dans au moins un domaine de développement, 42,7 % d'entre eux présentant de la vulnérabilité, comparativement à 25,2 % des filles du même âge.^[Institut de la statistique du Québec. (2023). Enquête québécoise sur le développement des enfants à la maternelle 2022: Principaux résultats pour les enfants lavallois. Direction de santé publique du Centre intégré de santé et de services sociaux de Laval.] Cette tendance se reflète dans l'ensemble du Québec, où 35,6 % des garçons et 21,6 % des filles présentent une vulnérabilité similaire en matière de développement.^[Institut de la statistique du Québec. (2023). Enquête québécoise sur le développement des enfants à la maternelle 2022: Principaux résultats pour les enfants lavallois. Direction de santé publique du Centre intégré de santé et de services sociaux de Laval.] Ces résultats mettent en évidence une disparité importante entre les sexes en ce qui a trait au développement des enfants à la maternelle, que ce soit à Laval ou dans l’ensemble du Québec, malgré les proportions pour les filles et les garçons lavallois plus élevées que celles de leurs homologues de la province.
+
+### Le temps d'écran
+
+Selon une enquête réalisée en 2022, 21,8 % des enfants lavallois fréquentant la maternelle 5 ans passent en moyenne plus de deux heures par jour devant des écrans, une proportion nettement supérieure que dans l’ensemble du Québec (15,9 %).^[Institut de la statistique du Québec. (2024). Enquête québécoise sur le parcours préscolaire des enfants à la maternelle 2022: Principaux résultats lavallois. Direction de santé publique du Centre intégré de santé et de services sociaux de Laval.] En 2023, près de la moitié (45%) des enfants québécois âgés de 6 à 17 ans passent plus de dix heures par semaine sur Internet.^[Académie de la transformation numérique. (2024). NETendances 2023: Famille numérique. Bibliothèque et Archives nationales du Québec.] De plus, environ un tiers des enfants (32 %) y consacrent plus de quinze heures par semaine. ^[Académie de la transformation numérique. (2024). NETendances 2023: Famille numérique. Bibliothèque et Archives nationales du Québec.]
+
+Au fur et à mesure que les enfants entrent dans l'adolescence, leur temps passé devant un écran tend à augmenter de manière significative. Plus précisément, 59 % des adolescents passent plus de 10 heures par semaine sur internet, contre seulement 33 % des enfants âgés de 6 à 12 ans.^[Académie de la transformation numérique. (2024). NETendances 2023: Famille numérique. Bibliothèque et Archives nationales du Québec.] Cette augmentation du temps d'écran chez les adolescents pourrait être en partie attribuée aux besoins éducatifs, car les activités scolaires et les devoirs nécessitent souvent un accès à l'internet.
+
+```{r childrenInt, include=TRUE, fig.cap="Heures par semaine passées sur Internet, enfants d'âge scolaire de 6 à 12 ans et de 13 à 17 ans (Québec). Données: Famille numérique, Édition 2023 (Académie de la transformation numérique)", fig.align = 'center'}
+children_internet_usage
+```
+
+Ces informations mettent en évidence l'utilisation répandue des écrans et de l'internet chez les enfants et les adolescents, et soulignent l'importance de comprendre et de gérer les habitudes numériques pour leur santé et leur développement. Veuillez consulter (https://www.quebec.ca/sante/conseils-et-prevention/saines-habitudes-de-vie/utilisation-saine-des-ecrans-chez-les-jeunes) le site web du gouvernement du Québec pour obtenir les recommandations pour l’utilisation équilibrée des écrans chez les jeunes. 

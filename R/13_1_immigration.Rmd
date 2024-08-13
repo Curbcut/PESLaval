@@ -48,7 +48,7 @@ recimm_prop_map
 
 ### Les statuts d’immigrant·e·s
 
-Les résidents non permanents ne représentent qu'une très faible proportion de la population, soit environ (`r non_res_prop`) des résidents. 
+Les résidents non permanents ne représentent qu'une très faible proportion de la population, soit environ (`r non_res_prop`) des résidents, comparativement à des figures beaucoup plus hautes à Montréal et dans l'ensemble du Québec. 
 
 ```{r immTable, include=TRUE, fig.cap="Population immigrante totale, immigrante récente, résidente non permanente et non immigrante à Laval 2021", fig.align = 'center'}
 

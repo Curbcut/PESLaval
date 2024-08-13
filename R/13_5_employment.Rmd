@@ -1,0 +1,76 @@
+---
+title: "Emploi et chômage"
+author: "Curbcut"
+output: html_document
+output:
+  bookdown::html_document2: default
+  bookdown::pdf_document2: default
+---
+
+```{r setup_emploi, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+qs::qload(here::here("data/axe1/emploi.qsm"))
+```
+
+## Emploi et chômage
+
+Le dernier recensement en 2021 a eu lieu pendant la pandémie, les tendances en matière d'emploi et de chômage présentées dans cette section doivent être interprétées en gardant cette influence à l'esprit.
+
+### Taux d'emploi
+
+En 2021, Laval voit son taux d'emploi chez la population active diminuer, passant de `r emploi_tauxemploi_16` en 2016 à `r emploi_tauxemploi` en 2021, soit une baisse de 1,7 point de pourcentage, poursuivant ainsi la tendance à la baisse des taux d'emploi depuis 2006 (graphique \@ref(fig:emploiTaux)). En comparaison, bien que l'ensemble du Québec ait un taux d'emploi inférieur à celui de Laval, soit de `r emploi_tauxemploi_qc`, le Québec n'a connu qu'une baisse de 0,2 point.
+
+Définition : Taux d'emploi - Le taux d'emploi est le pourcentage de la population en âge de travailler (les personnes âgées de 15 ans et plus) qui à l'emploi. Définition : Population active - La population active correspond à la population civile non institutionnelle âgée de 15 ans et plus, ayant un emploi ou étant au chômage.
+
+```{r emploiTaux, include=TRUE, fig.cap="Taux d'emploi de 2001 à 2021 à Laval et dans la province de Québec. Source: Statistique Canada.", fig.align = 'center'}
+employment_rate_graph
+```
+
+### Travail pendant l'année de référence
+
+Alors que le nombre de personnes travaillant à temps plein a augmenté de `r emploi_tplein_var` (`r emploi_tplein_var_nb`), passant de (`r emploi_tplein_2016`, `r emploi_tplein_pa_2016`) en 2016 à `r emploi_tplein` (`r emploi_tplein_pa`) en 2021, le nombre de personnes travaillant à temps partiel ou seulement une partie de l'année a diminué de `r emploi_tpartiel_var` (`r emploi_tpartiel_var_nb`) au cours de la même période. De plus, le nombre de personnes ne travaillant pas du tout a augmenté de `r emploi_travaillantpas_var` (`r emploi_travaillantpas_nb`), passant de (`r emploi_travaillantpas_2016`, `r emploi_travaillantpas_pa_2016`) en 2016 à `r emploi_travaillantpas` (`r emploi_travaillantpas_pa`) en 2021, ce qui a entraîné une diminution nette du nombre de résidents ayant un emploi.
+
+### Taux de chômage
+
+La baisse du nombre de personnes employées à Laval a conduit à une augmentation du nombre de personnes au chômage. De 2016 à 2021, le taux de chômage à Laval est passé de `r unemployment_rate_nb_2016` à `r unemployment_rate_nb`. Cette augmentation marque la troisième année de recensement consécutive où une hausse est observée. En comparaison, le taux de chômage du Québec est passé de `r unemployment_rate_nb_2016_qc` à `r unemployment_rate_nb_qc`. Laval a connu une augmentation plus marquée, et son taux de chômage est devenu supérieur à celui de l'ensemble de la province.
+
+Définition : Taux de chômage - Le taux de chômage est le pourcentage de la population active qui est au chômage.
+
+```{r emploiChomage, include=TRUE, fig.cap="Taux d'emploi de 2001 à 2021 à Laval et dans la province de Québec. Source: Statistique Canada.", fig.align = 'center'}
+unemployment_rate_graph
+```
+
+#### Évolution récente
+
+Les estimations mensuelles désaisonnalisées de l'Enquête sur la population active (EPA) de Statistique Canada, adaptées et compilées par l'Institut de la statistique du Québec (ISQ)[^1], couvrant jusqu'à l'été 2024, montrent une tendance générale à la baisse du taux de chômage chez les Lavallois·es· depuis le début des années 2010, malgré des variations régulières. Le pic en 2020, lié à la pandémie de COVID-19, est particulièrement frappant, avec une augmentation soudaine et marquée du chômage, atteignant environ `r highest_unemployment_rate_2020`.
+
+[^1]: Institut de la statistique du Québec. (2024). Caractéristiques du marché du travail, données mensuelles désaisonnalisées¹, régions administratives² et ensemble du Québec. Récupéré de statistique.quebec.ca/fr/produit/tableau/916
+
+Depuis ce sommet, le taux de chômage a progressivement diminué, mais les données montrent une reprise avec quelques fluctuations. Ces observations suggèrent que le marché du travail à Laval est encore en phase de stabilisation après le choc de 2020. Bien que les données de l'ISQ et de l'EPA soient basées sur des méthodologies rigoureuses et largement utilisées pour suivre les tendances du marché du travail, ces chiffres doivent être interprétés avec prudence en raison des défis méthodologiques liés à la taille des échantillons et aux conditions d'enquête pendant et après la pandémie.
+
+### L'évolution de la population active
+
+La population active a augmenté de `r emploi_pa_var` entre 2016 (`r emploi_pa_nb_2016`) et 2021 (`r emploi_pa_nb`). Cependant, cette croissance est nettement inférieure à celle de la population inactive de `r emploi_pi_var`, passant de `r emploi_pi_nb_2016` en 2016 à `r emploi_pi_nb` en 2021. La période 2016-2021 a connu la plus faible croissance de la population active observée au cours des deux dernières décennies, tout en enregistrant un pic de croissance de la population inactive. De plus, en 2021, la proportion de la population active (`r emploi_prop_pa`) était la plus faible depuis 2001. Le vieillissement de la population pourrait entraîner une sortie plus rapide de la population active, bien que le taux d'activité et les taux d'emploi aient progressé pour les populations âgées de 65 à 74 ans et de 74 ans et plus.
+
+### Les besoins en programmes d'assistance sociale
+
+Au Québec, les programmes d'assistance sociale offrent un soutien financier aux personnes à faible revenu. La proportion de la population lavalloise bénéficiant de ces programmes en 2023 est de 3,8 %. Bien que Laval ait historiquement toujours eu un besoin de programmes d'assistance sociale plus faible que l\'ensemble du Québec, elle a connu un taux d'augmentation beaucoup plus élevé entre 2022 et 2023 (26,7 % ou 0,8 point de pourcentage). Il s'agit de la plus forte augmentation que la région ait connue en trente ans. En comparaison, alors que la province a toujours eu un taux d'assistance sociale plus élevé, celui-ci n'a augmenté que de 5,8 %, soit 0,2 point de pourcentage.^[Ministère de l'Emploi et de la Solidarité sociale. (2024). Évolution des moyennes annuelles de la clientèle prestataire des programmes d'assistance sociale de 1993 à 2023. Direction de l'intelligence d'affaire et de l'analytique, 5 juin 2024. Compilation spéciale Services Québec de Laval. Données non officielles.]
+
+### Catégories professionnelles
+
+Les trois catégories professionnelles les plus populaires parmi la population lavalloise sont la vente et les services (`r emploi_vs` individus), les affaires, finances et administration (`r emploi_af`individus), et les métiers, transport, machinerie, et domaines apparentés (`r emploi_mtmda` individus). La répartition hommes-femmes dans ces catégories varie considérablement. Les femmes dominent largement le secteur des affaires (`r emploi_femmes_affaires` des individus sont des femmes), tandis que les métiers (catégorie regroupant les superviseurs de métiers et les contremaîtres, les personnes de métier en construction et en mécanique, les opérateurs et les conducteurs de matériel de transport et de machinerie lourde, ainsi que les aides de corps de métiers)^[Statistique Canada. (2024). Classification nationale des professions (CNP) 2016 version 1.0 - 7 - Métiers, transport, machinerie et domaines apparentés. https://www23.statcan.gc.ca/imdb/p3VD_f.pl?Function=getVD&TVD=314243&CVD=314244&CPV=7&CST=01012016&CLV=1&MLV=4] sont majoritairement occupés par des hommes (`r emploi_metiers_hommes`). En revanche, dans la vente et les services, la répartition est presque équilibrée, avec `r emploi_femmes_ventes` de femmes et `r emploi_ventes_hommes` d’hommes.
+
+```{r emploiCatPro, include=TRUE, fig.cap="Nombre de résidents de Laval ayant un emploi selon les secteurs de la Classification nationale des professions en 2021. Source: Statistique Canada.", fig.align = 'center'}
+emploi_catpro
+```
+
+### Lieux de travail et déplacements 
+
+Tant en 2016 qu'en 2021, la majorité des résident·e·s de Laval qui avaient un emploi travaillaient à l'extérieur de la ville. Toutefois, cette proportion a diminué, passant de `r emploi_outside_CSD_2016` en 2016 à `r emploi_outside_CSD` en 2021, soit une baisse de 7,6 points de pourcentage. Parallèlement, la proportion de résident·e·s travaillant à Laval a connu une augmentation correspondante, passant de `r emploi_within_CSD_2016` en 2016 à `r emploi_within_CSD` en 2021. Cette évolution peut être en partie due à la pandémie de COVID-19, qui a changé les habitudes de déplacement et rendu le télétravail plus courant et acceptable. Comme le recensement interroge sur le lieu de travail habituel, une personne qui travaille pour une entreprise située à Montréal, mais qui télétravaille depuis son domicile à Laval, sera considérée comme travaillant à Laval, potentiellement expliquant les nouveaux changements.
+
+À l'échelle du Québec, on observe une tendance similaire, bien que plus modérée. En 2021, `r emploi_within_CSD_qc` des travailleurs québécois travaillaient dans leur municipalité de résidence, une légère augmentation par rapport aux `r emploi_within_CSD_2016_qc` en 2016. Cela montre que la tendance à travailler dans sa propre municipalité s'est également renforcée au Québec, mais de manière beaucoup moins marquée qu'à Laval. De plus, les résident·e·s de Laval sont plus susceptibles de travailler à l'extérieur de leur municipalité de résidence.
+
+De plus, l'année 2021 a été marquée par une perturbation importante du lieu de travail des résident·e·s de Laval. De 2001 à 2016, le nombre de Lavallois·e·s travaillant à l’emplacement physique de leur lieu habituel de travail a diminué très graduellement, passant de `r emploi_place_atwork_2001` à `r emploi_place_atwork_2016`. En revanche, de 2016 à 2021, la baisse a été beaucoup plus importante, diminuant à `r emploi_place_atwork`. À l'inverse, les Lavallois·e·s qui travaillent à domicile sont passés de `r emploi_place_home_2016` en 2016 à `r emploi_place_home` en 2021. Bien que ce changement ne représente peut-être pas entièrement les tendances à long terme de Laval en matière de déplacements domicile-travail en raison de la proximité du recensement avec la pandémie de COVID-19, il pourrait indiquer une évolution future vers plus de télétravail.
+
+
+

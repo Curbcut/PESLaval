@@ -9,6 +9,7 @@ output:
 
 ```{r setup_langues, include=FALSE}
 knitr::opts_chunk$set(echo = FALSE)
+qs::qload(here::here("data/axe1/language.qsm"))
 ```
 
 ## Langues

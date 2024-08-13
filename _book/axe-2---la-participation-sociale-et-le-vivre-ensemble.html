@@ -4,18 +4,18 @@
 
   <meta charset="utf-8" />
   <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-  <title>Axe 2 - La participation sociale et le vivre-ensemble</title>
-  <meta name="description" content="Axe 2 - La participation sociale et le vivre-ensemble" />
+  <title>3 Axe 2 - La participation sociale et le vivre-ensemble | Axe 2 - La participation sociale et le vivre-ensemble</title>
+  <meta name="description" content="3 Axe 2 - La participation sociale et le vivre-ensemble | Axe 2 - La participation sociale et le vivre-ensemble" />
   <meta name="generator" content="bookdown 0.40 and GitBook 2.6.7" />
 
-  <meta property="og:title" content="Axe 2 - La participation sociale et le vivre-ensemble" />
+  <meta property="og:title" content="3 Axe 2 - La participation sociale et le vivre-ensemble | Axe 2 - La participation sociale et le vivre-ensemble" />
   <meta property="og:type" content="book" />
   
   
   
 
   <meta name="twitter:card" content="summary" />
-  <meta name="twitter:title" content="Axe 2 - La participation sociale et le vivre-ensemble" />
+  <meta name="twitter:title" content="3 Axe 2 - La participation sociale et le vivre-ensemble | Axe 2 - La participation sociale et le vivre-ensemble" />
   
   
   
@@ -29,8 +29,8 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black" />
   
   
+<link rel="prev" href="axe-1-les-conditions-de-vie-et-les-inégalités-sociales.html"/>
 
-<link rel="next" href="axe-1-les-conditions-de-vie-et-les-inégalités-sociales.html"/>
 <script src="libs/jquery-3.6.0/jquery-3.6.0.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/fuse.js@6.4.6/dist/fuse.min.js"></script>
 <link href="libs/gitbook-2.6.7/css/style.css" rel="stylesheet" />
@@ -138,26 +138,33 @@
           <div class="page-inner">
 
             <section class="normal" id="section-">
-<div id="header">
-<h1 class="title">Axe 2 - La participation sociale et le vivre-ensemble</h1>
-<p class="author"><em>Curbcut</em></p>
-</div>
-<div id="la-démographie-de-laval" class="section level1 hasAnchor" number="1">
-<h1><span class="header-section-number">1</span> La démographie de Laval<a href="la-démographie-de-laval.html#la-démographie-de-laval" class="anchor-section" aria-label="Anchor link to header"></a></h1>
-<p>Fondée en 1965 par la fusion de 14 anciennes municipalités, Laval s’étend sur 243 km² et couvre l’Île Jésus ainsi que les Îles Laval. Depuis sa création, la ville a connu une croissance démographique notable, passant d’une région rurale à un centre urbain dynamique. Laval est la troisième plus grande ville de la province en termes d’habitant·e·s, après Montréal et Québec.</p>
-<p>En 2024, la population de Laval est estimée à 455 000<a href="#fn1" class="footnote-ref" id="fnref1"><sup>1</sup></a>, avec une densité moyenne de 1 870 personnes par kilomètre carré. Comme le montre le graphique <a href="la-démographie-de-laval.html#fig:popDensityPlot">1.1</a>, les secteurs les plus densément peuplés se retrouvent à Chomedey, Laval-des-Rapides, et Pont-Viau.</p>
+<div id="axe-2---la-participation-sociale-et-le-vivre-ensemble" class="section level1 hasAnchor" number="3">
+<h1><span class="header-section-number">3</span> Axe 2 - La participation sociale et le vivre-ensemble<a href="axe-2---la-participation-sociale-et-le-vivre-ensemble.html#axe-2---la-participation-sociale-et-le-vivre-ensemble" class="anchor-section" aria-label="Anchor link to header"></a></h1>
+<div id="mixité-sociale" class="section level2 hasAnchor" number="3.1">
+<h2><span class="header-section-number">3.1</span> Mixité sociale<a href="axe-2---la-participation-sociale-et-le-vivre-ensemble.html#mixité-sociale" class="anchor-section" aria-label="Anchor link to header"></a></h2>
+<p>Pour calculer la mixité sociale, nous avons utilisé des données du recensement pour cinq grandes dimensions : les catégories socioprofessionnelles, les origines ethniques et culturelles, les tranches d’âge, les niveaux de revenu et les niveaux d’éducation.</p>
+<ul>
+<li>Définition: Mixité sociale
+<ul>
+<li>La mixité (parfois appelée diversité) sociale réfère à la présence simultanée ou la cohabitation, en un même secteur géographique, de personnes appartenant à des catégories socioprofessionnelles, à des cultures, à des nationalités, à des tranches d’âge différentes. Cette notion, appliquée à un milieu de vie (un quartier par exemple), suppose une forme d’hétérogénéité en opposition avec des milieux de vie homogènes destinés à une proportion restreinte de la population (communauté ou classe sociale précise).<a href="#fn44" class="footnote-ref" id="fnref44"><sup>44</sup></a></li>
+</ul></li>
+</ul>
+<p>Pour évaluer la mixité sociale dans chacune des zones, nous utilisons la méthode de l’entropie de Shannon. Cette méthode prend en compte à la fois la richesse des catégories (le nombre de groupes différents) et leur uniformité (comment les individus sont répartis entre ces groupes). Pour chaque dimension mentionnée ci-dessus, la formule attribue une valeur plus élevée lorsque les proportions des catégories, par exemple les niveaux d’éducation, sont plus uniformément réparties. Si tous les individus d’une zone appartiennent à la même origine ethnique ou culturelle, l’indice d’entropie sera de zéro, et une zone avec une répartition plus équilibrée des individus entre différentes catégories aura une entropie plus élevée, indiquant une plus grande mixité sociale.</p>
+<p>Afin d’éviter que certaines dimensions ne dominent les autres, nous normalisons les valeurs pour chaque dimension. Cela garantit que chaque dimension contribue de manière égale à la mesure globale de la mixité sociale. Après normalisation, nous additionnons les entropies normalisées pour obtenir un indice composite de la mixité sociale dans chaque zone. Toutefois, même si chaque dimension est normalisée, une dimension particulière peut tout de même avoir un impact significatif sur l’indice composite si elle présente une diversité beaucoup plus marquée. Par exemple, une zone peut avoir une diversité culturelle exceptionnellement élevée qui influence fortement l’indice composite, même après normalisation.</p>
+<p>Le graphique <a href="axe-2---la-participation-sociale-et-le-vivre-ensemble.html#fig:mixiteSociale">3.1</a> présente donc une carte de l’indice composite combinant les cinq dimensions de la mixité sociale. Les zones plus foncées indiquent une diversité multi-dimensionnelle plus élevée. Chomedey, situé dans le centre-sud, présente une mixité relativement faible, comme le montre la teinte plus claire du secteur. Cela suggère une répartition moins équilibrée des différentes catégories sociales dans cette région. En revanche, les zones au nord-ouest de l’île et au nord-est de Laval-des-Rapides, Pont-Viau affichent une mixité plus élevée.</p>
 <pre><code>## Warning in grid.Call(C_textBounds, as.graphicsAnnot(x$label), x$x, x$y, : font family not found in Windows
+## font database
+## Warning in grid.Call(C_textBounds, as.graphicsAnnot(x$label), x$x, x$y, : font family not found in Windows
 ## font database</code></pre>
-<div class="figure" style="text-align: center"><span style="display:block;" id="fig:popDensityPlot"></span>
-<img src="_main_files/figure-html/popDensityPlot-1.png" alt="Densité de la population lavalloise par km², 2021" width="672" />
+<pre><code>## Warning in grid.Call.graphics(C_text, as.graphicsAnnot(x$label), x$x, x$y, : font family not found in Windows
+## font database</code></pre>
+<div class="figure" style="text-align: center"><span style="display:block;" id="fig:mixiteSociale"></span>
+<img src="_main_files/figure-html/mixiteSociale-1.png" alt="Indice de mixité sociale composite à Laval" width="672" />
 <p class="caption">
-Figure 1.1: Densité de la population lavalloise par km², 2021
+Figure 3.1: Indice de mixité sociale composite à Laval
 </p>
 </div>
-<div id="structure-de-la-population" class="section level2 hasAnchor" number="1.1">
-<h2><span class="header-section-number">1.1</span> Structure de la population<a href="la-démographie-de-laval.html#structure-de-la-population" class="anchor-section" aria-label="Anchor link to header"></a></h2>
-<p>En 2021, l’âge moyen des Lavallois·e·s était de 42 ans, comparativement à 42.8 ans pour la province et à 41.3 ans pour l’ensemble de la Communauté Métropolitaine de Montréal. Les jeunes de moins de 18 ans constituaient 21,9 % de la population de Laval, une proportion un peu plus élevée que celle du Québec dans son ensemble, qui était de 20,4 %. Les personnes âgées de 65 ans et plus représentaient 18,7 % de la population lavalloise, ce qui était légèrement inférieur à la moyenne de la province (20,6 % pour la province). Comparativement à l’ensemble du Québec, la distribution de la population de Laval comportait une plus faible proportion de jeunes adultes (25-34 ans), mais une plus grande proportion d’enfants, comme le montre le graphique <a href="la-démographie-de-laval.html#fig:agePyarmid">1.2</a> ci-dessous. Les astérisques sont utilisés à titre indicatif lorsqu’une tranche de la population, par âge et pour un genre, dépassait les 6 %.</p>
-<p>La répartition par sexe à Laval est de 48,7 % pour les hommes et de 51,3 % pour les femmes. La surreprésentation des femmes se creuse au-delà de 60 ans et continue de creuser particulièrement au-delà des 85 ans.</p>
+<p>Les figures en facettes montrent la mixité pour chaque dimension individuelle. Ces cartes permettent de visualiser les variations spécifiques à chaque dimension et d’identifier les zones où certaines formes de diversité sont plus ou moins présentes. Par exemple, on retrouve, au nord-est du secteur Vimont, Auteuil une haute mixité en terme de revenu et d’occupation professionnelle, mais une faible diversité en termes d’origines ethniques ou culturelles et de niveaux d’éducation. L’examination de chaque dimension séparément nous offre une compréhension plus nuancée et détaillée de la mixité sociale sur le territoire lavallois.</p>
 <pre><code>## Warning in grid.Call(C_textBounds, as.graphicsAnnot(x$label), x$x, x$y, : font family not found in Windows
 ## font database
 ## Warning in grid.Call(C_textBounds, as.graphicsAnnot(x$label), x$x, x$y, : font family not found in Windows
@@ -170,72 +177,68 @@ Figure 1.1: Densité de la population lavalloise par km², 2021
 ## font database
 ## Warning in grid.Call.graphics(C_text, as.graphicsAnnot(x$label), x$x, x$y, : font family not found in Windows
 ## font database</code></pre>
-<div class="figure" style="text-align: center"><span style="display:block;" id="fig:agePyarmid"></span>
-<img src="_main_files/figure-html/agePyarmid-1.png" alt="Répartition de la population par âge et par sexe, Laval et Ensemble du Québec, 2021" width="672" />
+<div class="figure" style="text-align: center"><span style="display:block;" id="fig:mixiteSocialeFacet"></span>
+<img src="_main_files/figure-html/mixiteSocialeFacet-1.png" alt="Mixité sociale à Laval," width="672" />
 <p class="caption">
-Figure 1.2: Répartition de la population par âge et par sexe, Laval et Ensemble du Québec, 2021
+Figure 3.2: Mixité sociale à Laval,
 </p>
 </div>
-<p>Laval a une population diversifiée sur le plan ethnique et culturel, et l’une des façons de mesurer cette diversité est l’origine ethnique des résidents.</p>
-<p>Définition: Origine ethnique
-- <em>L’origine ethnique d’une personne fait référence aux origines ethniques ou culturelles de ses ancêtres. Un ancêtre est souvent plus éloigné qu’un grand-parent.</em>
-- <em>Une personne peut déclarer plus d’une origine ethnique ou culturelle.</em><a href="#fn2" class="footnote-ref" id="fnref2"><sup>2</sup></a></p>
-<p>En 2021, plus du tiers de la population lavalloise (37 %) a déclaré être d’origine ethnique ou culturelle européenne, suivi par 28,6 % d’origine nord-américaine, 18,3 % asiatique, 10,7 % africaine, 10,6 % caribéenne ou d’Amérique centrale et du Sud, et 7,2 % d’origine océanique ou d’autres réponses.</p>
-</div>
-<div id="croissance-de-la-population" class="section level2 hasAnchor" number="1.2">
-<h2><span class="header-section-number">1.2</span> Croissance de la population<a href="la-démographie-de-laval.html#croissance-de-la-population" class="anchor-section" aria-label="Anchor link to header"></a></h2>
-<p>En 1966, la population de Laval était légèrement inférieure à 200 000 habitant·e·s. Lors du dernier recensement (2021), la Ville de Laval comptait 438 400 résident·e·s, ce qui, entre les deux derniers recensements (2016-2021), représente une augmentation de 3,6 %, un taux de croissance inférieur à celui de l’ensemble du Québec (4,1 %). La croissance a surtout été observée dans les secteurs du centre et du sud de la ville, et est principalement due à l’augmentation rapide de l’immigration. Le graphique suivant (<a href="la-démographie-de-laval.html#fig:popProj">1.3</a>) présente l’évolution de la population lavalloise depuis 1966, ainsi que la population projetée d’ici 2041. D’ici 2041, la population est estimée à un peu moins de 500 000 habitant·e·s</p>
-<pre><code>## Warning in grid.Call(C_textBounds, as.graphicsAnnot(x$label), x$x, x$y, : font family not found in Windows
-## font database
-## Warning in grid.Call(C_textBounds, as.graphicsAnnot(x$label), x$x, x$y, : font family not found in Windows
-## font database
-## Warning in grid.Call(C_textBounds, as.graphicsAnnot(x$label), x$x, x$y, : font family not found in Windows
-## font database</code></pre>
-<pre><code>## Warning in grid.Call.graphics(C_text, as.graphicsAnnot(x$label), x$x, x$y, : font family not found in Windows
-## font database
-## Warning in grid.Call.graphics(C_text, as.graphicsAnnot(x$label), x$x, x$y, : font family not found in Windows
-## font database
-## Warning in grid.Call.graphics(C_text, as.graphicsAnnot(x$label), x$x, x$y, : font family not found in Windows
-## font database
-## Warning in grid.Call.graphics(C_text, as.graphicsAnnot(x$label), x$x, x$y, : font family not found in Windows
-## font database</code></pre>
-<div class="figure" style="text-align: center"><span style="display:block;" id="fig:popProj"></span>
-<img src="_main_files/figure-html/popProj-1.png" alt="Évolution de la population de Laval 1966-2041" width="672" />
-<p class="caption">
-Figure 1.3: Évolution de la population de Laval 1966-2041
-</p>
-</div>
-<p>MISSING SOURCES</p>
-<p>En 2023, il y a eu 3 810 naissances à Laval, ce qui est légèrement inférieur à la moyenne annuelle de 3 990 au cours des cinq dernières années (2019-2023). Il s’agit en fait du nombre de naissances annuelles le plus bas depuis 2005. De plus, même si le graphique montre des fluctuations avec des périodes de hausse d’une année sur l’autre, la tendance générale depuis 2010 est à la baisse<a href="#fn3" class="footnote-ref" id="fnref3"><sup>3</sup></a>.</p>
-<pre><code>## Warning in grid.Call(C_textBounds, as.graphicsAnnot(x$label), x$x, x$y, : font family not found in Windows
-## font database
-## Warning in grid.Call(C_textBounds, as.graphicsAnnot(x$label), x$x, x$y, : font family not found in Windows
-## font database</code></pre>
-<pre><code>## Warning in grid.Call.graphics(C_text, as.graphicsAnnot(x$label), x$x, x$y, : font family not found in Windows
-## font database
-## Warning in grid.Call.graphics(C_text, as.graphicsAnnot(x$label), x$x, x$y, : font family not found in Windows
-## font database
-## Warning in grid.Call.graphics(C_text, as.graphicsAnnot(x$label), x$x, x$y, : font family not found in Windows
-## font database</code></pre>
-<div class="figure" style="text-align: center"><span style="display:block;" id="fig:birthsGraph"></span>
-<img src="_main_files/figure-html/birthsGraph-1.png" alt="Évolution des naissances annuelles à Laval 1986-2023" width="672" />
-<p class="caption">
-Figure 1.4: Évolution des naissances annuelles à Laval 1986-2023
-</p>
-</div>
-<p>D’après les projections démographiques de l’Institut de la statistique du Québec (2022), le nombre de naissances annuelles devrait atteindre environ 4 380 d’ici 2041. En 2020, près de la moitié (44,2 %) des nouveau-nés lavallois étaient nées dans les secteurs 3 (Chomedey) et 2 (Pont-Viau, Renaud-Coursol et Laval-des-Rapides), chacun représentant 22,1 % des naissances. Parmi les 3 976 naissances de cette année-là, un peu plus de la moitié (55,5 %) ont eu lieu sur le territoire de la ville de Laval<a href="#fn4" class="footnote-ref" id="fnref4"><sup>4</sup></a>.</p>
-<p>Plus de la moitié des nouveau-nés lavallois (58,5 %) en 2020 avaient au moins un parent né à l’étranger, en hausse par rapport à 2016 (54,2 %). La proportion de nouveau-nés avec deux parents immigrant·e·s a également augmenté, passant de 36,2 % en 2016 à 39,6 % en 2020. En revanche, la proportion de nouveau-nés ayant deux parents canadiens a diminué, passant de 46,9 % en 2016 à 39,2 % en 2020<a href="#fn5" class="footnote-ref" id="fnref5"><sup>5</sup></a>.</p>
 
 </div>
 </div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 <div class="footnotes">
 <hr />
-<ol start="1">
-<li id="fn1"><p>Institut de la statistique du Québec. (2024). Projections de population: Régions administratives et régions métropolitaines (RMR). Récupéré de <a href="https://statistique.quebec.ca/fr/document/projections-de-population-regions-administratives-et-regions-metropolitaines-rmr" class="uri">https://statistique.quebec.ca/fr/document/projections-de-population-regions-administratives-et-regions-metropolitaines-rmr</a><a href="la-démographie-de-laval.html#fnref1" class="footnote-back">↩︎</a></p></li>
-<li id="fn2"><p>Statistique Canada. (2024). Origine ethnique ou culturelle de la personne (variable). Récupéré de <a href="https://www23.statcan.gc.ca/imdb/p3Var_f.pl?Function=DEC&amp;Id=1219467" class="uri">https://www23.statcan.gc.ca/imdb/p3Var_f.pl?Function=DEC&amp;Id=1219467</a><a href="la-démographie-de-laval.html#fnref2" class="footnote-back">↩︎</a></p></li>
-<li id="fn3"><p>Institut de la statistique du Québec. (2024). Naissances, décès, accroissement naturel et mariages par région administrative, Québec. Récupéré de <a href="https://statistique.quebec.ca/fr/document/naissances-regions-administratives/tableau/naissances-deces-accroissement-naturel-mariages-par-region-administrative-quebec#tri_phe=10&amp;tri_ra=13" class="uri">https://statistique.quebec.ca/fr/document/naissances-regions-administratives/tableau/naissances-deces-accroissement-naturel-mariages-par-region-administrative-quebec#tri_phe=10&amp;tri_ra=13</a><a href="la-démographie-de-laval.html#fnref3" class="footnote-back">↩︎</a></p></li>
-<li id="fn4"><p>Institut de la statistique du Québec. (2024). Naissances, décès, accroissement naturel et mariages par région administrative, Québec. Récupéré de <a href="https://statistique.quebec.ca/fr/document/naissances-regions-administratives/tableau/naissances-deces-accroissement-naturel-mariages-par-region-administrative-quebec#tri_phe=10&amp;tri_ra=13" class="uri">https://statistique.quebec.ca/fr/document/naissances-regions-administratives/tableau/naissances-deces-accroissement-naturel-mariages-par-region-administrative-quebec#tri_phe=10&amp;tri_ra=13</a><a href="la-démographie-de-laval.html#fnref4" class="footnote-back">↩︎</a></p></li>
-<li id="fn5"><p>Institut de la statistique du Québec. (2024). Naissances, décès, accroissement naturel et mariages par région administrative, Québec. Récupéré de <a href="https://statistique.quebec.ca/fr/document/naissances-regions-administratives/tableau/naissances-deces-accroissement-naturel-mariages-par-region-administrative-quebec#tri_phe=10&amp;tri_ra=13" class="uri">https://statistique.quebec.ca/fr/document/naissances-regions-administratives/tableau/naissances-deces-accroissement-naturel-mariages-par-region-administrative-quebec#tri_phe=10&amp;tri_ra=13</a><a href="la-démographie-de-laval.html#fnref5" class="footnote-back">↩︎</a></p></li>
+<ol start="44">
+<li id="fn44"><p>Collectivitesviables.org. (2024). Mixité sociale. Récupéré de <a href="https://collectivitesviables.org/sujets/mixite-sociale/" class="uri">https://collectivitesviables.org/sujets/mixite-sociale/</a><a href="axe-2---la-participation-sociale-et-le-vivre-ensemble.html#fnref44" class="footnote-back">↩︎</a></p></li>
 </ol>
 </div>
             </section>
@@ -243,8 +246,8 @@ Figure 1.4: Évolution des naissances annuelles à Laval 1986-2023
           </div>
         </div>
       </div>
+<a href="axe-1-les-conditions-de-vie-et-les-inégalités-sociales.html" class="navigation navigation-prev navigation-unique" aria-label="Previous page"><i class="fa fa-angle-left"></i></a>
 
-<a href="axe-1-les-conditions-de-vie-et-les-inégalités-sociales.html" class="navigation navigation-next navigation-unique" aria-label="Next page"><i class="fa fa-angle-right"></i></a>
     </div>
   </div>
 <script src="libs/gitbook-2.6.7/js/app.min.js"></script>
