@@ -9,7 +9,7 @@ output:
 
 ```{r setup_immigration, include=FALSE}
 library(gt)
-knitr::opts_chunk$set(echo = FALSE)
+knitr::opts_chunk$set(echo = FALSE, warning = FALSE)
 ```
 
 ```{r imm}

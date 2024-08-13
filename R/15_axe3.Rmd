@@ -12,7 +12,7 @@ library(knitr)
 library(gt)
 library(extrafont)
 loadfonts(device = "win")
-knitr::opts_chunk$set(echo = FALSE)
+knitr::opts_chunk$set(echo = FALSE, warning = FALSE)
 ```
 
 # Axe 3: Le soutien aux communautés de proximité

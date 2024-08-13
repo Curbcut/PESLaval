@@ -1,7 +1,5 @@
-#bridget working:
 ### DEMOGRAPHY - POPULATION AND POPULATION DENSITY #############################
 source("R/01_startup.R")
-library(ggplot2)
 #geom_context <- qs::qread("data/geom_context/geom_context.qs")
 
 # Population count --------------------------------------------------------
@@ -351,7 +349,8 @@ naissances_laval_moyenne_5 <-
 
 laval_births_graph <- 
   ggplot(Laval_Births) + 
-  geom_line(aes(x = year, y = naissances)) + 
+  geom_line(aes(x = year, y = naissances), color = color_theme("browndemographics"),
+            linewidth = 2) + 
   scale_y_continuous(labels = convert_number, limits = c(2500,4800)) +
   gg_cc_theme_no_sf +
   xlab("Année") +
