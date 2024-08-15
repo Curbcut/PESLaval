@@ -342,7 +342,7 @@ ggplot(data = combined_screentime, aes(x = Age, y = rev(value), fill = name)) +
   gg_cc_theme_no_sf
 
 
-ggplot2::ggsave(filename = here::here("output/axe1/children/children_internet_usage.png"), 
+ggplot2::ggsave(filename = here::here("output/axe1/children/children_internet_usage.pdf"), 
                 plot = children_internet_usage, width = 3, height = 6, bg = "transparent")
 
 # Kindergarten children vulnerability --------------------------------------------
@@ -381,12 +381,12 @@ ggplot(data = combined_child_vulnerability, aes(x = name, y = value, fill = Regi
   gg_cc_theme_no_sf +
   geom_text(aes(label = convert_pct(value / 100)),
             position = position_dodge(width = 0.9),
-            vjust = 2, color = "white", size = 3) +
+            vjust = 2, color = "white") +
   scale_x_discrete(labels = function(x) str_wrap(x, width = 16)) +
-  scale_fill_manual(values = c("Laval" = "#A3B0D1", "Québec" = "#73AD80")) +
+  scale_fill_manual(values = c("Laval" = color_theme("greenecology"), "Québec" = color_theme("blueexplorer"))) +
   theme(legend.title = element_blank())
 
-ggplot2::ggsave(filename = here::here("output/axe1/children/children_vulnerability_plot.png"), 
+ggplot2::ggsave(filename = here::here("output/axe1/children/children_vulnerability_plot.pdf"), 
                 plot = children_vulnerability_plot, width = 6, height = 3, bg = "transparent")
 
 # # Vulnerability over the years 

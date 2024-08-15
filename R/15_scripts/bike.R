@@ -92,8 +92,8 @@ bike_map <- ggplot(data = t) +
 
 bixi_stations_number <- convert_number(sum(bixi_sf_laval$number))
 # R Markdown --------------------------------------------------------------
-ggplot2::ggsave(filename = here::here("output/axe3/mobility/bike_map.png"), 
-                plot = bike_map, width = 8, height = 6)
+ggplot2::ggsave(filename = here::here("output/axe3/mobility/bike_map.pdf"), 
+                plot = bike_map, width = 7.5, height = 6)
 
 qs::qsavem(bike_map, bixi_stations_number,
            file = "data/axe3/bike.qsm")

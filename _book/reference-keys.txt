@@ -23,6 +23,10 @@ fig:childrenInt
 fig:emploiTaux
 fig:emploiChomage
 fig:emploiCatPro
+fig:educationIndice
+fig:educationGender
+fig:educationGeo
+fig:dropoutPlot
 fig:mixiteSociale
 fig:mixiteSocialeFacet
 la-démographie-de-laval
@@ -65,5 +69,12 @@ lévolution-de-la-population-active
 les-besoins-en-programmes-dassistance-sociale
 catégories-professionnelles
 lieux-de-travail-et-déplacements
+scolarité
+évolution-des-inscriptions-scolaires
+niveau-de-scolarité
+évolution-du-niveau-de-scolarité
+niveau-de-scolarité-selon-le-genre
+répartition-géographique-des-niveaux-de-scolarité
+sorties-sans-diplôme-ni-qualification
 axe-2---la-participation-sociale-et-le-vivre-ensemble
 mixité-sociale

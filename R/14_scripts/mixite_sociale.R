@@ -209,7 +209,7 @@ mixite_sociale <-
   theme(legend.spacing.x = unit(2, 'cm'),
         legend.spacing.y = unit(1, 'cm'))
 
-ggplot2::ggsave(filename = here::here("output/axe2/mixitecomposite.png"), 
+ggplot2::ggsave(filename = here::here("output/axe2/mixitecomposite.pdf"), 
                 plot = mixite_sociale, width = 6, height = 4)
 
 
@@ -266,7 +266,7 @@ mixite_sociale_facet <-
   theme(legend.spacing.x = unit(2, 'cm'),
         legend.spacing.y = unit(1, 'cm'))
 
-ggplot2::ggsave(filename = here::here("output/axe2/mixitefacet.png"), 
+ggplot2::ggsave(filename = here::here("output/axe2/mixitefacet.pdf"), 
                 plot = mixite_sociale_facet, width = 6, height = 4)
 
 

@@ -805,7 +805,7 @@ bi_map_create <- function(basedata, bi_variable, titletext){
     bi_scale_fill(pal = "DkCyan2", dim = 3, flip_axes = TRUE) +
     labs(title = titletext) +
     bi_theme() +
-    theme(plot.title = element_text(hjust = 0.5, size = 14),
+    theme(
           axis.text = element_blank(), axis.title = element_blank(),
           axis.ticks = element_blank(), panel.grid = element_blank(),
           panel.background = element_rect(fill = "lightblue", color = NA)) +

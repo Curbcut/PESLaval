@@ -3,10 +3,15 @@
 library(tidyverse)
 library(cancensus)
 library(curbcut)
+library(extrafont)
+library(showtext)
 
-# loadfonts(device = "win")
+# font_import()
+# loadfonts(device = "win", quiet = TRUE)
 # windowsFonts(`KMR Apparat Regular`=windowsFont("KMR Apparat Regular"))
 # "KMR Apparat Regular" %in% names(windowsFonts())
+font_add(family = "KMR Apparat Regular", regular = "data/fonts/KMR-Apparat-Regular.ttf")
+showtext_auto()
 
 source("R/utils/tt_fun.R")
 
@@ -38,14 +43,22 @@ tiles <- mapboxapi::get_static_tiles(location = lvlbbox,
                                      access_token = "pk.eyJ1IjoiY3VyYmN1dCIsImEiOiJjbGprYnVwOTQwaDAzM2xwaWdjbTB6bzdlIn0.Ks1cOI6v2i8jiIjk38s_kg",
                                      scaling_factor = "2x")
 
+# Indesign fontsize (points) to ggplot sizes (mm)
+indesign_fontsize <- 9
+ggplot_fontsize <- 0.35278 * indesign_fontsize
+indesign_title_fontsize <- 11
+ggplot_title_fontsize <- 0.35278 * indesign_title_fontsize
+
 gg_cc_tiles <- list(ggspatial::layer_spatial(tiles, alpha = 0.7))
 default_theme <- theme(legend.position = "bottom",
-                        legend.box = "horizontal",
-                        legend.title = element_text(size = 8, family="KMR Apparat Regular"),
-                        legend.text = element_text(size = 6, family="KMR Apparat Regular"),
-                        legend.title.align = 0.5,
-                        legend.text.align = 0.5,
-                        text=element_text(family="KMR Apparat Regular"))
+                       legend.box = "horizontal",
+                       legend.title = element_text(size = indesign_title_fontsize, 
+                                                   family="KMR Apparat Regular"),
+                       legend.text = element_text(size = indesign_fontsize, 
+                                                  family="KMR Apparat Regular"),
+                       legend.title.align = 0.5,
+                       legend.text.align = 0.5,
+                       text=element_text(size = indesign_fontsize, family="KMR Apparat Regular"))
 gg_cc_theme_no_sf <- list(
   theme_minimal(),
   default_theme

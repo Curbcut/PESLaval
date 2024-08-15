@@ -147,7 +147,7 @@ municipal_map <- ggplot() +
   theme(axis.line = element_blank(), axis.text = element_blank(),
         axis.title = element_blank(), axis.ticks = element_blank(),
         legend.position = "bottom", legend.box = "horizontal",
-        legend.title = element_text(hjust = 0.5, size = 9), legend.title.align = 0.5,
+        legend.title = element_text(hjust = 0.5), legend.title.align = 0.5,
         legend.text.align = 0.5, text=element_text(family="KMR Apparat Regular")) +
   guides(
     fill = guide_legend(order = 2, label.position = "bottom", title.position = "top"), 
@@ -357,8 +357,8 @@ municipal_pop_lowaccess <- municipal_breakdown |>
   pull(pop)
 
 # R Markdown --------------------------------------------------------------
-ggplot2::ggsave(filename = here::here("output/axe3/access/municipal_map.png"), 
-                plot = municipal_map, width = 8, height = 6)
+ggplot2::ggsave(filename = here::here("output/axe3/access/municipal_map.pdf"), 
+                plot = municipal_map, width = 7.5, height = 6)
 
 qs::qsavem(municipal_map, municipal_table, municipal_access, municipal_access_three,
            municipal_immigrant_ratio, municipal_population_ratio, municipal_lowincome_ratio,

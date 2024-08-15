@@ -1345,14 +1345,14 @@ ggplot(starts_ca_line, aes(x = Year, y = `Count`, group = `Intended Market`, col
   )
 
 # R Markdown --------------------------------------------------------------
-ggplot2::ggsave(filename = here::here("output/axe1/housing/proportion_graph.png"), 
-                plot = proportion_graph, width = 8, height = 6, bg = "transparent")
-ggplot2::ggsave(filename = here::here("output/axe1/housing/med_yoy_growth_graph.png"), 
-                plot = med_yoy_growth_graph, width = 8, height = 6, bg = "transparent")
-ggplot2::ggsave(filename = here::here("output/axe1/housing/med_rent_graph.png"), 
-                plot = med_rent_graph, width = 8, height = 6, bg = "transparent")
-ggplot2::ggsave(filename = here::here("output/axe1/housing/med_rent_map.png"), 
-                plot = med_rent_map, width = 8, height = 6, bg = "transparent")
+ggplot2::ggsave(filename = here::here("output/axe1/housing/proportion_graph.pdf"), 
+                plot = proportion_graph, width = 7.5, height = 6, bg = "transparent")
+ggplot2::ggsave(filename = here::here("output/axe1/housing/med_yoy_growth_graph.pdf"), 
+                plot = med_yoy_growth_graph, width = 7.5, height = 6, bg = "transparent")
+ggplot2::ggsave(filename = here::here("output/axe1/housing/med_rent_graph.pdf"), 
+                plot = med_rent_graph, width = 7.5, height = 6, bg = "transparent")
+ggplot2::ggsave(filename = here::here("output/axe1/housing/med_rent_map.pdf"), 
+                plot = med_rent_map, width = 7.5, height = 6, bg = "transparent")
 
 qs::qsavem(proportion_graph, med_yoy_growth_graph, med_rent_graph, med_rent_map,
            file = "D://McGill/can_cache/data/housing.qsm")

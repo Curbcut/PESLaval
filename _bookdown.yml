@@ -7,5 +7,6 @@ rmd_files:
   - R/13_3_family.Rmd
   - R/13_4_children.Rmd
   - R/13_5_employment.Rmd
+  - R/13_6_education.Rmd
   - R/14_axe2.Rmd
 output_dir: "_book"

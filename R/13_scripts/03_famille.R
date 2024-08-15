@@ -211,12 +211,12 @@ family_size_graph <-
                                 "4" = "#E08565",
                                 "5+" = "#CD718C"),
                      name = "Membres") +
-  scale_y_continuous(labels = scales::percent) +
+  scale_y_continuous(labels = convert_pct) +
   scale_x_continuous(breaks = c(2001, unique(laval_family_size_long$year))) +
   gg_cc_theme_no_sf +
   theme(axis.title.x = element_blank())
 
-ggplot2::ggsave(filename = here::here("output/axe1/family/family_size_graph.png"), 
+ggplot2::ggsave(filename = here::here("output/axe1/family/family_size_graph.pdf"), 
                 plot = family_size_graph, width = 4, height = 3, bg = "transparent")
 
 # Couples avec enfants
@@ -487,14 +487,14 @@ famille_structure_plot <-
                                "sans_enfants" = "Sans enfants"),
                     values = c("avec_enfants" = "#E08565", 
                                "sans_enfants" = "#A3B0D1")) + # Adjust colors
-  scale_y_continuous(labels = scales::percent_format(accuracy = 1)) + # Format y-axis labels as percentages
+  scale_y_continuous(labels = convert_pct) + # Format y-axis labels as percentages
   gg_cc_theme_no_sf +
   theme(
     axis.text.x = element_text(angle = 20, hjust = 1),
   ) +
   facet_wrap(~ region, scales = "fixed")
 
-ggplot2::ggsave(filename = here::here("output/axe1/family/famille_structure_plot.png"), 
+ggplot2::ggsave(filename = here::here("output/axe1/family/famille_structure_plot.pdf"), 
                 plot = famille_structure_plot, width = 6, height = 4, bg = "transparent")
 
 
@@ -622,16 +622,16 @@ household_comp_graph <-
             vjust = 2.5,
             size = 4, 
             color = "white") +
-  scale_y_continuous(labels = scales::percent) +
+  scale_y_continuous(labels = convert_pct) +
   scale_x_discrete(labels = c("une_personne" = "1 personne", "deux_personnes" = "2 personnes",
                               "trois_personnes" = "3 personnes", "quatre_personnes_plus" = "4+ personnes")) +
-  scale_fill_manual(values = c("Laval" = "#A3B0D1", "Québec" = "#73AD80")) +
+  scale_fill_manual(values = c("Laval" = color_theme("greenecology"), "Québec" = color_theme("blueexplorer"))) +
   gg_cc_theme_no_sf +
   theme(plot.title = element_blank(), 
         axis.title.x = element_blank(),
         legend.title = element_blank())
 
-ggplot2::ggsave(filename = here::here("output/axe1/family/household_comp_graph.png"), 
+ggplot2::ggsave(filename = here::here("output/axe1/family/household_comp_graph.pdf"), 
                 plot = household_comp_graph, width = 6, height = 4, bg = "transparent")
 
 # Comparison over time
@@ -780,12 +780,12 @@ household_evol_graph <-
                                 "4+" = "#CD718C"),
                      name = "Personnes") +
   labs(y = "Proportion de ménages") +
-  scale_y_continuous(labels = scales::percent) +
+  scale_y_continuous(labels = convert_pct) +
   scale_x_continuous(breaks = unique(long_data$year)) +
   gg_cc_theme_no_sf +
   theme(axis.title.x = element_blank())
 
-ggplot2::ggsave(filename = here::here("output/axe1/family/household_evol_graph.png"), 
+ggplot2::ggsave(filename = here::here("output/axe1/family/household_evol_graph.pdf"), 
                 plot = household_evol_graph, width = 4, height = 3, bg = "transparent")
 
 

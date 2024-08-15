@@ -374,8 +374,8 @@ zero_access <- convert_number(children_cant_reach)
 poor_no_access <- convert_number(combien_pas_peu)
 good_access <- convert_number(combien_haut)
 # R Markdown --------------------------------------------------------------
-#ggplot2::ggsave(filename = here::here("output/axe3/mobility/bike_map.png"), 
-                #plot = bike_map, width = 8, height = 6)
+#ggplot2::ggsave(filename = here::here("output/axe3/mobility/bike_map.pdf"), 
+                #plot = bike_map, width = 7.5, height = 6)
 
 qs::qsavem(kinder_children, kinder_ratio, daycare_map, child_map, daycare_spots,
            daycare_total, zero_access, poor_no_access, good_access,

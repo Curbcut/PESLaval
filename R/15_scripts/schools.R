@@ -607,7 +607,7 @@ pri_notimm_low_child_map <- ggplot() +
           size = 0.1, show.legend = FALSE) +
   bi_scale_fill(pal = "DkCyan2", dim = 3, flip_axes = TRUE) +
   bi_theme() +
-  theme(plot.title = element_text(hjust = 0.5, size = 14),
+  theme(
         axis.text = element_blank(), axis.title = element_blank(),
         axis.ticks = element_blank(), panel.grid = element_blank(),
         panel.background = element_rect(fill = "#525252", color = NA)) +
@@ -637,7 +637,7 @@ pri_imm_low_child_map <- ggplot() +
           size = 0.1, show.legend = FALSE) +
   bi_scale_fill(pal = "DkCyan2", dim = 3, flip_axes = TRUE) +
   bi_theme() +
-  theme(plot.title = element_text(hjust = 0.5, size = 14),
+  theme(
         axis.text = element_blank(), axis.title = element_blank(),
         axis.ticks = element_blank(), panel.grid = element_blank(),
         panel.background = element_rect(fill = "#525252", color = NA)) +
@@ -667,7 +667,7 @@ pri_imm_notlow_child_map <- ggplot() +
           size = 0.1, show.legend = FALSE) +
   bi_scale_fill(pal = "DkCyan2", dim = 3, flip_axes = TRUE) +
   bi_theme() +
-  theme(plot.title = element_text(hjust = 0.5, size = 14),
+  theme(
         axis.text = element_blank(), axis.title = element_blank(),
         axis.ticks = element_blank(), panel.grid = element_blank(),
         panel.background = element_rect(fill = "#525252", color = NA)) +
@@ -697,7 +697,7 @@ pri_notimm_notlow_child_map <- ggplot() +
           size = 0.1, show.legend = FALSE) +
   bi_scale_fill(pal = "DkCyan2", dim = 3, flip_axes = TRUE) +
   bi_theme() +
-  theme(plot.title = element_text(hjust = 0.5, size = 14),
+  theme(
         axis.text = element_blank(), axis.title = element_blank(),
         axis.ticks = element_blank(), panel.grid = element_blank(),
         panel.background = element_rect(fill = "#525252", color = NA)) +
@@ -727,7 +727,7 @@ sec_notimm_low_child_map <- ggplot() +
           size = 0.1, show.legend = FALSE) +
   bi_scale_fill(pal = "DkCyan2", dim = 3, flip_axes = TRUE) +
   bi_theme() +
-  theme(plot.title = element_text(hjust = 0.5, size = 14),
+  theme(
         axis.text = element_blank(), axis.title = element_blank(),
         axis.ticks = element_blank(), panel.grid = element_blank(),
         panel.background = element_rect(fill = "#525252", color = NA)) +
@@ -757,7 +757,7 @@ sec_imm_low_child_map <- ggplot() +
           size = 0.1, show.legend = FALSE) +
   bi_scale_fill(pal = "DkCyan2", dim = 3, flip_axes = TRUE) +
   bi_theme() +
-  theme(plot.title = element_text(hjust = 0.5, size = 14),
+  theme(
         axis.text = element_blank(), axis.title = element_blank(),
         axis.ticks = element_blank(), panel.grid = element_blank(),
         panel.background = element_rect(fill = "#525252", color = NA)) +
@@ -787,7 +787,7 @@ sec_imm_notlow_child_map <- ggplot() +
           size = 0.1, show.legend = FALSE) +
   bi_scale_fill(pal = "DkCyan2", dim = 3, flip_axes = TRUE) +
   bi_theme() +
-  theme(plot.title = element_text(hjust = 0.5, size = 14),
+  theme(
         axis.text = element_blank(), axis.title = element_blank(),
         axis.ticks = element_blank(), panel.grid = element_blank(),
         panel.background = element_rect(fill = "#525252", color = NA)) +
@@ -817,7 +817,7 @@ sec_notimm_notlow_child_map <- ggplot() +
           size = 0.1, show.legend = FALSE) +
   bi_scale_fill(pal = "DkCyan2", dim = 3, flip_axes = TRUE) +
   bi_theme() +
-  theme(plot.title = element_text(hjust = 0.5, size = 14),
+  theme(
         axis.text = element_blank(), axis.title = element_blank(),
         axis.ticks = element_blank(), panel.grid = element_blank(),
         panel.background = element_rect(fill = "#525252", color = NA)) +
@@ -1017,12 +1017,12 @@ school_table <- read.csv("data/school.csv") |>
   )
 
 # R Markdown --------------------------------------------------------------
-ggplot2::ggsave(filename = here::here("output/axe3/access/primary_school_map.png"), 
-                plot = primary_school_map, width = 8, height = 6)
-ggplot2::ggsave(filename = here::here("output/axe3/access/secondary_school_map.png"), 
-                plot = secondary_school_map, width = 8, height = 6)
-ggplot2::ggsave(filename = here::here("output/axe3/access/school_table.png"), 
-                plot = school_table, width = 8, height = 3)
+ggplot2::ggsave(filename = here::here("output/axe3/access/primary_school_map.pdf"), 
+                plot = primary_school_map, width = 7.5, height = 6)
+ggplot2::ggsave(filename = here::here("output/axe3/access/secondary_school_map.pdf"), 
+                plot = secondary_school_map, width = 7.5, height = 6)
+ggplot2::ggsave(filename = here::here("output/axe3/access/school_table.pdf"), 
+                plot = school_table, width = 7.5, height = 3)
 
 qs::qsavem(primary_school_map, secondary_school_map, primary_school_total, secondary_school_total,
            primary_franco, secondary_franco, primary_access, primary_fr_access,

@@ -239,8 +239,8 @@ low_income_access <- merge(DB_lowincome,
   pull(pop)
   
 # R Markdowbn -------------------------------------------------------------
-ggplot2::ggsave(filename = here::here("output/axe3/parks_map.png"), 
-                plot = parks_map, width = 8, height = 6)
+ggplot2::ggsave(filename = here::here("output/axe3/parks_map.pdf"), 
+                plot = parks_map, width = 7.5, height = 6)
 
 qs::qsavem(parks_map, parks_total, only_parks, only_berge, park_access, low_income_access,
            park_table,

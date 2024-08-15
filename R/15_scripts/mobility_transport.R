@@ -835,14 +835,14 @@ ggplot(data = laval_accessibility) +
 test <- filter(laval_accessibility, laval_accessibility$stop_count == 0)
 
 # R Markdown --------------------------------------------------------------
-ggplot2::ggsave(filename = here::here("output/axe3/mobility/bus_stops_map.png"), 
-                plot = bus_stops_map, width = 8, height = 6)
-ggplot2::ggsave(filename = here::here("output/axe3/mobility/bus_lines_map.png"), 
-                plot = bus_lines_map, width = 8, height = 6)
-ggplot2::ggsave(filename = here::here("output/axe3/mobility/bus_trips_map.png"), 
-                plot = bus_trips_map, width = 8, height = 6)
-ggplot2::ggsave(filename = here::here("output/axe3/mobility/transit_usage_map.png"), 
-                plot = transit_usage_map, width = 8, height = 6)
+ggplot2::ggsave(filename = here::here("output/axe3/mobility/bus_stops_map.pdf"), 
+                plot = bus_stops_map, width = 7.5, height = 6)
+ggplot2::ggsave(filename = here::here("output/axe3/mobility/bus_lines_map.pdf"), 
+                plot = bus_lines_map, width = 7.5, height = 6)
+ggplot2::ggsave(filename = here::here("output/axe3/mobility/bus_trips_map.pdf"), 
+                plot = bus_trips_map, width = 7.5, height = 6)
+ggplot2::ggsave(filename = here::here("output/axe3/mobility/transit_usage_map.pdf"), 
+                plot = transit_usage_map, width = 7.5, height = 6)
 
 qs::qsavem(bus_stops_map, bus_stops_laval, bus_stops_cleaned, no_bus_stops, one_two_bus_stops,
            bus_lines_map, no_bus_lines, one_two_bus_lines, one_two_bus_lines_prop,

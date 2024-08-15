@@ -177,8 +177,8 @@ employment_rate_graph <-
   theme(legend.title = element_blank()) +
   ylim(c(55,70))
 
-ggplot2::ggsave(filename = here::here("output/axe1/employment/employment_rate_graph.png"), 
-                plot = employment_rate_graph, width = 8, height = 6)
+ggplot2::ggsave(filename = here::here("output/axe1/employment/employment_rate_graph.pdf"), 
+                plot = employment_rate_graph, width = 7.5, height = 6)
 
 # Working During Reference Year -------------------------------------------
 #Vectors for 2021 working during reference year, for total count, did not work, worked,
@@ -258,8 +258,8 @@ unemployment_rate_graph <-
   theme(legend.title = element_blank()) +
   ylim(c(0,10))
 
-ggplot2::ggsave(filename = here::here("output/axe1/employment/unemployment_rate_graph.png"), 
-                plot = unemployment_rate_graph, width = 8, height = 6)
+ggplot2::ggsave(filename = here::here("output/axe1/employment/unemployment_rate_graph.pdf"), 
+                plot = unemployment_rate_graph, width = 7.5, height = 6)
 
 unemployment_rate_nb <- convert_pct(unemployment_rate$Value[unemployment_rate$Geography == "Laval" & 
                                                               unemployment_rate$Year == 2021] / 100)
@@ -312,7 +312,7 @@ ggplot(chomage, aes(x = date, y = as.numeric(tauxchomage))) +
   labs(x = NULL, y = "Taux de chômage (%)") +
   gg_cc_theme_no_sf
 
-ggplot2::ggsave(filename = here::here("output/axe1/employment/unemployment_rate_graph_isq.png"), 
+ggplot2::ggsave(filename = here::here("output/axe1/employment/unemployment_rate_graph_isq.pdf"), 
                 plot = unemployment_rate_graph_isq, width = 4, height = 3)
 
 highest_unemployment_rate_2020 <- convert_pct(max(chomage$tauxchomage) / 100)
@@ -508,7 +508,7 @@ emploi_catpro <-
   scale_y_continuous(labels = function(x) format(x, big.mark = " ", scientific = FALSE)) +
   gg_cc_theme_no_sf
 
-ggplot2::ggsave(filename = here::here("output/axe1/employment/emploi_catpro.png"), 
+ggplot2::ggsave(filename = here::here("output/axe1/employment/emploi_catpro.pdf"), 
                 plot = emploi_catpro, width = 6, height = 3)
 
 

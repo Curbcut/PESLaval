@@ -94,7 +94,7 @@ pop_density_plot <-
 
 
 # Save the plot so it's in a good quality
-ggplot2::ggsave(filename = here::here("output/0_demography/CT_pop_density.png"), 
+ggplot2::ggsave(filename = here::here("output/0_demography/CT_pop_density.pdf"), 
                 plot = pop_density_plot, width = 6, height = 4)
 
 
@@ -223,7 +223,7 @@ age_pyramid <- pop_dist |>
   geom_text(aes(label = ifelse(abs(pct) > 0.06, "*", "")), 
             size = 6)
 
-ggplot2::ggsave(filename = here::here("output/0_demography/age_pyramid.png"), 
+ggplot2::ggsave(filename = here::here("output/0_demography/age_pyramid.pdf"), 
                 plot = age_pyramid, width = 6, height = 4)
 
 
@@ -307,18 +307,20 @@ solid_data <- pop_evolution_tidy %>% filter(PointType == "Valeur du recensement 
 dotted_data <- pop_evolution_tidy %>% filter(PointType == "Projection (ISQ)" | row_number() == n() - 4)
 
 # create the visual 
-pop_et_proj <- 
+pop_et_proj <-
   ggplot(data = pop_evolution_tidy, aes(x = Année, y = Population)) +
-  geom_point(aes(color = PointType), size = 3) +
-  geom_line(data = solid_data, aes(x = Année, y = Population, group = 1), linetype = "solid") +
-  geom_line(data = dotted_data, aes(x = Année, y = Population, group = 1), linetype = "dotted") +
+  geom_point(aes(color = PointType), size = 5) +
+  geom_line(data = solid_data, aes(x = Année, y = Population, group = 1), linetype = "solid",
+            linewidth = 2) +
+  geom_line(data = dotted_data, aes(x = Année, y = Population, group = 1), linetype = "dotted",
+            linewidth = 1.5) +
   ylim(0, max(pop_evolution_tidy$Population)) +
   scale_color_manual(values = c("Projection (ISQ)" = color_theme("pinkhealth"), "Valeur du recensement canadien" = "black")) +
   labs(color = element_blank(), title = element_blank()) + 
   scale_y_continuous(labels = convert_number, limits = c(0,500000)) +
   gg_cc_theme_no_sf
 
-ggplot2::ggsave(filename = here::here("output/0_demography/pop_et_proj.png"), 
+ggplot2::ggsave(filename = here::here("output/0_demography/pop_et_proj.pdf"), 
                 plot = pop_et_proj, width = 7, height = 3)
 
 
@@ -356,7 +358,7 @@ laval_births_graph <-
   xlab("Année") +
   ylab("Naissances")
 
-ggplot2::ggsave(filename = here::here("output/0_demography/laval_births_graph.png"), 
+ggplot2::ggsave(filename = here::here("output/0_demography/laval_births_graph.pdf"), 
                 plot = laval_births_graph, width = 4, height = 3)
 
 qs::qsavem(laval_population_ISQ_pretty, laval_size_pretty, density_pretty,

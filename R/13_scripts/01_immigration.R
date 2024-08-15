@@ -370,10 +370,10 @@ combined_decade_data <- bind_rows(immigrant_decade_percent, immigrant_decade_que
 period_imm_graph <- ggplot(data = combined_decade_data, aes(x = name, y = value, fill = Region)) +
   geom_bar(stat = "identity", position = position_dodge()) +
   geom_text(aes(label = percentage), position = position_dodge(width = 0.9),
-            vjust = 2.5, size = 4, color = "white") +
+            vjust = 2.5, color = "white") +
   labs(x = "Decade", y = "Proportion de la population", title = "Period of Immigration: Laval vs. Quebec") +
-  scale_fill_manual(values = c("Laval" = "#A3B0D1", "Québec" = "#73AD80")) +
-  scale_y_continuous(labels = function(x) paste0(scales::percent(x, accuracy = 1), " ")) +
+  scale_fill_manual(values = c("Laval" = color_theme("greenecology"), "Québec" = color_theme("blueexplorer"))) +
+  scale_y_continuous(labels = convert_pct) +
   gg_cc_theme_no_sf +
   theme(legend.position = "bottom", plot.title = element_blank(), axis.title.x = element_blank(),
         legend.title = element_blank(), text = element_text(family = "KMR Apparat Regular"))
@@ -425,9 +425,9 @@ admission_cat_combined <- bind_rows(immigrant_admissioncat_percent, immigrant_ad
 ad_cat_graph <- ggplot(data = admission_cat_combined, aes(x = Type, y = Percent, fill = Region)) +
   geom_col(position = "dodge") +
   geom_text(aes(label = perc), position = position_dodge(width = 0.9),
-            vjust = -0.5, size = 4, color = "black") +
-  scale_y_continuous(labels = function(x) paste0(scales::percent(x, accuracy = 1), " ")) +
-  scale_fill_manual(values = c("Laval" = "#A3B0D1", "Québec" = "#73AD80")) +
+            vjust = -0.5, color = "white") +
+  scale_y_continuous(labels = convert_pct) +
+  scale_fill_manual(values = c("Laval" = color_theme("greenecology"), "Québec" = color_theme("blueexplorer"))) +
   labs(y = "Proportion d'immigrants", x = "Catégorie d'admission") +
   gg_cc_theme_no_sf +
   theme(legend.position = "bottom", plot.title = element_blank(),
@@ -535,7 +535,7 @@ imm_age_sex_prop_graph <- ggplot(data = age_21, aes(x = gender, y = prop, fill =
 imm_age_graph <- ggplot(data = age_21_rev, aes(x = Age, y = count, fill = gender)) +
   geom_bar(stat = "identity", position = "dodge") +
   geom_text(aes(label = percentage), position = position_dodge(width = 0.9),
-            vjust = 2.5, size = 4, color = "white") +
+            vjust = 2.5, color = "white") +
   scale_fill_manual(values = c("Homme" = "#A3B0D1", "Femme" = "#CD718C")) +
   scale_y_continuous(labels = scales::label_number(big.mark = " ")) +
   labs(x = "Gender",
@@ -638,7 +638,7 @@ imm_origin <- bind_rows(imm_origin_recent, imm_origin_total) |>
 imm_origin_graph <- ggplot(data = imm_origin, aes(x = origin, y = proportion, fill = Type)) +
   geom_bar(stat = "identity", position = position_dodge()) +
   geom_text(aes(label = perc), position = position_dodge(width = 0.9),
-            vjust = -0.5, size = 4, color = "black") +
+            vjust = -0.5, color = "white") +
   scale_y_continuous(labels = convert_pct) +
   scale_fill_manual(values = c("Total" = "#A3B0D1", "Récent" = "#CD718C")) +
   labs(x = "Lieu de naissance",
@@ -772,7 +772,7 @@ vis_min <- get_census(dataset = "CA21",
 vis_min_graph <- ggplot(data = vis_min, aes(x = type, y = count, fill = type)) +
   geom_bar(stat = "identity", position = position_dodge(), fill = "#A3B0D1") +
   geom_text(aes(label = perc), position = position_dodge(width = 0.9),
-            vjust = -0.5, size = 4, color = "black") +
+            vjust = -0.5, color = "white") +
   scale_y_continuous(labels = convert_number) +
   labs(x = "Lieu de naissance",
        y = "Personnes") +
@@ -854,28 +854,28 @@ qc_islam <- get_census(dataset = "CA21",
   pull(number)
 
 # R Markdown --------------------------------------------------------------
-ggplot2::ggsave(filename = here::here("output/axe1/immigration/imm_evol_graph.png"), 
-                plot = imm_evol_graph, width = 8, height = 6)
-ggplot2::ggsave(filename = here::here("output/axe1/immigration/imm_prop_map.png"), 
-                plot = imm_prop_map, width = 8, height = 6)
-ggplot2::ggsave(filename = here::here("output/axe1/immigration/recimm_prop_map.png"), 
-                plot = recimm_prop_map, width = 8, height = 6)
-ggplot2::ggsave(filename = here::here("output/axe1/immigration/period_imm_graph.png"), 
-                plot = period_imm_graph, width = 8, height = 6)
-ggplot2::ggsave(filename = here::here("output/axe1/immigration/ad_cat_graph.png"), 
-                plot = ad_cat_graph, width = 8, height = 6)
-ggplot2::ggsave(filename = here::here("output/axe1/immigration/imm_age_sex_graph.png"), 
-                plot = imm_age_sex_graph, width = 8, height = 6)
-ggplot2::ggsave(filename = here::here("output/axe1/immigration/imm_age_sex_prop_graph.png"), 
-                plot = imm_age_sex_prop_graph, width = 8, height = 6)
-ggplot2::ggsave(filename = here::here("output/axe1/immigration/imm_age_graph.png"), 
-                plot = imm_age_graph, width = 8, height = 6)
-ggplot2::ggsave(filename = here::here("output/axe1/immigration/imm_origin_graph.png"), 
-                plot = imm_origin_graph, width = 8, height = 6)
-ggplot2::ggsave(filename = here::here("output/axe1/immigration/vis_min_graph.png"), 
-                plot = vis_min_graph, width = 8, height = 6)
-ggplot2::ggsave(filename = here::here("output/axe1/immigration/imm_stackedage_graph.png"), 
-                plot = imm_stackedage_graph, width = 8, height = 6)
+ggplot2::ggsave(filename = here::here("output/axe1/immigration/imm_evol_graph.pdf"), 
+                plot = imm_evol_graph, width = 7.5, height = 4)
+ggplot2::ggsave(filename = here::here("output/axe1/immigration/imm_prop_map.pdf"), 
+                plot = imm_prop_map, width = 7.5, height = 4)
+ggplot2::ggsave(filename = here::here("output/axe1/immigration/recimm_prop_map.pdf"), 
+                plot = recimm_prop_map, width = 7.5, height = 4)
+ggplot2::ggsave(filename = here::here("output/axe1/immigration/period_imm_graph.pdf"), 
+                plot = period_imm_graph, width = 7.5, height = 4)
+ggplot2::ggsave(filename = here::here("output/axe1/immigration/ad_cat_graph.pdf"), 
+                plot = ad_cat_graph, width = 7.5, height = 4)
+ggplot2::ggsave(filename = here::here("output/axe1/immigration/imm_age_sex_graph.pdf"), 
+                plot = imm_age_sex_graph, width = 7.5, height = 4)
+ggplot2::ggsave(filename = here::here("output/axe1/immigration/imm_age_sex_prop_graph.pdf"), 
+                plot = imm_age_sex_prop_graph, width = 7.5, height = 4)
+ggplot2::ggsave(filename = here::here("output/axe1/immigration/imm_age_graph.pdf"), 
+                plot = imm_age_graph, width = 7.5, height = 4)
+ggplot2::ggsave(filename = here::here("output/axe1/immigration/imm_origin_graph.pdf"), 
+                plot = imm_origin_graph, width = 7.5, height = 4)
+ggplot2::ggsave(filename = here::here("output/axe1/immigration/vis_min_graph.pdf"), 
+                plot = vis_min_graph, width = 7.5, height = 4)
+ggplot2::ggsave(filename = here::here("output/axe1/immigration/imm_stackedage_graph.pdf"), 
+                plot = imm_stackedage_graph, width = 7.5, height = 4)
 
 qs::qsavem(imm_evol_graph, imm_21_lvl_prop, imm_21_mtl_prop, imm_21_qc_prop,
            imm_prop_map, imm_table, non_res_prop, recimm_prop_map, CanadianCitizensMtl,

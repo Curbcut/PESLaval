@@ -151,7 +151,7 @@ combinedKnowOffLang$Language <- factor(combinedKnowOffLang$Language,
 knowledge_official <- 
   ggplot(combinedKnowOffLang, aes(x = Year, y = Percentage, fill = Language)) +
   geom_bar(stat = "identity", position = "fill") +
-  scale_y_continuous(labels = scales::percent) +
+  scale_y_continuous(labels = convert_pct) +
   geom_text(aes(label = convert_pct(Percentage/100)),
             position = position_fill(vjust = 0.5),
             size = 3,
@@ -166,7 +166,7 @@ knowledge_official <-
   gg_cc_theme_no_sf +
   theme(legend.title = element_blank())
 
-ggplot2::ggsave(filename = here::here("output/axe1/knowledge_official.png"), 
+ggplot2::ggsave(filename = here::here("output/axe1/langues/knowledge_official.pdf"), 
                 plot = knowledge_official, width = 6, height = 4)
 
 # Values for the text
@@ -231,7 +231,7 @@ knowledgeLang21$Language <- factor(knowledgeLang21$Language,
 know_official_laval_qc_diff <- 
   ggplot(knowledgeLang21, aes(x=Region, y=Percentage, fill= Language)) +
   geom_bar(stat="identity", position = "fill") +
-  scale_y_continuous(labels = scales::percent) +
+  scale_y_continuous(labels = convert_pct) +
   geom_text(aes(label = convert_pct(Percentage/100)),
             position = position_fill(vjust = 0.5),
             size = 3,
@@ -246,7 +246,7 @@ know_official_laval_qc_diff <-
   gg_cc_theme_no_sf +
   theme(legend.title = element_blank())
 
-ggplot2::ggsave(filename = here::here("output/axe1/know_official_laval_qc_diff.png"), 
+ggplot2::ggsave(filename = here::here("output/axe1/langues/know_official_laval_qc_diff.pdf"), 
                 plot = know_official_laval_qc_diff, width = 4, height = 4)
 
 
@@ -367,7 +367,7 @@ tidyhomelang$Language <- factor(tidyhomelang$Language,
 most_spoken_at_home <- 
   ggplot(tidyhomelang, aes(x=year, y=Percentage, fill= Language)) +
   geom_bar(stat="identity", position = "fill") +
-  scale_y_continuous(labels = scales::percent) +
+  scale_y_continuous(labels = convert_pct) +
   geom_text(aes(label = convert_pct(Percentage/100)),
             position = position_fill(vjust = 0.5),
             size = 3,
@@ -595,8 +595,8 @@ library(patchwork)
 most_spoken_at_home_maps <- most_spoken_at_home_DAs + plot_spacer() + 
   most_spoken_at_home_density + plot_layout(widths = c(5, 0.2 ,5))
 
-ggplot2::ggsave(filename = here::here("output/axe1/most_spoken_at_home_maps.png"), 
-                plot = most_spoken_at_home_maps, width = 8, height = 4)
+ggplot2::ggsave(filename = here::here("output/axe1/langues/most_spoken_at_home_maps.pdf"), 
+                plot = most_spoken_at_home_maps, width = 7.5, height = 4)
 
 
 # Language most spoken at work --------------------------------------------
