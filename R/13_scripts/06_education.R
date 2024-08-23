@@ -310,11 +310,9 @@ educ_PR_21 <- get_census(dataset = "CA21",
 
 educ_DA_21$highschool <- educ_DA_21$highschool + educ_DA_21$postsecondary
 educ_CSD_21$highschool <- educ_CSD_21$highschool + educ_CSD_21$postsecondary
-
-
 educ_PR_21$highschool <- educ_PR_21$highschool + educ_PR_21$postsecondary
 
-
+# Interpolate DAs to sectors
 educ_sectors <- cc.buildr::interpolate_from_area(to = laval_sectors, from = educ_DA_21, 
                                                  additive_vars = names(hs_21v),
                                                  crs = 32618)
@@ -327,12 +325,10 @@ educ_CSD_21$no_diploma_pct <- educ_CSD_21$no_diploma / educ_CSD_21$total
 educ_CSD_21$highschool_pct <- educ_CSD_21$highschool / educ_CSD_21$total
 educ_CSD_21$postsecondary_pct <- educ_CSD_21$postsecondary / educ_CSD_21$total
 educ_CSD_21$bachelor_higher_pct <- educ_CSD_21$bachelor_higher / educ_CSD_21$total
-
 educ_PR_21$no_diploma_pct <- educ_PR_21$no_diploma / educ_PR_21$total
 educ_PR_21$highschool_pct <- educ_PR_21$highschool / educ_PR_21$total
 educ_PR_21$postsecondary_pct <- educ_PR_21$postsecondary / educ_PR_21$total
 educ_PR_21$bachelor_higher_pct <- educ_PR_21$bachelor_higher / educ_PR_21$total
-
 
 educ_sectors <- educ_sectors[c("name", "no_diploma", "no_diploma_pct", 
                                "highschool", "highschool_pct", "postsecondary",
@@ -430,10 +426,10 @@ educ_sectors_table <-
   ) |> 
   tab_options(
     table.font.size = indesign_fontsize,
-    row_group.font.size = indesign_title_fontsize
+    row_group.font.size = ggplot_title_fontsize
   )
 
-gtsave(educ_sectors_table, "output/axe1/education/educ_sectors_table.png")
+gtsave(educ_sectors_table, "output/axe1/education/educ_sectors_table.pdf")
 
 # Composition 2006-2021 ---------------------------------------------------
 
@@ -569,5 +565,5 @@ qs::qsavem(education_indice_plot, education_eleves_var, education_eleves_var_qc,
            bachelor_higher_pct_2021_laval, no_diploma_pct_2006_qc,
            no_diploma_pct_2021_qc, bachelor_higher_pct_2006_qc,
            bachelor_higher_pct_2021_qc, education_uni_aucun_plot,
-           educ_sectors_table, edu_comp_graph, edu_gender_graph,
+           educ_sectors_table, edu_comp_graph, edu_gender_graph, dropout_plot,
            file = "data/axe1/education.qsm")

@@ -2,45 +2,47 @@
 source("R/01_startup.R")
 
 
-# # ## DAYCARE
-# # daycares <- tempfile(fileext = ".csv")
-# # download.file("https://www.donneesquebec.ca/recherche/dataset/be36f85e-e419-4978-9c34-cb5795622595/resource/89af3537-4506-488c-8d0e-6d85b4033a0e/download/repertoire-installation.csv",
-# #               daycares)
-# # daycares <- tibble::as_tibble(read.csv(daycares))
-# # Encoding(daycares$REGION) <- "latin1"
-# # Encoding(daycares$ADRESSE) <- "latin1"
-# # Encoding(daycares$NOM_MUN_COMPO) <- "latin1"
-# # Encoding(daycares$NOM) <- "latin1"
-# # daycares <-
-# #   daycares |>
-# #   dplyr::filter(REGION %in% c("13 - Laval")) |>
-# #   dplyr::mutate(ADRESSE =
-# #                   stringr::str_remove_all(ADRESSE,
-# #                                           ", (bureau| bureau|rez-de-chaussée|AG-10|local|suite|appartement|porte) .*$") |>
-# #                   stringr::str_remove_all("      \\de étage|, \\de étage") |>
-# #                   stringr::str_remove_all("(?<=\\d)-\\d*|[A-Z](?=,)")) |>
-# #   dplyr::mutate(ADRESSE = paste0(ADRESSE, ", ",NOM_MUN_COMPO, ", QC"))
-# # daycares <- daycares[c("ADRESSE", "PLACE_TOTAL")]
-# # # Geolocate with addresses
-# # daycares$geometry <- future.apply::future_sapply(
-# #   daycares$ADRESSE, cc.data::geocode_localhost,
-# #   simplify = FALSE, USE.NAMES = FALSE, future.seed = NULL)
-# # daycares <- sf::st_as_sf(daycares, crs = 4326)
-# # 
-# # qs::qsave(daycares, "data/axe3/locations/daycares.qs")
-# daycares <- qs::qread("data/axe3/locations/daycares.qs")
-# daycares$ID <- paste0("dc_", seq_along(daycares$ADRESSE))
-# daycares <- daycares[!sf::st_is_empty(daycares), ]
-# 
-# daycares$geometry[daycares$ADRESSE == "4900, boulevard Arthur-Sauvé, Laval, QC"] <-
-#   sf::st_point(c(-73.86935399443338, 45.551787504432596))
-# daycares$geometry[daycares$ADRESSE == "7200, boulevard Arthur-Sauvé, Laval, QC"] <-
-#   sf::st_point(c(-73.86317703857166, 45.545715882910066))
-# daycares$geometry[daycares$ADRESSE == "6900, boulevard Arthur-Sauvé, Laval, QC"] <-
-#   sf::st_point(c(-73.86412498973674, 45.54661464213342))
-# daycares$geometry[daycares$ADRESSE == "6250, boulevard Arthur-Sauvé, Laval, QC"] <-
-#   sf::st_point(c(-73.86559083688283, 45.54676511457266))
-# 
+## DAYCARE
+daycares <- tempfile(fileext = ".csv")
+download.file("https://www.donneesquebec.ca/recherche/dataset/be36f85e-e419-4978-9c34-cb5795622595/resource/89af3537-4506-488c-8d0e-6d85b4033a0e/download/repertoire-installation.csv",
+              daycares)
+daycares <- tibble::as_tibble(read.csv(daycares))
+Encoding(daycares$REGION) <- "latin1"
+Encoding(daycares$ADRESSE) <- "latin1"
+Encoding(daycares$NOM_MUN_COMPO) <- "latin1"
+Encoding(daycares$NOM) <- "latin1"
+daycares <-
+  daycares |>
+  dplyr::filter(REGION %in% c("13 - Laval")) |>
+  dplyr::mutate(ADRESSE =
+                  stringr::str_remove_all(ADRESSE,
+                                          ", (bureau| bureau|rez-de-chaussée|AG-10|local|suite|appartement|porte) .*$") |>
+                  stringr::str_remove_all("      \\de étage|, \\de étage") |>
+                  stringr::str_remove_all("(?<=\\d)-\\d*|[A-Z](?=,)")) |>
+  dplyr::mutate(ADRESSE = paste0(ADRESSE, ", ",NOM_MUN_COMPO, ", QC"))
+daycares <- daycares[c("ADRESSE", "PLACE_TOTAL")]
+# Geolocate with addresses
+daycares$geometry <- future.apply::future_sapply(
+  daycares$ADRESSE, cc.data::geocode_localhost,
+  simplify = FALSE, USE.NAMES = FALSE, future.seed = NULL)
+daycares <- sf::st_as_sf(daycares, crs = 4326)
+
+qs::qsave(daycares, "data/axe3/locations/daycares.qs")
+daycares <- qs::qread("data/axe3/locations/daycares.qs")
+daycares$ID <- paste0("dc_", seq_along(daycares$ADRESSE))
+
+stop("TKTK DO NOT REMOVE THOSE, FIND ANOTHER WAY TO GEOLOCATE (POSTAL CODE?)")
+daycares <- daycares[!sf::st_is_empty(daycares), ]
+
+daycares$geometry[daycares$ADRESSE == "4900, boulevard Arthur-Sauvé, Laval, QC"] <-
+  sf::st_point(c(-73.86935399443338, 45.551787504432596))
+daycares$geometry[daycares$ADRESSE == "7200, boulevard Arthur-Sauvé, Laval, QC"] <-
+  sf::st_point(c(-73.86317703857166, 45.545715882910066))
+daycares$geometry[daycares$ADRESSE == "6900, boulevard Arthur-Sauvé, Laval, QC"] <-
+  sf::st_point(c(-73.86412498973674, 45.54661464213342))
+daycares$geometry[daycares$ADRESSE == "6250, boulevard Arthur-Sauvé, Laval, QC"] <-
+  sf::st_point(c(-73.86559083688283, 45.54676511457266))
+
 tt <- ttm()
 DBs <- cancensus::get_census("CA21", regions = list(CSD = 2465005), level = "DB",
                              geo_format = "sf")

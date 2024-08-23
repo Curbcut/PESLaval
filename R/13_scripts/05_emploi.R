@@ -986,5 +986,5 @@ qs::qsavem(emploi_tauxemploi, emploi_tauxemploi_16, emploi_tauxemploi_qc,
            emploi_femmes_ventes, emploi_ventes_hommes, emploi_within_CSD, emploi_within_CSD_2016, 
            emploi_outside_CSD, emploi_outside_CSD_2016,  emploi_within_CSD_qc, emploi_within_CSD_2016_qc,
            emploi_place_atwork_2001, emploi_place_atwork_2016, emploi_place_atwork,
-           emploi_place_home_2016, emploi_place_home, employment_rate_graph,
+           emploi_place_home_2016, emploi_place_home, employment_rate_graph, emploi_catpro,
            file = "data/axe1/emploi.qsm")

@@ -2,9 +2,149 @@
 title: "Logement et habitation"
 author: "Curbcut"
 output: html_document
+output:
+  bookdown::html_document2: default
+  bookdown::pdf_document2: default
 ---
 
-
-```{r setup1, include=FALSE}
+```{r setupHousing, include=FALSE}
 knitr::opts_chunk$set(echo = FALSE, warning = FALSE)
+qs::qload("data/axe1/housing.qsm")
+```
+
+## Logement et habitation
+
+### Augmentation des nouveaux ménages locataires
+
+À Laval, la proportion de ménages propriétaires a longtemps été élevée. En 2016, `r housing_owner_2016` des ménages étaient propriétaires de leur logement, contre `r housing_owner_2001` en 2001. Cependant, entre 2016 et 2021, cette tendance s'est inversée et le taux de propriétaires a chuté à `r housing_owner_2021`, revenant au niveau de 2001. En parallèle, la proportion de ménages locataires a augmentée (voir le graphique \@ref(fig:housingStatut)). Malgré cette baisse, la proportion de propriétaires à Laval reste plus élevées qu'à Montréal et au Québec, où respectivement 36,8 % et 60,1 % des ménages sont propriétaires.
+
+```{r housingStatut, include=TRUE, fig.cap="Évolution du nombre et de la répartition des ménages selon le mode d'occupation du logement (2001-2021)", fig.align = 'center'}
+logement_statutoccupation
+```
+
+Cette inversion de tendance n'est pas due à une diminution du nombre absolu de propriétaires à Laval. Effectivement, le nombre de ménages propriétaires a tout de même augmenté de `r housing_evol_owner_1621`, passant de `r housing_owner_2016` en 2016 à `r housing_owner_2021` en 2021. Plutôt, au cours de la même période, il y a eu une forte croissance de nouveaux ménages locataires, proportion augmentant de `r housing_evol_tenant_1621`, passant de `r housing_tenant_2016` en 2016 à `r housing_tenant_2021` en 2021.
+
+Ces tendances ne sont pas uniques à Laval; elles se retrouvent également au niveau provincial et national. Entre 2001 et 2016, la proportion de ménages locataires avait aussi diminué, passant de `r housing_prop_tenant_2001_QC` à `r housing_prop_tenant_2016_QC` au Québec, et de `r housing_prop_tenant_2001_CA` à `r housing_prop_tenant_2016_CA` à l'échelle nationale. Cette tendance s'est inversée, et en 2021, la proportion de ménages locataires était de `r housing_prop_tenant_2021_QC` au Québec et de `r housing_prop_tenant_2021_CA` au Canada, suivant la même dynamique qu'à Laval d'une augmentation de la proportion de ménages locataires entre les deux dernières années du recensement.
+
+Plusieurs facteurs peuvent expliquer ces changements, notamment la croissance de construction de logements locatifs, les impacts de la pandémie, la croissance démographique, les défis liés à l'accessibilité financière des logements, le vieillissement de la population, et l'attrait pour la vie urbaine chez les jeunes Canadien·ne·s.^[Statistics Canada. (2022, September 21). Comptes économiques des ménages pour le deuxième trimestre de 2022. Récupéré de https://www150.statcan.gc.ca/n1/daily-quotidien/220921/dq220921b-fra.htm] Ces tendances indiquent que, bien que Laval et le reste du Canada montrent encore une préférence marquée pour la propriété, la dynamique du marché immobilier évolue, ce qui pourrait modifier le paysage futur du logement dans la région.
+
+### Hausse du coût du logement
+
+#### Ménages locataires
+
+Les coûts des loyers à Laval ont considérablement augmenté au cours de la dernière décennie. En 2023, le loyer médian à Laval était de `r housing_loyer_2023` \$, un montant inférieur à celui de l'ensemble du Québec (`r housing_loyer_2023_QC` \$). De 2010 à 2023, les loyers médians à Laval ont augmenté de `r housing_loyer_var_noinf` en dollars courants, tandis que la hausse au Québec a été plus marquée, atteignant `r housing_loyer_var_QC`.
+
+```{r housingLoyermed, include=TRUE, fig.cap="Évolution du loyer mensuel médian à Laval et au Québec (2010-2023). Source: Société canadienne d'hypothèques et de logement", fig.align = 'center'}
+housing_loyermed_plot
+```
+
+En 2021, le secteur de Laval ayant le loyer médian le plus élevé était Laval-Ouest, Sainte-Dorothée, Laval-sur-le-Lac, où le loyer médian était de `r lavalouest_loyer` \$ par mois (Tableau \@ref(tab:housingLoyerMed)). Le secteur de Chomedey présentait aussi un loyer médian particulièrement élevé (`r chomedey_loyer` \$), bien qu'il s'agisse d'un secteur de Laval où les revenus des ménages sont plus faibles. Ce loyer médian élevé peut être attribué en parti à un taux de rotation élevé des résident·e·s, ce qui permet aux propriétaires d'augmenter les loyers plus souvent, car les nouveaux locataires doivent généralement payer un loyer plus élevé que les résident·e·s de longue date qui bénéficient de la réglementation sur le contrôle des loyers. Effectivement, le secteur de Chomedey suit Laval-des-Rapides, Pont-Viau (`r mobility_status_ldr`) de près, avec un taux de mobilité des résidents de `r mobility_status_chomedey` entre 2016 et 2021, se classant ainsi au deuxième rang pour la mobilité résidentielle. Pour l'ensemble de Laval, ce taux était de `r mobility_status_CSD`. 
+
+```{r housingMedRent, include=TRUE, fig.cap="Loyer mensuel médian (2021)", fig.align = 'center'}
+housing_median_rent_plot
+```
+
+```{r housingLoyerMed, include=TRUE, tab.cap="Répartition des loyers médians par secteur (2021)"}
+housing_loyer_med_table
+```
+
+De 2016 à 2021, tous les secteurs de Laval ont connu une augmentation significative du loyer médian, comme l'indique le tableau \@ref(tab:housingLoyerMedVar). Laval-Ouest, Sainte-Dorothée, Laval-sur-le-Lac est le secteur ayant connu la plus forte variation de loyer, passant de `r housing_rent_losd_2016` \$ à `r housing_rent_losd` \$, soit une augmentation de `r housing_rent_var_losd` en 5 ans. Chomedey a aussi connu une augmentation rapide de `r housing_rent_var_srfb` au cours de la même période, passant de `r housing_rent_srfb_2016` à `r housing_rent_srfb`. À l'inverse, le quartier qui a connu la plus faible augmentation est Duvernay, Saint-Vincent-de-Paul, Saint-François avec `r housing_rent_var_svpsf`, passant de `r housing_rent_svpsf_2016` à `r housing_rent_svpsf`.
+
+```{r housingLoyerMedVar, include=TRUE, tab.cap="Variation du loyer médian par secteur entre 2016 et 2021"}
+loyer_med_var_table
+```
+
+#### Ménages propriétaires
+
+Tout comme les coûts des loyers, les frais de logement des ménages propriétaires de Laval ont augmenté de façon importante. Selon le recensement de 2021, les frais de logement mensuels médians des propriétaires de Laval s'élevaient à `r housing_owner_CSD_cost` \$, soit une augmentation de `r housing_owner_CSD_cost_var` par rapport à `r housing_owner_CSD_cost_2016` \$ en 2016. Ces coûts sont plus élevés à Laval que la médiane provinciale, où les coûts ont augmenté de `r housing_owner_PR_cost_var`, passant de `r housing_owner_PR_cost_2016` \$ en 2016 à `r housing_owner_PR_cost` \$ en 2021.
+
+Définition. Frais de logement des ménages propriétaires
+- Le coût du logement est le total mensuel moyen de toutes les dépenses de logement payées par les ménages.
+
+Comme pour les loyers mensuels médians, en 2021, Laval-Ouest, Sainte-Dorothée, Laval-sur-le-Lac était le secteur avec les plus haut frais de logements mensuels médians pour les ménages propriétaires (`r housing_cost_losd` \$). Ce dernier était suivi par Sainte-Rose, Fabreville (`r housing_cost_srfb` \$).
+
+```{r housingMedCost, include=TRUE, fig.cap="Frais de logements mensuels médians pour les ménages propriétaires (2021)", fig.align = 'center'}
+housing_median_rent_plot
+```
+
+```{r housingCostMed, include=TRUE, tab.cap="Répartition des frais de logements mensuels médians pour les ménages propriétaires par secteur (2021)"}
+housing_cost_med_table
+```
+
+De 2016 à 2021, l'ensemble des secteurs de Laval a connu une augmentation des frais de logement des ménages propriétaires. Leur distribution est présentée au tableau \@ref(tab:housingCostMedTableSectors). Le secteur avec la plus haute augmentation était Laval-des-Rapides, Pont-Viau avec une augmentation de `r housing_cost_var_lrpv`, passant de `r housing_cost_lrpv_2016` \$ en 2016 à `r housing_cost_lrpv` \$ en 2021.
+
+```{r housingCostMedTableSectors, include=TRUE, tab.cap="Variation des frais de logements mensuels médians pour les ménages propriétaires par secteur entre 2016 et 2021"}
+housing_cost_med_table_var
+```
+
+### Locataires et fluctuations du marché
+
+Entre les deux derniers recensements (2016-2021), alors que les frais de logement mensuels médians des ménages propriétaires ont augmenté de `r housing_owner_CSD_cost_var` \$, pour atteindre `r housing_owner_CSD_cost` \$, les frais de logement mensuels médians des ménages locataires de Laval ont augmenté de `r housing_tenant_CSD_rent_var`, pour atteindre `r housing_tenant_CSD_rent`. Les ménages propriétaires et locataires de Laval ont tous deux subi des augmentations importantes des coûts de logement au cours de la période de cinq ans, les locataires ayant subi une augmentation légèrement plus élevée en pourcentage. Cette tendance met non seulement en évidence le fardeau financier croissant qui pèse sur tous les résident·e·s, mais suggère également que les locataires peuvent être particulièrement vulnérables aux fluctuations du marché de l'habitation, ce qui pourrait avoir des répercussions plus graves sur leur stabilité économique. Cette situation est susceptible d'évoluer depuis 2021, compte tenu notamment des effets de la pandémie et de la rapidité des changements survenus sur le marché du logement depuis cette date.
+
+### Changement des tendances de construction
+
+De 2010 à 2023, les tendances de construction à Laval montrent un virage marqué vers le développement de logements locatifs et une baisse des mises en chantier de condominiums. Le nombre total de mises en chantier a fluctué, reflétant la nature dynamique du marché. Cependant, depuis 2018, on observe une transition des mises en chantier de logements pour propriétaires-occupant·e·s, en particulier des copropriétés, vers une priorité accrue sur les logements locatifs. Cette tendance à Laval est similaire à celle de l'ensemble de la province, contrairement au reste du Canada, où la croissance des mises en chantier est plus équilibrée entre les différents types de logements. Les coûts élevés des frais de logement pour les propriétaires ainsi que les changements démographiques, comme l'augmentation des ménages de petite taille, pourraient contribuer à expliquer cette tendance. 
+
+Les graphiques ci-dessous montrent les mises en chantier, les achèvements de construction, et le rapport entre les deux. Ils révèlent qu’il y a eu un afflux de logements locatifs achevés au cours des deux dernières années, tandis que les nouvelles mises en chantier de ces logements ont fortement diminué. Cela suggère qu’il y aura beaucoup moins de logements locatifs achevés dans les années à venir.
+
+```{r housingStarts, include=TRUE, fig.cap="Mises en chantier de logements à Laval de 2010 à 2023. Source: Société canadienne d'hypothèques et de logement.", fig.align = 'center'}
+housing_starts
+```
+
+```{r housingCompletions, include=TRUE, fig.cap="Achèvements prévus d'unités de logement à Laval de 2010 à 2023. Source: Société canadienne d'hypothèques et de logement.", fig.align = 'center'}
+housing_completions
+```
+
+```{r housingStartsCompletionsRatio, include=TRUE, fig.cap="Rapport entre le nombre de logements mis en chantier et le nombre d'unités achevées à Laval, de 2010 à 2023. Source: Société canadienne d'hypothèques et de logement.", fig.align = 'center'}
+housing_starts_completions_ratio
+```
+
+### Évolution de l'abordabilité du logement
+
+Le taux d'effort est le rapport entre les dépenses totales liées au logement et le revenu du ménage. Statistique Canada définit le logement inabordable comme le fait pour un ménage de consacrer 30 % ou plus de son revenu avant impôt aux frais de logement. Le seuil de 30 % est couramment utilisé comme référence dans les études sur l'abordabilité du logement. Selon les normes générales, un ménage qui consacre 30 % ou plus de son revenu aux frais de logement (qui comprend le loyer, les paiements hypothécaires, les services publics, les taxes foncières, etc.) est considéré comme étant accablé par le coût du logement. Malgré la hausse des coûts d'habitation, le pourcentage de ménages ayant un logement inabordable à Laval a diminué, passant de `r housing_te_2016` en 2016 à `r housing_te` en 2021. À titre indicatif, le pourcentage de ménages dans la même situation en 2021 dans la région métropolitaine de recensement (RMR) de Montréal était de `r housing_te_CMA`.
+
+Définition: Région métropolitaine de recensement (RMR)
+- Une région métropolitaine de recensement est formée d'une ou de plusieurs municipalités adjacentes centrées sur un centre de population. La RMR de Montréal comprend la ville de Laval, la rive nord jusqu’à Saint-Jérôme et la rive sud jusqu’à Saint-Jean-sur-Richelieu.
+
+La baisse du taux d'effort pourrait s'expliquer en partie par les prestations liées à la COVID-19 fournies par le gouvernement fédéral, ainsi que par l'augmentation d'autres formes de soutien pour aider à couvrir les frais de logement. Toutefois, l'impact complet des événements récents, y compris la pandémie, sur l'accessibilité au logement ne sera clair qu'avec la publication des données du recensement de 2026. Depuis le dernier recensement, les données les plus récentes de la Société canadienne d'hypothèques et de logement montrent que les loyers médians mensuels à Laval ont augmenté de `r rent_inc_2021_2023` entre 2021 et 2023 (`r rent_inc_2021_2022` entre 2021 et 2022, et `r rent_inc_2022_2023` entre 2022 et 2023). Par conséquent, il est peu probable que la diminution apparente de l'inabordabilité du logement reflète une réalité durable ou une tendance à long terme.
+
+Comme l'indique le tableau \@ref(tab:TauxEffortsTable), une proportion plus élevée de ménages locataires occupent un logement inabordable par rapport aux ménages propriétaires. En effet, en 2021, `r housing_te_tenant` des locataires vivaient dans des logements inabordables, contre `r housing_te_owner` des propriétaires. Cette tendance se manifeste dans tous les secteurs de Laval, avec Chomedey enregistrant les taux d'effort les plus élevés, tous statuts d'occupation confondus.
+
+```{r TauxEffortsTable, include=TRUE, tab.cap="Proportion de ménages consacrant 30 % ou plus de leur revenu avant impôt au coût du logement, par secteur (2021)"}
+taux_efforts_table
+```
+
+Pour les ménages à faible revenu, le taux d'effort augmente de façon significative, 73 % de ces ménages à Laval et 72 % dans la RMR de Montréal ayant un taux d'effort de 30 % ou plus. Cette mesure est particulièrement pertinente pour les ménages à faible revenu, car un taux d'effort de 30 % ou plus peut avoir une incidence importante sur leur revenu résiduel. En revanche, les ménages plus aisés peuvent ne pas se sentir aussi contraints par le même taux, car leur revenu résiduel après les frais de logement reste substantiel.
+
+Définition: ménages à faible revenu
+- Les ménages à faible revenu sont définis à l'aide de la mesure du panier de consommation (MPC), qui calcule le coût d'un panier spécifique de biens et de services nécessaires à un niveau de vie modeste et de base. Les ménages dont le revenu disponible est inférieur au seuil de la MPC correspondant à leur taille et à leur zone géographique sont considérés comme des ménages à faible revenu.
+
+### Logement acceptable selon le mode d'occupation
+
+Le logement acceptable indique si un logement est conforme aux trois normes d'accessibilité établies par la Société canadienne d'hypothèques et de logement, c'est-à-dire qu'il est de qualité convenable, de taille convenable et abordable^[Statistique Canada. (2022). Logement acceptable selon le mode d'occupation. Récupéré de https://www150.statcan.gc.ca/t1/tbl1/fr/tv.action?pid=9810024601]. Ainsi, en ajout au seuil d'abordabilité discuté précédemment, le tableau \@ref(tab:acceptableHousingTable) indique aussi quelle proportion de ménage se trouve sous le seuil de taille convenable et sous le seuil de qualité convenable. 
+
+Les seuils de conformité pour ces normes sont définis comme suit^[Statistique Canada. (2022). Logement acceptable selon le mode d'occupation. Récupéré de https://www150.statcan.gc.ca/t1/tbl1/fr/tv.action?pid=9810024601] :3
+- Un logement est abordable si le ménage consacre moins de 30 % de son revenu total avant impôt aux frais de logement.
+- Un logement est de qualité convenable si, de l'avis des occupants, il ne nécessite pas de réparations majeures.
+- Un logement est de taille convenable si le nombre de chambres suffit pour répondre aux besoins du ménage, compte tenu de la taille et de la composition du ménage, d'après les exigences de la Norme nationale d'occupation (NNO), conçue par la Société canadienne d'hypothèques et de logement et des représentants provinciaux et territoriaux.
+La détermination des ménages qui se situent au-dessous ou au-dessus des seuils de conformité est fondée sur les indicateurs pour lesquels les ménages individuels peuvent être évalués.
+
+En 2021, plus d'un ménage lavallois sur 20 (`r taille_all`) occupait un logement inférieur au seuil de taille convenable. Les ménages locataires sont plus de deux fois plus susceptibles de vivre dans un logement non convenable que les propriétaires, avec `r taille_tenant` des locataires concernés contre `r taille_owner` des propriétaires. 
+
+Cette tendance se poursuit si l'on examine la proportion de logements jugés acceptables. À Laval, seulement `r acceptable_tenant` des ménages locataires occupent un logement acceptable, ce qui est nettement inférieur au `r acceptable_owner` observé chez les propriétaires. Cela souligne les défis plus prononcés auxquels font face les locataires en matière de qualité et de taille de logement, en plus des contraintes d'abordabilité déjà mentionnées.
+
+```{r acceptableHousingTable, include=TRUE, tab.cap="Logement acceptable par mode d'occupation (2021)"}
+acceptable_housing_table
+```
+
+### Besoins impérieux en matière de logement
+
+Les ménages ayant des besoins impérieux en matière de logement occupent un logement qui ne rencontre pas le seuil d'au moins l'un des indicateurs de qualité, d'abordabilité ou de taille du logement. Additionnellement, *un ménage n'est pas dans une situation de besoins impérieux si son revenu est suffisant pour payer le loyer d’un autre logement sur le marché de l’habitation local*.^[Société canadienne d'hypothèques et de logement. (2019). Logement acceptable selon le mode d'occupation. Récupéré de https://www.cmhc-schl.gc.ca/professionnels/marche-du-logement-donnees-et-recherche/recherche-sur-le-logement/les-besoins-imperieux-en-matiere-de-logement/determiner-les-besoins-imperieux-en-matiere-de-logement].
+
+Tant à Laval qu'au Québec, un peu plus de 2 % des ménages se trouvaient dans une situation de besoins impérieux en matière de logement en 2021. C'étaient toutefois `r core_need_tenant` des ménages locataires qui étaient dans cette situation à Laval, contre `r core_need_tenant_QC` au Québec. Le tableau \@ref(tab:coreNeedTable) indique l'évolution, au travers les années, du nombre et de la proportion de ménages se trouvant en situation de besoins impérieux en matière de logement.
+
+En 2006 à Laval, la proportion de ménages dans cette situation était de `r core_need_2006` et a depuis diminué jusqu'à `r core_need_2021`. Plusieurs facteurs peuvent avoir contribué à cette diminution, notamment l'aide financière accordée par le gouvernement fédéral au cours de la période COVID-19 pour aider à payer les coûts de logement. Toutefois, cette tendance précède également la pandémie de COVID-19 (observée de 2006 à 2016 et de 2011 à 2016), de sorte que cette baisse ne doit pas être uniquement attribuée à celle-ci.
+
+```{r coreNeedTable, include=TRUE, tab.cap="Nombre et proportion de ménages en situation de besoins impérieux en matière de logement à Laval et au Québec. Source: Société canadienne d'hypothèques et de logement."}
+core_need_table
 ```

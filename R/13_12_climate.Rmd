@@ -4,7 +4,13 @@ author: "Curbcut"
 output: html_document
 ---
 
-
 ```{r setup1, include=FALSE}
 knitr::opts_chunk$set(echo = FALSE, warning = FALSE)
 ```
+
+## Changements climatiques
+
+Les changements climatiques auront des effets de plus en plus négatifs sur les communautés lavalloises, et ces effets varient considérablement en fonction des facteurs géographiques et sociaux. Alors que les effets du changement climatique continuent de provoquer des évènements météorologiques importants, tels que des vagues de chaleur et des inondations, cette section vise à examiner quelles sont les zones et les populations les plus vulnérables.
+
+### Vulnérabilité à la chaleur
+

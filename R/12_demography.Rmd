@@ -8,6 +8,7 @@ output:
 ---
 
 ```{r setup, include=FALSE}
+source("R/01_startup.R")
 knitr::opts_chunk$set(echo = FALSE, include = FALSE, warning = FALSE)
 ```
 

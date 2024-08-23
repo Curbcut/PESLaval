@@ -5,6 +5,8 @@ library(cancensus)
 library(curbcut)
 library(extrafont)
 library(showtext)
+library(sf)
+library(gt)
 
 # font_import()
 # loadfonts(device = "win", quiet = TRUE)
@@ -58,7 +60,8 @@ default_theme <- theme(legend.position = "bottom",
                                                   family="KMR Apparat Regular"),
                        legend.title.align = 0.5,
                        legend.text.align = 0.5,
-                       text=element_text(size = indesign_fontsize, family="KMR Apparat Regular"))
+                       text=element_text(size = indesign_fontsize, family="KMR Apparat Regular"), 
+                       legend.box.margin = margin(t = -10))
 gg_cc_theme_no_sf <- list(
   theme_minimal(),
   default_theme
@@ -69,7 +72,8 @@ gg_cc_theme <- c(list(
            ylim = c(lvlbbox["ymin"], lvlbbox["ymax"]))),
   gg_cc_theme_no_sf,
   list(theme_void()),
-  list(default_theme)
+  list(default_theme),
+  list(theme(legend.box.margin = margin(t = 0)))
 )
 
 # Helper function to make binned variables
@@ -79,11 +83,15 @@ add_bins <- function(df, variable, breaks, labels) {
   df$binned_variable <- cut(df[[variable]], 
                             breaks = breaks, 
                             include.lowest = TRUE, 
-                            right = FALSE)
+                            right = FALSE, drop = FALSE)
   
   # Assign the labels to the binned variable
   df$binned_variable <- factor(df$binned_variable, 
                                labels = labels)
+  
+  if (sum(is.na(df$binned_variable)) > 0) {
+    df$binned_variable <- addNA(df$binned_variable)
+  }
   
   return(df)
 }
@@ -104,6 +112,8 @@ convert_number <- function(x) {
   x[!is.na(x)] <- curbcut::convert_unit(x = x[!is.na(x)])
   gsub(",", " ", x)
 }
+
+convert_number_tens <- \(x) convert_number(round(x / 10) * 10)
 
 convert_number_noround <- function(x) {
   scales::comma(x, 1, accuracy = 1, big.mark = " ")

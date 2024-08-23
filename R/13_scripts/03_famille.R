@@ -203,7 +203,7 @@ laval_family_size_long <- laval_family_size %>%
 # Plot the data
 family_size_graph <-
   ggplot(laval_family_size_long, aes(x = year, y = percentage, color = family_size)) +
-  geom_line(linewidth = 1) +
+  geom_line(linewidth = 1.5) +
   geom_point(size = 2) +
   labs(y = "Proportion de familles",) +
   scale_color_manual(values = c("2" = "#A3B0D1", 

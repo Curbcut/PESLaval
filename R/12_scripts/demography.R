@@ -311,14 +311,15 @@ pop_et_proj <-
   ggplot(data = pop_evolution_tidy, aes(x = Année, y = Population)) +
   geom_point(aes(color = PointType), size = 5) +
   geom_line(data = solid_data, aes(x = Année, y = Population, group = 1), linetype = "solid",
-            linewidth = 2) +
+            linewidth = 1.5) +
   geom_line(data = dotted_data, aes(x = Année, y = Population, group = 1), linetype = "dotted",
             linewidth = 1.5) +
   ylim(0, max(pop_evolution_tidy$Population)) +
   scale_color_manual(values = c("Projection (ISQ)" = color_theme("pinkhealth"), "Valeur du recensement canadien" = "black")) +
   labs(color = element_blank(), title = element_blank()) + 
   scale_y_continuous(labels = convert_number, limits = c(0,500000)) +
-  gg_cc_theme_no_sf
+  gg_cc_theme_no_sf +
+  xlab(NULL)
 
 ggplot2::ggsave(filename = here::here("output/0_demography/pop_et_proj.pdf"), 
                 plot = pop_et_proj, width = 7, height = 3)
@@ -352,10 +353,10 @@ naissances_laval_moyenne_5 <-
 laval_births_graph <- 
   ggplot(Laval_Births) + 
   geom_line(aes(x = year, y = naissances), color = color_theme("browndemographics"),
-            linewidth = 2) + 
+            linewidth = 1.5) + 
   scale_y_continuous(labels = convert_number, limits = c(2500,4800)) +
   gg_cc_theme_no_sf +
-  xlab("Année") +
+  xlab(NULL) +
   ylab("Naissances")
 
 ggplot2::ggsave(filename = here::here("output/0_demography/laval_births_graph.pdf"), 

@@ -240,7 +240,7 @@ rf <- bind_rows(rf21, rf16, rf11, rf06, rf01) |>
 
 #Plotting the line graph
 ggplot(rf, aes(x = Year, y = Proportion, color = `Risk Factor`, group = `Risk Factor`)) +
-  geom_line(linewidth = 1.25) +
+  geom_line(linewidth = 1.5) +
   scale_color_manual(values = c("Immigration" = "#66c2a5", "One Parent Families" = "#fc8d62",
                                 "Living Alone" = "#8da0cb", "Older than 75" = "#e78ac3",
                                 "Under-Educated" = "#a6d854", "Low Income*" = "#ffd92f"),
