@@ -39,6 +39,8 @@ fig:revenueAnnuelInd
 fig:medianIndIncomeDA
 fig:frevPlot
 fig:defavPlot
+fig:ndviPlot
+fig:inondationsPlot
 fig:mixiteSociale
 fig:mixiteSocialeFacet
 la-démographie-de-laval
@@ -103,5 +105,9 @@ revenu-des-ménages
 revenu-individuel
 faible-revenu
 défavorisation-matérielle-et-sociale
+changements-climatiques
+vulnérabilité-à-la-chaleur
+biodiversité-et-couverture-végétale
+vulnérabilité-aux-inondations
 axe-2---la-participation-sociale-et-le-vivre-ensemble
 mixité-sociale

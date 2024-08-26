@@ -1,6 +1,6 @@
 ### DEMOGRAPHY - POPULATION AND POPULATION DENSITY #############################
+
 source("R/01_startup.R")
-#geom_context <- qs::qread("data/geom_context/geom_context.qs")
 
 # Population count --------------------------------------------------------
 
@@ -33,7 +33,7 @@ density_pretty <- convert_number(x = density)
 
 CT <- cancensus::get_census(dataset = "CA21", 
                             regions = list(CSD = 2465005), 
-                            level = "CT", 
+                            level = "DA", 
                             geo_format = "sf")
 
 # Prepare a function that calculates population density. We will use it many
@@ -52,26 +52,26 @@ pop_density_fun <- function(x, col_name = "pop_density") {
 # Get population density
 CT <- pop_density_fun(CT)
 
-labels <- c("0 - 1 000", "1 000 - 2 000", "2 000 - 3 000", "3 000 - 4 000", 
-            "+ 4 000")
+labels <- c("0 - 1 500", "1 500 - 3 000", "3 000 - 4 500", "4 500 - 6 000", 
+            "+ 6 000")
 
 t <- add_bins(df = CT,
               variable = "pop_density",
-              breaks = c(0, 1000, 2000, 3000, 4000, Inf),
+              breaks = c(0, 1500, 3000, 4500, 6000, Inf),
               labels = labels
 )
 
-# Union the features so the polygons don't show their borders. Might revisit
-# with the addition of streets!
-t <- Reduce(rbind,
-            split(t, t$binned_variable) |>
-              lapply(\(x) {
-                out <- tibble::tibble(x$binned_variable)
-                out$geometry <- sf::st_union(x)
-                sf::st_as_sf(out, crs = 4326)[1, ]
-              })
-) |> sf::st_as_sf()
-names(t)[1] <- "binned_variable"
+# # Union the features so the polygons don't show their borders. Might revisit
+# # with the addition of streets!
+# t <- Reduce(rbind,
+#             split(t, t$binned_variable) |>
+#               lapply(\(x) {
+#                 out <- tibble::tibble(x$binned_variable)
+#                 out$geometry <- sf::st_union(x)
+#                 sf::st_as_sf(out, crs = 4326)[1, ]
+#               })
+# ) |> sf::st_as_sf()
+# names(t)[1] <- "binned_variable"
 
 # Make a plot of density
 pop_density_plot <-

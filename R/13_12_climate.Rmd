@@ -4,8 +4,9 @@ author: "Curbcut"
 output: html_document
 ---
 
-```{r setup1, include=FALSE}
+```{r setupClimate, include=FALSE}
 knitr::opts_chunk$set(echo = FALSE, warning = FALSE)
+qs::qload("data/axe1/climate.qsm")
 ```
 
 ## Changements climatiques
@@ -13,4 +14,30 @@ knitr::opts_chunk$set(echo = FALSE, warning = FALSE)
 Les changements climatiques auront des effets de plus en plus négatifs sur les communautés lavalloises, et ces effets varient considérablement en fonction des facteurs géographiques et sociaux. Alors que les effets du changement climatique continuent de provoquer des évènements météorologiques importants, tels que des vagues de chaleur et des inondations, cette section vise à examiner quelles sont les zones et les populations les plus vulnérables.
 
 ### Vulnérabilité à la chaleur
+
+DRIVE
+
+### Biodiversité et couverture végétale
+
+Laval a fait des progrès dans la promotion de la biodiversité grâce à des initiatives telles que la création d'habitats pour les pollinisateurs et la protection des zones naturelles par l'acquisition de terrains et la construction d'infrastructures.^[Ville de Laval. (2023). Vivre à Laval, Municipal magazine. Récupéré de https://www.laval.ca/Documents/Pages/Fr/publications/vivre-laval-printemps-2023-eng.pdf] Cependant, l'indice de différence de végétation normalisé (IDVN), qui est en corrélation avec la biodiversité et qui atténue les effets d'îlots de chaleur, demeure faible dans de nombreuses zones urbaines. Il est particulièrement bas en bordure de l'autoroute Jean-Nöel Lavoie (A-440) et dans une large zone autour de l'échangeur avec l'autoroute des Laurentides (A-15). Les secteurs où l’IDVN est la plus basse sont Chomedey et Laval-des-Rapides, Pont-Viau.
+
+Définition: L’Indice de différence de végétation normalisé (IDVN)
+- L'indice de végétation par différence normalisée (IDVN) est un moyen de mesurer la santé et la densité de la végétation verte à l'aide d'images satellite. Il compare la lumière réfléchie par les plantes, les plantes saines réfléchissant davantage la lumière invisible (proche infrarouge).
+
+```{r ndviPlot, include=TRUE, fig.cap="Indice de végétation différentiel normalisé pour la saison de croissance de la végétation (2023). (Source: Harmonized Landsat and Sentinel-2 (HLS) de la NASA, adapté et analysé par Curbcut, 2024)", fig.align = 'center'}
+ndvi_plot
+```
+
+### Vulnérabilité aux inondations
+
+À la suite des inondations de 2017 et de 2019 au Québec, la Communauté métropolitaine de Montréal (CMM) a publié en 2019 une carte identifiant les régions vulnérables aux inondations. Cette carte, superposée à Laval dans le graphique \@ref(fig:inondationsPlot), met en évidence les zones qui ont un risque d'inondation de 50 % (0-2 ans), 5 % (2-20 ans) et 1 % (20-100 ans) par an. 
+
+Les résultats^[Pour estimer avec précision le nombre de bâtiments résidentiels exposés au risque d'inondation dans chaque zone, la carte des inondations de la CMM a été utilisée conjointement avec le jeu de données sur les bâtiments de Curbcut, ainsi qu'avec le recensement canadien de 2021 et les codes d'utilisation des sols de Laval.] montrent que `r res_buildings_0_2` bâtiments dans des zones résidentielles à Laval sont exposés à un risque d'inondation annuel de 50 %, `r res_buildings_2_20` à un risque de 5 % et `r res_buildings_20_100` à un risque de 1 %. La vaste majorité de ces bâtiments résidentiels se situent à Laval-Ouest, Sainte-Dorothée, Laval-sur-le-Lac. Ces prévisions pourraient évoluer en raison de l'aggravation des effets du changement climatique, de l'augmentation de la population de Laval et de la mise en œuvre de nouvelles politiques visant à réduire les risques d'inondation et les dommages associés. 
+
+```{r inondationsPlot, include=TRUE, fig.cap="Zones inondables à Laval (2019)^[CMM RCI-2019-78 - Code de l'urbanisme]", fig.align = 'center'}
+flood_plot
+```
+
+
+
 

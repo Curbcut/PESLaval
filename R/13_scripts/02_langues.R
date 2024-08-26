@@ -155,7 +155,7 @@ knowledge_official <-
   geom_text(aes(label = convert_pct(Percentage/100)),
             position = position_fill(vjust = 0.5),
             size = 3,
-            color = "black") +
+            color = "white") +
   ylab(NULL) +
   xlab(NULL) +
   scale_fill_manual(values = c("Aucune" = color_theme("yellowclimate"), 
@@ -235,7 +235,7 @@ know_official_laval_qc_diff <-
   geom_text(aes(label = convert_pct(Percentage/100)),
             position = position_fill(vjust = 0.5),
             size = 3,
-            color = "black") +
+            color = "white") +
   ylab(NULL) +
   xlab(NULL) +
   scale_fill_manual(values = c("Aucune" = color_theme("yellowclimate"), 
@@ -371,7 +371,7 @@ most_spoken_at_home <-
   geom_text(aes(label = convert_pct(Percentage/100)),
             position = position_fill(vjust = 0.5),
             size = 3,
-            color = "black") +
+            color = "white") +
   ylab(NULL) +
   xlab(NULL) +
   scale_fill_manual(values = c("Autres" = color_theme("yellowclimate"), 

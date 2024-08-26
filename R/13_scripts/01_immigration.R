@@ -1,11 +1,6 @@
-source("R/01_startup.R")
-library(scales)
-library(readxl)
-library(gt)
-library(forcats)
-library(extrafont)
-library(scales)
+### IMMIGRATION ################################################################
 
+source("R/01_startup.R")
 
 # Immigration & Diversity -------------------------------------------------
 #Grabbing immigration numbers and total population for each census year
@@ -125,8 +120,8 @@ imm_evol_graph <-
   geom_point(size = 2.5) +
   scale_y_continuous(labels = convert_pct) +
   labs(y = "Proportion de la population") +
-  scale_color_manual(values = c("Laval" = "#A3B0D1", "Montréal" = "#E08565",
-                                "Québec" = "#73AD80")) +
+  scale_color_manual(values = c("Laval" = "#73AD80", "Montréal" = "#E08565",
+                                "Québec" = "#A3B0D1")) +
   gg_cc_theme_no_sf +
   theme(legend.position = "bottom", legend.box = "horizontal", axis.title.x = element_blank(),
         legend.title = element_blank(), text=element_text(family="KMR Apparat Regular"))
@@ -175,6 +170,7 @@ imm_prop_map <-
   labs(fill = "Proportion de la population") +
   gg_cc_theme +
   theme(legend.position = "bottom", legend.box = "horizontal",
+        legend.title = element_blank(),
         text=element_text(family="KMR Apparat Regular")) +
   guides(fill = guide_legend(title.position = "top", title.hjust = 0.5,
                              nrow = 1))
@@ -274,6 +270,7 @@ recimm_prop_map <- ggplot(data = recimm_lvl_21_da) +
   labs(fill = "Proportion de la population") +
   gg_cc_theme +
   theme(legend.position = "bottom", legend.box = "horizontal",
+        legend.title = element_blank(),
         text=element_text(family="KMR Apparat Regular")) +
   guides(fill = guide_legend(title.position = "top", title.hjust = 0.5,
                              nrow = 1))
@@ -471,8 +468,8 @@ age_21 <- get_census(dataset = "CA21",
            str_ends(Age, "_44") ~ "25 à 44",
            str_ends(Age, "_over") ~ "45 et plus"
          )) |> 
-  mutate(Age = factor(Age, levels = c("45 et plus", "25 à 44", "15 à 24", "5 à 14",
-                                      "Moins de 5 ans")),
+  mutate(Age = factor(Age, levels = rev(c("45 et plus", "25 à 44", "15 à 24", "5 à 14",
+                                      "Moins de 5 ans"))),
          prop = if_else(gender == "Homme", count / age_21_male, count / age_21_female)) |> 
   mutate(percentage = convert_pct(prop))
 
@@ -506,7 +503,7 @@ imm_age_sex_graph <- ggplot(data = age_21, aes(x = gender, y = count, fill = Age
             color = "white") +
   scale_y_continuous(labels = scales::label_number(big.mark = " ")) +
   scale_fill_manual(values = curbcut_colors$left_5$fill[2:6]) +
-  labs(y = "Personnes",
+  labs(y = "Individus",
        fill = "Age Group") +
   gg_cc_theme_no_sf +
   theme(legend.position = "bottom", plot.title = element_blank(),
@@ -547,14 +544,14 @@ imm_age_graph <- ggplot(data = age_21_rev, aes(x = Age, y = count, fill = gender
         axis.title.x = element_blank())
 
 imm_stackedage_graph <- ggplot(data = age_21, aes(x = Age, y = count, fill = gender)) +
-  geom_bar(stat = "identity", width = 0.6) +
+  geom_bar(stat = "identity") +
   geom_text(aes(label = percentage), 
             position = position_stack(vjust = 0.5), 
             color = "white") +
   scale_fill_manual(values = c("Homme" = "#A3B0D1", "Femme" = "#CD718C")) +
   scale_y_continuous(labels = scales::label_number(big.mark = " ")) +
   labs(x = "Gender",
-       y = "Personnes",
+       y = "Individus",
        fill = "Age Group") +
   gg_cc_theme_no_sf +
   theme(legend.position = "bottom", plot.title = element_blank(),
@@ -638,7 +635,7 @@ imm_origin <- bind_rows(imm_origin_recent, imm_origin_total) |>
 imm_origin_graph <- ggplot(data = imm_origin, aes(x = origin, y = proportion, fill = Type)) +
   geom_bar(stat = "identity", position = position_dodge()) +
   geom_text(aes(label = perc), position = position_dodge(width = 0.9),
-            vjust = -0.5, color = "white") +
+            vjust = 2, color = "white") +
   scale_y_continuous(labels = convert_pct) +
   scale_fill_manual(values = c("Total" = "#A3B0D1", "Récent" = "#CD718C")) +
   labs(x = "Lieu de naissance",
@@ -646,8 +643,7 @@ imm_origin_graph <- ggplot(data = imm_origin, aes(x = origin, y = proportion, fi
   gg_cc_theme_no_sf +
   theme(legend.position = "bottom", plot.title = element_blank(),
         legend.title = element_blank(), text = element_text(family = "KMR Apparat Regular"),
-        axis.text.x = element_text(angle = 45, hjust = 1), axis.title.x = element_text(margin = margin(t = -10)),
-        legend.margin = margin(t = -5))
+        axis.text.x = element_text(angle = 45, hjust = 1), axis.title.x = element_text(margin = margin(t = -10)))
 
 #Grabbing specific percentages for the text
 imm_asia <- get_census(dataset = "CA21",
@@ -775,7 +771,7 @@ vis_min_graph <- ggplot(data = vis_min, aes(x = type, y = count, fill = type)) +
             vjust = -0.5, color = "white") +
   scale_y_continuous(labels = convert_number) +
   labs(x = "Lieu de naissance",
-       y = "Personnes") +
+       y = "Individus") +
   gg_cc_theme_no_sf +
   theme(legend.position = "none", plot.title = element_blank(),
         legend.title = element_blank(), text = element_text(family = "KMR Apparat Regular"),

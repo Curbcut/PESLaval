@@ -24,7 +24,7 @@ qs::qload(here::here("data/axe1/immigration.qsm"))
 
 ## Immigration et diversité ethnoculturelle
 
-Chaque année, Laval accueille des milliers de nouveaux·elles arrivant·e·s, illustrant une tendance constante d'augmentation de la population immigrante au cours des 25 dernières années. Cette croissance souligne le rôle de Laval comme destination majeure pour les immigrant·e·s au Québec. En effet, la proportion de la population lavalloise qui est composée d'immigrant·e·s a augmenté de façon significative au cours des 25 dernières années, et plus particulièrement depuis 2001 (voir le graphique \@ref(fig:immEvolutionGraph) ci-dessous)^[Statistique Canada. (2022). Tableau 98-10-0307-01  Statut d'immigrant et période d'immigration selon le lieu de naissance : Canada, provinces et territoires, divisions de recensement et subdivisions de recensement. Récupéré de https://doi.org/10.25318/9810030701-fra]. 
+Chaque année, Laval accueille des milliers de nouveaux·elles arrivant·e·s, illustrant une tendance constante d'augmentation de la population immigrante au cours des 25 dernières années. Cette croissance souligne le rôle de Laval comme destination majeure pour les immigrant·e·s au Québec. En effet, la proportion de la population lavalloise qui est composée d'immigrant·e·s a augmenté de façon significative au cours des 25 dernières années, et plus particulièrement depuis 2001 (graphique \@ref(fig:immEvolutionGraph))^[Statistique Canada. (2022). Tableau 98-10-0307-01  Statut d'immigrant et période d'immigration selon le lieu de naissance : Canada, provinces et territoires, divisions de recensement et subdivisions de recensement. Récupéré de https://doi.org/10.25318/9810030701-fra]. 
 
 ```{r immEvolutionGraph, include=TRUE, fig.cap="Pourcentage de la population qui est immigrante, Laval c. Québec 1996 - 2021 (*les données de 2011 sont exclues)", fig.align = 'center'}
 
@@ -32,15 +32,15 @@ imm_evol_graph
 
 ```
 
-Selon le recensement de 2021, près d'un tiers (`r imm_21_lvl_prop`) de la population de Laval est constituée d'immigrant·e·s, contre `r imm_21_mtl_prop` à Montréal et `r imm_21_qc_prop` dans l’ensemble du Québec. Le graphique \@ref(fig:immPropMap) ci-dessous montre la répartition spatiale de la population immigrée de Laval, avec des proportions plus élevées dans et autour du Secteur d'aménagement Chomedey.
+Selon le recensement de 2021, près d'un tiers (`r imm_21_lvl_prop`) de la population de Laval est constituée d'immigrant·e·s, contre `r imm_21_mtl_prop` à Montréal et `r imm_21_qc_prop` dans l’ensemble du Québec. Le graphique \@ref(fig:immPropMap) montre la répartition spatiale de la population immigrée de Laval, avec des proportions plus élevées dans et autour du Secteur d'aménagement Chomedey.
 
-```{r immPropMap, include=TRUE, fig.cap="Proportion d'immigrants dans la population, 2021", fig.align = 'center'}
+```{r immPropMap, include=TRUE, fig.cap="Proportion d'immigrants dans la population (2021)", fig.align = 'center'}
 
 imm_prop_map
 
 ```
 
-```{r recimmPropMap, include=TRUE, fig.cap="Proportion d'immigrants récents dans la population, 2021", fig.align = 'center'}
+```{r recimmPropMap, include=TRUE, fig.cap="Proportion d'immigrants récents dans la population (2021)", fig.align = 'center'}
 
 recimm_prop_map
 
@@ -50,7 +50,7 @@ recimm_prop_map
 
 Les résidents non permanents ne représentent qu'une très faible proportion de la population, soit environ (`r non_res_prop`) des résidents, comparativement à des figures beaucoup plus hautes à Montréal et dans l'ensemble du Québec. 
 
-```{r immTable, include=TRUE, fig.cap="Population immigrante totale, immigrante récente, résidente non permanente et non immigrante à Laval 2021", fig.align = 'center'}
+```{r immTable, include=TRUE, fig.cap="Population immigrante totale, immigrante récente, résidente non permanente et non immigrante à Laval (2021)", fig.align = 'center'}
 
 imm_table
 
@@ -64,7 +64,7 @@ Définition: Résident·e non permanent
 
 ### Citoyenneté
 
-Bien que les niveaux d'immigration soient plus élevés à Laval que dans le reste de la province, les taux de citoyenneté sont toutefois similaires. En effet, la grande majorité des résident·e·s de Laval (`r CanadianCitizensLaval`) sont des citoyen·ne·s canadien·ne·s, une proportion similaire à l’ensemble du Québec (`r CanadianCitizensQc`), et plus élevée qu’à Montréal (`r CanadianCitizensMtl`) ^[Statistique Canada. (2023). Tableau 98-10-0360-01  Pays de citoyenneté selon le genre et l'âge : Divisions de recensement. Récupéré de https://doi.org/10.25318/9810036001-fra]
+Bien que les niveaux d'immigration soient plus élevés à Laval que dans le reste de la province, les taux de citoyenneté sont toutefois similaires. En effet, la grande majorité des résident·e·s de Laval (`r CanadianCitizensLaval`) sont des citoyen·ne·s canadien·ne·s, une proportion similaire à l’ensemble du Québec (`r CanadianCitizensQc`).^[Statistique Canada. (2023). Tableau 98-10-0360-01  Pays de citoyenneté selon le genre et l'âge : Divisions de recensement. Récupéré de https://doi.org/10.25318/9810036001-fra]
 
 ### Période d’immigration
 
@@ -82,13 +82,11 @@ period_imm_graph
 
 ```
 
-### Statut des générations
-
 ### Catégorie d’admission
 
-La population immigrante de Laval peut être mieux comprise en fonction de sa catégorie d'admission et de son expérience de pré-admission. Les quatre catégories d'admission sont les suivantes : immigrant·e économique, immigrant·e parrainé par la famille, réfugié·e et autre. À Laval, similaire à l’ensemble du Québec, la moitié (`r laval_ad_cat`) de la population immigrante appartient à la catégorie de l'immigration économique. ^[Statistique Canada. (2022). Dictionnaire, Recensement de la population, 2021. Récupéré de https://www12.statcan.gc.ca/census-recensement/2021/ref/dict/az/Definition-fra.cfm?ID=pop169] Cela signifie qu'ils ont été sélectionnés en raison de leur potentiel à contribuer à l'économie canadienne en répondant aux besoins du marché du travail, en gérant des entreprises, en faisant des investissements ou en répondant à des demandes spécifiques régionales. Comparativement à la province, Laval compte une plus grande proportion de réfugié·e·s au sein de sa population immigrante. 
+Les quatre catégories d'admission sont les suivantes : immigrant·e économique, immigrant·e parrainé par la famille, réfugié·e et autre. À Laval, similaire à l’ensemble du Québec, la moitié (`r laval_ad_cat`) de la population immigrante appartient à la catégorie de l'immigration économique. ^[Statistique Canada. (2022). Dictionnaire, Recensement de la population, 2021. Récupéré de https://www12.statcan.gc.ca/census-recensement/2021/ref/dict/az/Definition-fra.cfm?ID=pop169] Cela signifie qu'ils ont été sélectionnés en raison de leur potentiel à contribuer à l'économie canadienne en répondant aux besoins du marché du travail, en gérant des entreprises, en faisant des investissements ou en répondant à des demandes spécifiques régionales. Comparativement à la province, Laval compte une plus grande proportion de réfugié·e·s au sein de sa population immigrante. 
 
-```{r adCatGraph, include=TRUE, fig.cap="Population immigrée par catégorie d'admission, 2021", fig.align = 'center'}
+```{r adCatGraph, include=TRUE, fig.cap="Population immigrée par catégorie d'admission (2021)", fig.align = 'center'}
 
 ad_cat_graph
 
@@ -99,18 +97,18 @@ ad_cat_graph
 
 Le groupe d'âge le plus représenté parmi les résident·e·s immigrant·e·s est de loin celui des 25 à 44 ans. Bien que toutes les catégories d'âge montrent un équilibre entre les genres, la catégorie des 15 à 24 ans ne respecte pas cette tendance. En effet, il y a plus de femmes que d'hommes qui immigrent dans le groupe d'âge des jeunes adultes et adolescents, comme au niveau des 45 ans et plus, bien qu’à plus petite proportion.
 
-```{r immAgeGraph, include=TRUE, fig.cap="Âge à l’immigration, 2021", fig.align = 'center'}
+```{r immAgeGraph, include=TRUE, fig.cap="Âge à l’immigration (2021)", fig.align = 'center'}
 
 imm_stackedage_graph
 
 ```
 
 ### Origines ethniques
-La population immigrante de Laval est diversifiée, contribuant à la variété démographique de la ville. Avant 1980, la plupart des immigrant·e·s de Laval venaient d'Italie, de Grèce ou d'Haïti. Au fil des années, les origines des nouveaux·elles arrivant·e·s à Laval ont changé. En 2021, un·e immigrant·e sur trois (`r imm_asia`) était né·e dans un pays d'Asie (y compris le Moyen-Orient) ^[Statistique Canada. (2023). Tableau 98-10-0350-01  Lieu de naissance et période d'immigration selon le genre et l'âge : Divisions de recensement. Récupéré de https://doi.org/10.25318/9810035001-fra]. Les autres immigrant·e·s proviennent principalement de pays africains (`r imm_africa`), de pays européens (`r imm_europe`) et des Caraïbes ou d'Amérique centrale, du Sud et latine (`r imm_CCSLA`).
+Avant 1980, la plupart des immigrant·e·s de Laval venaient d'Italie, de Grèce ou d'Haïti. Au fil des années, les origines des nouveaux·elles arrivant·e·s à Laval ont changé. En 2021, un·e immigrant·e sur trois (`r imm_asia`) était né·e dans un pays d'Asie (y compris le Moyen-Orient) ^[Statistique Canada. (2023). Tableau 98-10-0350-01  Lieu de naissance et période d'immigration selon le genre et l'âge : Divisions de recensement. Récupéré de https://doi.org/10.25318/9810035001-fra]. Les autres immigrant·e·s proviennent principalement de pays africains (`r imm_africa`), de pays européens (`r imm_europe`) et des Caraïbes ou d'Amérique centrale, du Sud et latine (`r imm_CCSLA`).
 
-Si l'on se concentre directement sur la population immigrée récente, on constate une augmentation du nombre d'immigré·e·s originaires de pays asiatiques et une diminution du nombre d'immigrés originaires d'Europe et des Caraïbes ou d'Amérique centrale, du Sud et d'Amérique latine (graphique TK). Les immigrant·e·s né·e·s en Asie représentent `r recent_asia` de la population des immigrant·e·s récent·e·s, suivis par les immigrant·e·s né·e·s en Afrique (`r recent_africa`). La moitié des nouveaux·elles arrivant·e·s sont né·e·s dans l'un de ces cinq pays : Syrie (`r recent_syria`), Liban (`r recent_lebanon`), Algérie (`r recent_algeria`), Haïti (`r recent_haiti`) ou Maroc (`r recent_morocco`). 
+Si l'on se concentre directement sur la population immigrée récente, on constate une augmentation du nombre d'immigrant·e·s originaires de pays asiatiques et une diminution du nombre d'immigrés originaires d'Europe et des Caraïbes ou d'Amérique centrale, du Sud et d'Amérique latine (graphique TK). Les immigrant·e·s né·e·s en Asie représentent `r recent_asia` de la population des immigrant·e·s récent·e·s, suivis par les immigrant·e·s né·e·s en Afrique (`r recent_africa`). La moitié des nouveaux·elles arrivant·e·s sont né·e·s dans l'un de ces cinq pays : Syrie (`r recent_syria`), Liban (`r recent_lebanon`), Algérie (`r recent_algeria`), Haïti (`r recent_haiti`) ou Maroc (`r recent_morocco`). 
 
-```{r immOriginGraph, include=TRUE, fig.cap="Lieu de naissance de la population immigrée totale par rapport à la population immigrée récente", fig.align = 'center'}
+```{r immOriginGraph, include=TRUE, fig.cap="Lieu de naissance de la population immigrée récente et totale (2021)", fig.align = 'center'}
 
 imm_origin_graph
 
@@ -123,7 +121,8 @@ En 2021, le tiers (`r vis_min_laval`) de la population de Laval appartient à un
 Définition: Minorité visible 
 - *Une personne appartenant à une minorité visible est une personne, autre qu'un autochtone, qui ne sont pas de race blanche ou qui n’ont pas la peau blanche.* ^[Statistique Canada. (2021). Minorité visible de la personne. Récupéré de https://www23.statcan.gc.ca/imdb/p3Var_f.pl?Function=DECI&Id=1323413]
 
-```{r visMinGraph, include=TRUE, fig.cap="Répartition de la population appartenant à une minorité visible. N.i.a = Réponse écrite, 2021", fig.align = 'center'}
+```{r visMinGraph, include=TRUE, fig.cap="Répartition de la population appartenant à une minorité visible 
+(2021)", fig.align = 'center'}
 
 vis_min_graph
 
