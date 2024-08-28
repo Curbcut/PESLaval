@@ -306,7 +306,7 @@ convert_date <- function(date_str) {
 chomage <- mutate(chomage, date = convert_date(date))
 
 unemployment_rate_graph_isq <- 
-ggplot(chomage, aes(x = date, y = as.numeric(tauxchomage))) +
+  ggplot(chomage, aes(x = date, y = as.numeric(tauxchomage))) +
   geom_line(color = "grey70") +
   geom_smooth(se = FALSE, color = color_theme("blueexplorer")) +
   labs(x = NULL, y = "Taux de chômage (%)") +

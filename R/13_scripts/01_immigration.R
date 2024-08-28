@@ -200,41 +200,66 @@ imm_table_qc  <- get_census(dataset = "CA21",
 
 #Formatting the numbers
 imm_table_data <- bind_rows(imm_table_lvl, imm_table_mtl, imm_table_qc) |> 
-  mutate(`Immigrants totaux (%)` = convert_pct(`Immigrants totaux (n)` / `Population (n)`),
-         `Immigrants récents (%)` = convert_pct(`Immigrants récents (n)` / `Population (n)`),
-         `Résident non permanents (%)` = convert_pct(`Résident non permanents (n)` / `Population (n)`),
-         `Non-immigrants (%)` = convert_pct(`Non-immigrants (n)` / `Population (n)`)) |>
-  mutate(`Population (n)` = convert_number(`Population (n)`),
-         `Immigrants totaux (n)` = convert_number(`Immigrants totaux (n)`),
-         `Immigrants récents (n)` = convert_number(`Immigrants récents (n)`),
-         `Résident non permanents (n)` = convert_number(`Résident non permanents (n)`),
-         `Non-immigrants (n)` = convert_number(`Non-immigrants (n)`)) |> 
+  mutate(`Immigrants totaux (%)` = `Immigrants totaux (n)` / `Population (n)`,
+         `Immigrants récents (%)` = `Immigrants récents (n)` / `Population (n)`,
+         `Résident non permanents (%)` = `Résident non permanents (n)` / `Population (n)`,
+         `Non-immigrants (%)` = `Non-immigrants (n)` / `Population (n)`) |>
+  # mutate(`Population (n)` = `convert_number(Population (n)`),
+  #        `Immigrants totaux (n)` = convert_number(`Immigrants totaux (n)`),
+  #        `Immigrants récents (n)` = convert_number(`Immigrants récents (n)`),
+  #        `Résident non permanents (n)` = convert_number(`Résident non permanents (n)`),
+  #        `Non-immigrants (n)` = convert_number(`Non-immigrants (n)`)) |> 
   select(Région, `Population (n)`, `Immigrants totaux (n)`, `Immigrants totaux (%)`,
          `Immigrants récents (n)`, `Immigrants récents (%)`, `Résident non permanents (n)`,
          `Résident non permanents (%)`, `Non-immigrants (n)`, `Non-immigrants (%)`)
 
 #Creating the table
-imm_table <- imm_table_data |> gt() |> 
+imm_table <- 
+  gt(imm_table_data) |> 
+  data_color(
+    columns = c(4,6,8,10),
+    colors = scales::col_numeric(
+      palette = c("white", color_theme("purpletransport")),
+      domain = NULL
+    )
+  ) |> 
+  fmt(columns = c(2,3,5,7,9), fns = convert_number) |> 
+  fmt(columns = c(4,6,8,10), fns = convert_pct) |> 
+  # Apply font style to the whole table
+  tab_style(
+    style = cell_text(
+      font = "KMR Apparat Regular"
+    ),
+    locations = cells_body()
+  ) |>
+  tab_style(
+    style = cell_text(
+      font = "KMR Apparat Regular"
+    ),
+    locations = cells_column_labels()
+  ) |>
+  tab_style(
+    style = cell_text(
+      font = "KMR Apparat Regular"
+    ),
+    locations = cells_row_groups()
+  ) |>
   tab_style(
     style = cell_fill(color = "#F0F0F0"),
-    locations = cells_body(rows = 2, columns = everything())
+    locations = cells_row_groups()
   ) |> 
-  tab_style(
-    style = cell_borders(sides = "right", color = "darkgrey",weight = px(2)),
-    locations = cells_body(columns = 2)
-  ) |> 
-  tab_style(
-    style = cell_borders(sides = "right", color = "darkgrey",weight = px(2)),
-    locations = cells_body(columns = 4)
-  ) |> 
-  tab_style(
-    style = cell_borders(sides = "right", color = "darkgrey",weight = px(2)),
-    locations = cells_body(columns = 6)
-  ) |> 
-  tab_style(
-    style = cell_borders(sides = "right", color = "darkgrey",weight = px(2)),
-    locations = cells_body(columns = 8)
+  tab_options(
+    table.font.size = indesign_fontsize,
+    row_group.font.size = indesign_title_fontsize
   )
+
+gtsave(imm_table, "output/axe1/immigration/imm_table.png")
+
+
+
+
+
+
 
 # Immigrant Status --------------------------------------------------------
 #Pulling the number for the non-resident population

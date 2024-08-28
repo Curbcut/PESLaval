@@ -30,11 +30,11 @@ ndvi_plot
 
 ### Vulnérabilité aux inondations
 
-À la suite des inondations de 2017 et de 2019 au Québec, la Communauté métropolitaine de Montréal (CMM) a publié en 2019 une carte identifiant les régions vulnérables aux inondations. Cette carte, superposée à Laval dans le graphique \@ref(fig:inondationsPlot), met en évidence les zones qui ont un risque d'inondation de 50 % (0-2 ans), 5 % (2-20 ans) et 1 % (20-100 ans) par an. 
+À la suite des inondations de 2017 et de 2019 au Québec, la Communauté métropolitaine de Montréal (CMM) a publié une carte identifiant les régions vulnérables aux inondations. Cette carte, superposée à Laval dans le graphique \@ref(fig:inondationsPlot), met en évidence les zones qui ont un risque d'inondation de 50 % (0-2 ans), 5 % (2-20 ans) et 1 % (20-100 ans) par an. 
 
 Les résultats^[Pour estimer avec précision le nombre de bâtiments résidentiels exposés au risque d'inondation dans chaque zone, la carte des inondations de la CMM a été utilisée conjointement avec le jeu de données sur les bâtiments de Curbcut, ainsi qu'avec le recensement canadien de 2021 et les codes d'utilisation des sols de Laval.] montrent que `r res_buildings_0_2` bâtiments dans des zones résidentielles à Laval sont exposés à un risque d'inondation annuel de 50 %, `r res_buildings_2_20` à un risque de 5 % et `r res_buildings_20_100` à un risque de 1 %. La vaste majorité de ces bâtiments résidentiels se situent à Laval-Ouest, Sainte-Dorothée, Laval-sur-le-Lac. Ces prévisions pourraient évoluer en raison de l'aggravation des effets du changement climatique, de l'augmentation de la population de Laval et de la mise en œuvre de nouvelles politiques visant à réduire les risques d'inondation et les dommages associés. 
 
-```{r inondationsPlot, include=TRUE, fig.cap="Zones inondables à Laval (2019)^[CMM RCI-2019-78 - Code de l'urbanisme]", fig.align = 'center'}
+```{r inondationsPlot, include=TRUE, fig.cap="Zones inondables à Laval (2019)^[CMM RCI-2019-78 - Code de l'urbanisme. Récupéré de https://cmm.qc.ca/documentation/reglements/controle-interimaire/]", fig.align = 'center'}
 flood_plot
 ```
 

@@ -100,17 +100,13 @@ ndvi <- ndvi[["ndvi_2023"]]
 # Convert the raster to a dataframe
 ndvi_df <- as.data.frame(ndvi, xy = TRUE, na.rm = TRUE)
 
-breaks <- c(0, 0.2, 0.4, 0.6, 0.8, 1)
-color_breaks <- c("#feb24c", "#fff7bc", "#e5f5f9", "#99d8c9", "#a6bddb")
-
 lvlsec_utm <- sf::st_transform(laval_sectors, crs = sf::st_crs(ndvi))
-
 these_tiles <- raster::projectRaster(tiles, crs = crs(ndvi))
 
 ndvi_plot <- 
   ggplot() +
   ggspatial::layer_spatial(these_tiles, alpha = 0.7) +
-  geom_tile(data = ndvi_df, aes(x = x, y = y, fill = cut(ndvi_2023, breaks = breaks))) +  
+  geom_tile(data = ndvi_df, aes(x = x, y = y, fill = cut(ndvi_2023, breaks = c(0, 0.2, 0.4, 0.6, 0.8, 1)))) +  
   scale_fill_manual(values = c("#feb24c", "#fff7bc", "#e5f5f9", "#99d8c9", "#a6bddb"),
                     labels = c("Très bas", "Bas", "Moyen", "Haut", "Très haut"),
                     na.value = curbcut_colors$left_5$fill[1]) +

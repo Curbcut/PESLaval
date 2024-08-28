@@ -152,15 +152,15 @@ t <- add_bins(df = median_income_sf,
               breaks = c(-Inf, 60000, 80000, 100000, 120000, Inf),
               labels = labels
 )
-t <- Reduce(rbind,
-            split(t, t$binned_variable, drop = FALSE) |>
-              lapply(\(x) {
-                out <- tibble::tibble(x$binned_variable)
-                out$geometry <- sf::st_union(x)
-                sf::st_as_sf(out, crs = 4326)[1, ]
-              })
-) |> sf::st_as_sf()
-names(t)[1] <- "binned_variable"
+# t <- Reduce(rbind,
+#             split(t, t$binned_variable, drop = FALSE) |>
+#               lapply(\(x) {
+#                 out <- tibble::tibble(x$binned_variable)
+#                 out$geometry <- sf::st_union(x)
+#                 sf::st_as_sf(out, crs = 4326)[1, ]
+#               })
+# ) |> sf::st_as_sf()
+# names(t)[1] <- "binned_variable"
 
 lvls <- levels(t$binned_variable)
 lvls <- c(lvls[length(lvls)], lvls[-length(lvls)])
@@ -771,15 +771,15 @@ t <- add_bins(df = median_income_ind_sf,
               breaks = c(-Inf, 25000, 35000, 45000, 55000, Inf),
               labels = labels
 )
-t <- Reduce(rbind,
-            split(t, t$binned_variable, drop = FALSE) |>
-              lapply(\(x) {
-                out <- tibble::tibble(x$binned_variable)
-                out$geometry <- sf::st_union(x)
-                sf::st_as_sf(out, crs = 4326)[1, ]
-              })
-) |> sf::st_as_sf()
-names(t)[1] <- "binned_variable"
+# t <- Reduce(rbind,
+#             split(t, t$binned_variable, drop = FALSE) |>
+#               lapply(\(x) {
+#                 out <- tibble::tibble(x$binned_variable)
+#                 out$geometry <- sf::st_union(x)
+#                 sf::st_as_sf(out, crs = 4326)[1, ]
+#               })
+# ) |> sf::st_as_sf()
+# names(t)[1] <- "binned_variable"
 
 lvls <- levels(t$binned_variable)
 lvls <- c(lvls[length(lvls)], lvls[-length(lvls)])

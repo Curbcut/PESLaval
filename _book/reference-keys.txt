@@ -1,6 +1,5 @@
 fig:popDensityPlot
 fig:agePyarmid
-fig:popProj
 fig:birthsGraph
 fig:immEvolutionGraph
 fig:immPropMap
@@ -22,6 +21,7 @@ fig:childrenVuln
 fig:childrenInt
 fig:emploiTaux
 fig:emploiChomage
+fig:unemploymentIsq
 fig:emploiCatPro
 fig:educationIndice
 fig:educationGender
@@ -48,10 +48,9 @@ structure-de-la-population
 croissance-de-la-population
 axe-1-les-conditions-de-vie-et-les-inégalités-sociales
 immigration-et-diversité-ethnoculturelle
-les-statuts-dimmigrantes
+les-statuts-dimmigration
 citoyenneté
 période-dimmigration
-statut-des-générations
 catégorie-dadmission
 âge-à-limmigration
 origines-ethniques
@@ -78,7 +77,7 @@ emploi-et-chômage
 taux-demploi
 travail-pendant-lannée-de-référence
 taux-de-chômage
-évolution-récente
+évolution-récente-du-taux-de-chômage
 lévolution-de-la-population-active
 les-besoins-en-programmes-dassistance-sociale
 catégories-professionnelles
@@ -91,7 +90,7 @@ niveau-de-scolarité-selon-le-genre
 répartition-géographique-des-niveaux-de-scolarité
 sorties-sans-diplôme-ni-qualification
 logement-et-habitation
-augmentation-des-nouveaux-ménages-locataires
+statut-doccupation
 hausse-du-coût-du-logement
 ménages-locataires
 ménages-propriétaires

@@ -5,17 +5,6 @@ library(readxl)
 library(cmhc)
 library(scales)
 
-#Setting CensusMapper API Key because it won't save
-set_cancensus_api_key("CensusMapper_4308d496f011429cf814385050f083dc")
-
-#Grabbing all cancensus vector
-can21 <- list_census_vectors(dataset = "CA21")
-
-#Caching census and CMHC data to reduce amount of calls and speed up process.
-#Personal use only, change the folder to your own folder if you want to use it
-set_cancensus_cache_path("D:/McGill/can_cache", install = TRUE, overwrite = TRUE)
-set_cmhc_cache_path("D:/McGill/can_cache", install = TRUE, overwrite = TRUE)
-
 #Grabbing Laval's shapefile by census tract
 laval_ct <- cancensus::get_census(dataset = "CA21", 
                                   regions = list(CSD = 2465005), 

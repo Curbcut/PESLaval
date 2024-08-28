@@ -165,9 +165,9 @@ housing_statut_fun <- function(occ, year) {
   convert_pct(x)
 }
 
-housing_owner_2016 <- housing_statut_fun("owner", 2016)
-housing_owner_2001 <- housing_statut_fun("owner", 2001)
-housing_owner_2021 <- housing_statut_fun("owner", 2021)
+housing_owner_2016_pct <- housing_statut_fun("owner", 2016)
+housing_owner_2001_pct <- housing_statut_fun("owner", 2001)
+housing_owner_2021_pct <- housing_statut_fun("owner", 2021)
 
 housing_statut_evol_fun <- function(year, type) {
   pto_graph$Households[pto_graph$Type == type & pto_graph$Year == year]
@@ -321,13 +321,13 @@ ggplot2::ggsave(filename = here::here("output/axe1/housing/housing_loyermed_plot
                 plot = housing_loyermed_plot, width = 3, height = 2.5)
 
 housing_loyer_2023 <- avg_rent_annual$Value[
-  avg_rent_annual$Year == 2023 & avg_rent_annual$Geography == "Laval" & avg_rent_annual$indexed == "Ajusté à l'inflation ($ de 2023)"]
+  avg_rent_annual$Year == 2023 & avg_rent_annual$Geography == "Laval"]
 housing_loyer_2010 <- avg_rent_annual$Value[
-  avg_rent_annual$Year == 2010 & avg_rent_annual$Geography == "Laval" & avg_rent_annual$indexed == "Ajusté à l'inflation ($ de 2023)"]
+  avg_rent_annual$Year == 2010 & avg_rent_annual$Geography == "Laval"]
 housing_loyer_var <- convert_pct((housing_loyer_2023 - housing_loyer_2010) / housing_loyer_2010)
 
 housing_loyer_2010_noinf <- avg_rent_annual$Value[
-  avg_rent_annual$Year == 2010 & avg_rent_annual$Geography == "Laval" & avg_rent_annual$indexed == "Dollars courants (non ajusté)"]
+  avg_rent_annual$Year == 2010 & avg_rent_annual$Geography == "Laval"]
 housing_loyer_var_noinf <- convert_pct((housing_loyer_2023 - housing_loyer_2010_noinf) / housing_loyer_2010_noinf)
 
 
@@ -336,9 +336,9 @@ housing_loyer_2010 <- convert_number(housing_loyer_2010)
 housing_loyer_2010_noinf <- convert_number(housing_loyer_2010_noinf)
 
 housing_loyer_2023_QC <- avg_rent_annual$Value[
-  avg_rent_annual$Year == 2023 & avg_rent_annual$Geography == "Québec" & avg_rent_annual$indexed == "Ajusté à l'inflation ($ de 2023)"]
+  avg_rent_annual$Year == 2023 & avg_rent_annual$Geography == "Québec"]
 housing_loyer_2010_QC <- avg_rent_annual$Value[
-  avg_rent_annual$Year == 2010 & avg_rent_annual$Geography == "Québec" & avg_rent_annual$indexed == "Ajusté à l'inflation ($ de 2023)"]
+  avg_rent_annual$Year == 2010 & avg_rent_annual$Geography == "Québec"]
 
 housing_loyer_var_QC <- convert_pct((housing_loyer_2023_QC - housing_loyer_2010_QC) / housing_loyer_2010_QC)
 
@@ -645,15 +645,15 @@ t <- add_bins(df = owner_tenant_sf,
               breaks = c(-Inf, 600, 900, 1200, Inf),
               labels = labels
 )
-t <- Reduce(rbind,
-            split(t, t$binned_variable, drop = FALSE) |>
-              lapply(\(x) {
-                out <- tibble::tibble(x$binned_variable)
-                out$geometry <- sf::st_union(x)
-                sf::st_as_sf(out, crs = 4326)[1, ]
-              })
-) |> sf::st_as_sf()
-names(t)[1] <- "binned_variable"
+# t <- Reduce(rbind,
+#             split(t, t$binned_variable, drop = FALSE) |>
+#               lapply(\(x) {
+#                 out <- tibble::tibble(x$binned_variable)
+#                 out$geometry <- sf::st_union(x)
+#                 sf::st_as_sf(out, crs = 4326)[1, ]
+#               })
+# ) |> sf::st_as_sf()
+# names(t)[1] <- "binned_variable"
 
 housing_median_rent_plot <-
   ggplot(data = t) +
@@ -987,14 +987,14 @@ t <- add_bins(df = owner_tenant_sf,
               breaks = c(-Inf, 1200, 1500, 1800, Inf),
               labels = labels
 )
-t <- Reduce(rbind,
-            split(t, t$binned_variable, drop = FALSE) |>
-              lapply(\(x) {
-                out <- tibble::tibble(x$binned_variable)
-                out$geometry <- sf::st_union(x)
-                sf::st_as_sf(out, crs = 4326)[1, ]
-              })
-) |> sf::st_as_sf()
+# t <- Reduce(rbind,
+#             split(t, t$binned_variable, drop = FALSE) |>
+#               lapply(\(x) {
+#                 out <- tibble::tibble(x$binned_variable)
+#                 out$geometry <- sf::st_union(x)
+#                 sf::st_as_sf(out, crs = 4326)[1, ]
+#               })
+# ) |> sf::st_as_sf()
 names(t)[1] <- "binned_variable"
 
 housing_median_cost_plot <-
@@ -1817,7 +1817,8 @@ qs::qsavem(housing_owner_2016, housing_owner_2001, housing_owner_2021,
            rent_inc_2021_2022, rent_inc_2022_2023, taille_all, taille_owner,
            taille_tenant, acceptable_all, acceptable_owner, acceptable_tenant,
            core_need_table, core_need_2006, core_need_tenant,
-           core_need_tenant_QC, core_need_2021,
+           core_need_tenant_QC, core_need_2021, housing_owner_2016_pct,
+           housing_owner_2021_pct, housing_owner_2001_pct,
            acceptable_housing_table, file = "data/axe1/housing.qsm")
 
 

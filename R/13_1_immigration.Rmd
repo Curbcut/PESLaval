@@ -26,34 +26,26 @@ qs::qload(here::here("data/axe1/immigration.qsm"))
 
 Chaque année, Laval accueille des milliers de nouveaux·elles arrivant·e·s, illustrant une tendance constante d'augmentation de la population immigrante au cours des 25 dernières années. Cette croissance souligne le rôle de Laval comme destination majeure pour les immigrant·e·s au Québec. En effet, la proportion de la population lavalloise qui est composée d'immigrant·e·s a augmenté de façon significative au cours des 25 dernières années, et plus particulièrement depuis 2001 (graphique \@ref(fig:immEvolutionGraph))^[Statistique Canada. (2022). Tableau 98-10-0307-01  Statut d'immigrant et période d'immigration selon le lieu de naissance : Canada, provinces et territoires, divisions de recensement et subdivisions de recensement. Récupéré de https://doi.org/10.25318/9810030701-fra]. 
 
-```{r immEvolutionGraph, include=TRUE, fig.cap="Pourcentage de la population qui est immigrante, Laval c. Québec 1996 - 2021 (*les données de 2011 sont exclues)", fig.align = 'center'}
-
+```{r immEvolutionGraph, include=TRUE, fig.cap="Pourcentage de la population qui est immigrante à Laval, Montréal et au Québec (1996 - 2021)", fig.align = 'center'}
 imm_evol_graph
-
 ```
 
-Selon le recensement de 2021, près d'un tiers (`r imm_21_lvl_prop`) de la population de Laval est constituée d'immigrant·e·s, contre `r imm_21_mtl_prop` à Montréal et `r imm_21_qc_prop` dans l’ensemble du Québec. Le graphique \@ref(fig:immPropMap) montre la répartition spatiale de la population immigrée de Laval, avec des proportions plus élevées dans et autour du Secteur d'aménagement Chomedey.
+Selon le recensement de 2021, près d'un tiers (`r imm_21_lvl_prop`) de la population de Laval était constituée d'immigrant·e·s, contre `r imm_21_mtl_prop` à Montréal et `r imm_21_qc_prop` dans l’ensemble du Québec. Le graphique \@ref(fig:immPropMap) montre la répartition spatiale de la population immigrée de Laval, avec des proportions plus élevées dans et autour du secteur d'aménagement Chomedey.
 
 ```{r immPropMap, include=TRUE, fig.cap="Proportion d'immigrants dans la population (2021)", fig.align = 'center'}
-
 imm_prop_map
-
 ```
 
 ```{r recimmPropMap, include=TRUE, fig.cap="Proportion d'immigrants récents dans la population (2021)", fig.align = 'center'}
-
 recimm_prop_map
-
 ```
 
-### Les statuts d’immigrant·e·s
+### Les statuts d’immigration
 
-Les résidents non permanents ne représentent qu'une très faible proportion de la population, soit environ (`r non_res_prop`) des résidents, comparativement à des figures beaucoup plus hautes à Montréal et dans l'ensemble du Québec. 
+À Laval en 2021, Les résidents non permanents ne représentaient qu'une très faible proportion de la population, soit environ (`r non_res_prop`) des résidents, comparativement à des figures beaucoup plus hautes à Montréal et dans l'ensemble du Québec. 
 
 ```{r immTable, include=TRUE, fig.cap="Population immigrante totale, immigrante récente, résidente non permanente et non immigrante à Laval (2021)", fig.align = 'center'}
-
 imm_table
-
 ```
 
 Définition: Immigrant·e récent·e
@@ -69,14 +61,11 @@ Bien que les niveaux d'immigration soient plus élevés à Laval que dans le res
 ### Période d’immigration
 
 Définition: Période d'immigration
-- *La période d'immigration désigne la période pendant laquelle l'immigrant·e a obtenu son statut d'immigrant·e reçu ou de résident permanent pour la première fois.* ^[Statistique Canada. (2021). Dictionnaire, Recensement de la population, 2021. Récupéré de https://www12.statcan.gc.ca/census-recensement/2021/ref/dict/az/Definition-fra.cfm?ID=pop109]
+- *La période d'immigration désigne la période pendant laquelle l'immigrant·e a obtenu son statut d'immigrant·e ou de résident permanent pour la première fois.* ^[Statistique Canada. (2021). Dictionnaire, Recensement de la population, 2021. Récupéré de https://www12.statcan.gc.ca/census-recensement/2021/ref/dict/az/Definition-fra.cfm?ID=pop109]
 
-Le graphique \@ref(fig:periodImmGraph) illustre la répartition de la proportion de la population immigrante totale à Laval et au Québec en fonction de la période d'arrivée. Chaque barre représente la proportion de la population immigrante totale actuelle qui a immigré au cours de chaque période spécifiée.
+Le graphique \@ref(fig:periodImmGraph) illustre la répartition de la proportion de la population immigrante totale à Laval et au Québec en fonction de la période d'arrivée. Chaque barre représente la proportion de la population totale actuelle qui a immigré au cours de chaque période spécifiée. En ce qui concerne la population immigrante lavalloise, l'afflux le plus important s'est produit entre 2001 et 2010, cette décennie représentant le pourcentage le plus élevé de la population immigrante actuelle. ^[Statistique Canada. (2022). Statut d'immigrant et période d'immigration selon le lieu de naissance : Canada, provinces et territoires, divisions de recensement et subdivisions de recensement. Récupéré de https://doi.org/10.25318/9810030701-fra]
 
-En ce qui concerne la population immigrante lavalloise, l'afflux le plus important s'est produit entre 2001 et 2010, cette décennie représentant le pourcentage le plus élevé de la population immigrante actuelle. ^[Statistique Canada. (2022). Statut d'immigrant et période d'immigration selon le lieu de naissance : Canada, provinces et territoires, divisions de recensement et subdivisions de recensement. Récupéré de https://doi.org/10.25318/9810030701-fra]
-
-
-```{r periodImmGraph, include=TRUE, fig.cap="Période d’immigration, Laval et Québec", fig.align = 'center'}
+```{r periodImmGraph, include=TRUE, fig.cap="Période d’immigration à Laval et au Québec (2021)", fig.align = 'center'}
 
 period_imm_graph
 
@@ -84,7 +73,7 @@ period_imm_graph
 
 ### Catégorie d’admission
 
-Les quatre catégories d'admission sont les suivantes : immigrant·e économique, immigrant·e parrainé par la famille, réfugié·e et autre. À Laval, similaire à l’ensemble du Québec, la moitié (`r laval_ad_cat`) de la population immigrante appartient à la catégorie de l'immigration économique. ^[Statistique Canada. (2022). Dictionnaire, Recensement de la population, 2021. Récupéré de https://www12.statcan.gc.ca/census-recensement/2021/ref/dict/az/Definition-fra.cfm?ID=pop169] Cela signifie qu'ils ont été sélectionnés en raison de leur potentiel à contribuer à l'économie canadienne en répondant aux besoins du marché du travail, en gérant des entreprises, en faisant des investissements ou en répondant à des demandes spécifiques régionales. Comparativement à la province, Laval compte une plus grande proportion de réfugié·e·s au sein de sa population immigrante. 
+Les quatre catégories d'admission sont les suivantes : immigrant·e économique, immigrant·e parrainé·e par la famille, réfugié·e et autre. À Laval, similaire à l’ensemble du Québec, la moitié (`r laval_ad_cat`) de la population immigrante appartient à la catégorie de l'immigration économique. ^[Statistique Canada. (2022). Dictionnaire, Recensement de la population, 2021. Récupéré de https://www12.statcan.gc.ca/census-recensement/2021/ref/dict/az/Definition-fra.cfm?ID=pop169] Cela signifie qu'ils ont été sélectionnés en raison de leur potentiel à contribuer à l'économie canadienne en répondant aux besoins du marché du travail, en gérant des entreprises, en faisant des investissements ou en répondant à des demandes spécifiques régionales. Comparativement à la province, Laval compte une plus grande proportion de réfugié·e·s au sein de sa population immigrante. 
 
 ```{r adCatGraph, include=TRUE, fig.cap="Population immigrée par catégorie d'admission (2021)", fig.align = 'center'}
 
@@ -95,7 +84,7 @@ ad_cat_graph
 
 ### Âge à l’immigration
 
-Le groupe d'âge le plus représenté parmi les résident·e·s immigrant·e·s est de loin celui des 25 à 44 ans. Bien que toutes les catégories d'âge montrent un équilibre entre les genres, la catégorie des 15 à 24 ans ne respecte pas cette tendance. En effet, il y a plus de femmes que d'hommes qui immigrent dans le groupe d'âge des jeunes adultes et adolescents, comme au niveau des 45 ans et plus, bien qu’à plus petite proportion.
+Le groupe d'âge le plus représenté parmi les résident·e·s immigrant·e·s est de loin celui des 25 à 44 ans. Bien que toutes les catégories d'âge montrent un équilibre entre les genres, la catégorie des 15 à 24 ans ne respecte pas cette tendance. En effet, il y a plus de femmes que d'hommes qui immigrent dans le groupe d'âge des adolescents et jeunes adultes, comme au niveau des 45 ans et plus, bien qu’à plus petite proportion.
 
 ```{r immAgeGraph, include=TRUE, fig.cap="Âge à l’immigration (2021)", fig.align = 'center'}
 
@@ -106,7 +95,7 @@ imm_stackedage_graph
 ### Origines ethniques
 Avant 1980, la plupart des immigrant·e·s de Laval venaient d'Italie, de Grèce ou d'Haïti. Au fil des années, les origines des nouveaux·elles arrivant·e·s à Laval ont changé. En 2021, un·e immigrant·e sur trois (`r imm_asia`) était né·e dans un pays d'Asie (y compris le Moyen-Orient) ^[Statistique Canada. (2023). Tableau 98-10-0350-01  Lieu de naissance et période d'immigration selon le genre et l'âge : Divisions de recensement. Récupéré de https://doi.org/10.25318/9810035001-fra]. Les autres immigrant·e·s proviennent principalement de pays africains (`r imm_africa`), de pays européens (`r imm_europe`) et des Caraïbes ou d'Amérique centrale, du Sud et latine (`r imm_CCSLA`).
 
-Si l'on se concentre directement sur la population immigrée récente, on constate une augmentation du nombre d'immigrant·e·s originaires de pays asiatiques et une diminution du nombre d'immigrés originaires d'Europe et des Caraïbes ou d'Amérique centrale, du Sud et d'Amérique latine (graphique TK). Les immigrant·e·s né·e·s en Asie représentent `r recent_asia` de la population des immigrant·e·s récent·e·s, suivis par les immigrant·e·s né·e·s en Afrique (`r recent_africa`). La moitié des nouveaux·elles arrivant·e·s sont né·e·s dans l'un de ces cinq pays : Syrie (`r recent_syria`), Liban (`r recent_lebanon`), Algérie (`r recent_algeria`), Haïti (`r recent_haiti`) ou Maroc (`r recent_morocco`). 
+Si l'on se concentre directement sur la population immigrée récente, on constate une augmentation du nombre d'immigrant·e·s originaires de pays asiatiques et une diminution du nombre d'immigrés originaires d'Europe et des Caraïbes ou d'Amérique centrale, du Sud et d'Amérique latine (graphique \@ref(fig:immOriginGraph)). Les immigrant·e·s né·e·s en Asie représentent `r recent_asia` de la population des immigrant·e·s récent·e·s, suivis par les immigrant·e·s né·e·s en Afrique (`r recent_africa`). La moitié des nouveaux·elles arrivant·e·s sont né·e·s dans l'un de ces cinq pays : Syrie (`r recent_syria`), Liban (`r recent_lebanon`), Algérie (`r recent_algeria`), Haïti (`r recent_haiti`) ou Maroc (`r recent_morocco`). 
 
 ```{r immOriginGraph, include=TRUE, fig.cap="Lieu de naissance de la population immigrée récente et totale (2021)", fig.align = 'center'}
 
@@ -116,17 +105,15 @@ imm_origin_graph
 
 ### Minorités visibles
 
-En 2021, le tiers (`r vis_min_laval`) de la population de Laval appartient à une minorité visible, comparativement à `r vis_min_quebec` pour l’ensemble de la province ^[Statistique Canada. (2023). Tableau 98-10-0352-03  Minorité visible selon le genre et l'âge : Subdivisions de recensement ayant une population de 5 000 habitants ou plus. Récupéré de https://doi.org/10.25318/9810035201-fra]. La répartition de la population des minorités visibles est illustrée dans le Graphique 4 ci-dessous, les personnes arabes (`r vis_min_arab`) et noires (`r vis_min_black`) représentant la grande proportion du groupe des minorités visibles. 
+En 2021, le tiers (`r vis_min_laval`) de la population de Laval appartenait à une minorité visible, comparativement à `r vis_min_quebec` pour l’ensemble de la province ^[Statistique Canada. (2023). Tableau 98-10-0352-03  Minorité visible selon le genre et l'âge : Subdivisions de recensement ayant une population de 5 000 habitants ou plus. Récupéré de https://doi.org/10.25318/9810035201-fra]. La répartition de la population des minorités visibles est illustrée dans le Graphique \@ref(fig:visMinGraph), les personnes arabes (`r vis_min_arab`) et noires (`r vis_min_black`) représentant la grande proportion du groupe des minorités visibles. 
 
 Définition: Minorité visible 
 - *Une personne appartenant à une minorité visible est une personne, autre qu'un autochtone, qui ne sont pas de race blanche ou qui n’ont pas la peau blanche.* ^[Statistique Canada. (2021). Minorité visible de la personne. Récupéré de https://www23.statcan.gc.ca/imdb/p3Var_f.pl?Function=DECI&Id=1323413]
 
-```{r visMinGraph, include=TRUE, fig.cap="Répartition de la population appartenant à une minorité visible 
-(2021)", fig.align = 'center'}
-
+```{r visMinGraph, include=TRUE, fig.cap="Répartition de la population appartenant à une minorité visible (2021)", fig.align = 'center'}
 vis_min_graph
-
 ```
 
 ### Appartenance religieuse
-Les résident·e·s laïques ou non religieux représentent `r lvl_secular` de la population lavalloise, tandis qu’au Québec, plus de `r qc_secular` de la population est laïque ou non religieuse. La religion la plus répandue à Laval est le christianisme, qui représente près des deux tiers (`r lvl_christ`) de la population (`r qc_christ` pour la province) ^[Statistique Canada. (2023). Tableau 98-10-0354-03  Religion selon le genre et l'âge : Subdivisions de recensement ayant une population de 5 000 habitants ou plus. Récupéré de https://doi.org/10.25318/9810035401-fra]. La deuxième religion la plus répandue à Laval est l'islam, qui représente `r lvl_islam` de la population, comparativement à la province où elle ne représente qu'environ `r qc_islam`. 
+
+Les résident·e·s laïques ou non religieux représentaient `r lvl_secular` de la population lavalloise en 2021, tandis qu’au Québec, plus de `r qc_secular` de la population était laïque ou non religieuse. La religion la plus répandue à Laval était le christianisme, qui représentait près des deux tiers (`r lvl_christ`) de la population (`r qc_christ` pour la province) ^[Statistique Canada. (2023). Tableau 98-10-0354-03  Religion selon le genre et l'âge : Subdivisions de recensement ayant une population de 5 000 habitants ou plus. Récupéré de https://doi.org/10.25318/9810035401-fra]. La deuxième religion la plus répandue à Laval était l'islam, qui représentait `r lvl_islam` de la population, comparativement à la province où elle ne représentait qu'environ `r qc_islam`. 
