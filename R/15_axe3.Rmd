@@ -33,9 +33,9 @@ Pourquoi utiliser la métrique d'un temps de marche de 15 minutes pour évaluer 
 qs::qload(here::here("data/axe3/daycare.qsm"))
 
 ```
-### Accès aux places en garderie
+### Accès aux places en services de garde éducatifs à l'enfance
 
-Dans le contexte des places en garderie, en juillet 2024, il y avait `r daycare_total` garderies dans la Ville de Laval, pour un total de `r daycare_spots` places en garderie. Durant la même année (2024), il y avait `r kinder_children` enfants en âge de fréquenter la garderie (2 à 5 ans)^[Institut de la statistique du Québec. (2022). Projections de population - Régions administratives et régions métropolitaines (RMR). Récupéré de https://statistique.quebec.ca/fr/document/projections-de-population-regions-administratives-et-regions-metropolitaines-rmr]. Il y avait donc `r kinder_ratio` places en garderie par enfant.
+En juillet 2024, il y avait `r daycare_total` services de garde éducatifs à l'enfance (SGEE) dans la Ville de Laval, pour un total de `r daycare_spots` places. Durant la même année (2024), il y avait `r kinder_children` enfants en âge de fréquenter les SGEE (2 à 5 ans)^[Institut de la statistique du Québec. (2022). Projections de population - Régions administratives et régions métropolitaines (RMR). Récupéré de https://statistique.quebec.ca/fr/document/projections-de-population-regions-administratives-et-regions-metropolitaines-rmr]. Il y avait donc `r kinder_ratio` places par enfant.
 
 Sans tenir compte de la disponibilité des places, le nombre d’enfants qui ne peuvent accéder à une garderie en 15 minutes à pied est de `r zero_access`, ce qui représente environ un enfant sur 10.
 

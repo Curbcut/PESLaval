@@ -10,6 +10,7 @@ rmd_files:
   - R/13_6_education.Rmd
   - R/13_7_housing.Rmd
   - R/13_8_income.Rmd
+  - R/13_11_lifestyle.Rmd
   - R/13_12_climate.Rmd
   - R/14_axe2.Rmd
 output_dir: "_book"
