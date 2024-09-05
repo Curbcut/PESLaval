@@ -35,6 +35,8 @@ sig <- sf::st_as_sf(sig, crs = 4326)
 
 # Du diagnostic culturel (2017)
 dia <- qs::qread("data/axe3/locations/culturels_from_diagnostic.qs")
+# Remove duplicates
+dia <- dia[dia$culturel != "Centre de la nature", ]
 
 
 cultural <- cultural[c("Facility_Name")]
@@ -84,7 +86,10 @@ CSD <- cancensus::get_census("CA21", regions = list(CSD = 2465005), level = "CSD
 nrow(sf::st_filter(cultural, CSD))
 
 # Attach a DB ID
-cultural <- sf::st_intersection(cultural, CMA_DBs["GeoUID"])
+geouid_id <- sf::st_intersects(sf::st_centroid(cultural), CMA_DBs["GeoUID"])
+cultural$GeoUID <- sapply(geouid_id, \(x) if (length(x) == 1) CMA_DBs$GeoUID[x] else NA, 
+                          simplify = TRUE)
+cultural$GeoUID[cultural$name == "Rivi�re-Des-Prairies Generating Station"] <- 24650218004
 
 tt <- ttm()
 
@@ -122,32 +127,39 @@ hm_access_cultural <- add_bins(df = hm_access_cultural,
                                   labels = labels
 )
 
-# Union the features so the polygons don't show their borders. Might revisit
-# with the addition of streets!
-t <- Reduce(rbind,
-            split(hm_access_cultural, hm_access_cultural$binned_variable) |>
-              lapply(\(x) {
-                out <- tibble::tibble(x$binned_variable)
-                out$geometry <- sf::st_union(x)
-                sf::st_as_sf(out, crs = 4326)[1, ]
-              })
-) |> sf::st_as_sf()
-names(t)[1] <- "binned_variable"
+# # Union the features so the polygons don't show their borders. Might revisit
+# # with the addition of streets!
+# t <- Reduce(rbind,
+#             split(hm_access_cultural, hm_access_cultural$binned_variable) |>
+#               lapply(\(x) {
+#                 out <- tibble::tibble(x$binned_variable)
+#                 out$geometry <- sf::st_union(x)
+#                 sf::st_as_sf(out, crs = 4326)[1, ]
+#               })
+# ) |> sf::st_as_sf()
+# names(t)[1] <- "binned_variable"
 
-cultural_map <- t |> 
+cultural_map <- hm_access_cultural |> 
   ggplot() +
   gg_cc_tiles +
   geom_sf(aes(fill = binned_variable), color = "transparent") +
   scale_fill_manual(values = curbcut_colors$left_5$fill[c(2, 4, 6)],
-                    name = "Installations culturelles accessibles (n)",
+                    name = "Nombre d'installations\n culturelles accessibles",
                     labels = labels,
                     guide = guide_legend(title.position = "top",
                                          label.position = "bottom", nrow = 1)) +
-  geom_sf(data = cultural, color = color_theme("pinkhealth"),
+  geom_sf(data = cultural, aes(color = " "),
           size = 0.8, alpha = 0.8) +
+  scale_color_manual(values = c(" " = "#CD718C"), 
+                     name = "Installations culturelles", 
+                     guide = guide_legend(title.position = "top", label.position = "bottom", nrow = 1,
+                                          override.aes = list(size = 5, stroke = 0.5))) +
   gg_cc_theme +
   theme(legend.spacing.x = unit(2, 'cm'),
         legend.spacing.y = unit(1, 'cm'))
+
+ggplot2::ggsave(filename = here::here("output/axe3/cultural_map.pdf"), 
+                plot = cultural_map, width = 6, height = 5, bg = "transparent")
 
 
 # Values ------------------------------------------------------------------
@@ -219,6 +231,8 @@ cultural_demo$`Population (%)` <- gsub("%", "", cultural_demo$`Population (%)`) 
 modified_columns <- c("Faible revenu (n)", "Immigrants (n)", "Population (n)")
 cultural_demo <- cultural_demo |> mutate(across(all_of(modified_columns), ~ gsub(",", " ", .)))
 
+cultural_demo <- cultural_demo[c(1,6:7,2:5)]
+
 cultural_table <- cultural_demo |> 
   gt() |> 
   data_color(
@@ -234,7 +248,27 @@ cultural_table <- cultural_demo |>
       formatted <- sprintf("%.1f %%", x)
       gsub("\\.", ",", formatted)
     }
+  ) |>
+  tab_style(
+    style = cell_text(
+      font = "KMR Apparat Regular"
+    ),
+    locations = cells_body()
+  ) |> 
+  tab_style(
+    style = cell_text(
+      font = "KMR Apparat Regular"
+    ),
+    locations = cells_column_labels()
+  ) |> 
+  # Options générales pour la table
+  tab_options(
+    table.font.size = indesign_fontsize,
+    row_group.font.size = indesign_title_fontsize
   )
+
+gtsave(cultural_table, "output/axe3/cultural_table.png")
+
 
 # R Markdown --------------------------------------------------------------
 cultural_no_access <- cultural_demo |> 

@@ -78,6 +78,9 @@ parks_map <- t |>
   theme(legend.spacing.x = unit(2, 'cm'),
         legend.spacing.y = unit(1, 'cm'))
 
+ggplot2::ggsave(filename = here::here("output/axe3/parks_map.pdf"), 
+                plot = parks_map, width = 7, height = 6)
+
 
 # Values ------------------------------------------------------------------
 
@@ -152,12 +155,12 @@ park_table_data <- merge(DB_lowincome,
   group_by(binned_variable) |> 
   summarize(lowincome = sum(lowincome, na.rm = TRUE),
             withchildren = sum(withchildren, na.rm = TRUE)) |> 
-  mutate(lowincome_pct = round(lowincome / sum(lowincome) * 100, 1), 
-         withchildren_pct = round(withchildren / sum(withchildren) * 100, 1)) |> 
-  mutate(lowincome = convert_number(lowincome),
-         withchildren = convert_number(withchildren),
-         `Population (n)` = convert_number(parks_pop$pop),
-         `Population (%)` = round(parks_pop$pop / sum(parks_pop$pop) * 100, 1)) |> 
+  mutate(lowincome_pct = lowincome / sum(lowincome), 
+         withchildren_pct = withchildren / sum(withchildren)) |> 
+  mutate(lowincome = lowincome,
+         withchildren = withchildren,
+         `Population (n)` = parks_pop$pop,
+         `Population (%)` = parks_pop$pop / sum(parks_pop$pop)) |> 
   select(binned_variable, lowincome, lowincome_pct, withchildren, withchildren_pct, `Population (n)`, `Population (%)`) |> 
   rename("Parcs accessibles (n)" = "binned_variable",
          "Faible revenu (n)" = "lowincome",
@@ -166,27 +169,39 @@ park_table_data <- merge(DB_lowincome,
          "Familles avec enfant(s) (%)" = "withchildren_pct")
 
 percent_columns <- c("Faible revenu (%)", "Familles avec enfant(s) (%)", "Population (%)")
+park_table_data <- park_table_data[c(1,6:7,2:5)]
 
 park_table <- park_table_data |> 
   gt() |> 
-  tab_options(
-    table.font.names = "KMR Apparat Regular",
-    table.font.size = px(14)
-  ) |> 
+  fmt(columns = c(2,4,6), fns = convert_number_tens) |> 
+  fmt(columns = c(3,5,7), fns = convert_pct) |> 
   data_color(
-    columns = all_of(percent_columns),
+    columns = c(3,5,7),
     colors = scales::col_numeric(
       palette = c("white", color_theme("purpletransport")),
       domain = NULL
     )
   ) |> 
-  fmt(
-    columns = ends_with("%)"),
-    fns = function(x) {
-      formatted <- sprintf("%.1f %%", x)
-      gsub("\\.", ",", formatted)
-    }
+  # Appliquer le style de la police à toute la table
+  tab_style(
+    style = cell_text(
+      font = "KMR Apparat Regular"
+    ),
+    locations = cells_body()
+  ) |> 
+  tab_style(
+    style = cell_text(
+      font = "KMR Apparat Regular"
+    ),
+    locations = cells_column_labels()
+  ) |> 
+  # Options générales pour la table
+  tab_options(
+    table.font.size = indesign_fontsize,
+    row_group.font.size = indesign_title_fontsize
   )
+
+gtsave(park_table, "output/axe3/park_table.png")
 
 #Numbers for markdown
 laval_pop <- parks_pop |> 
@@ -239,8 +254,7 @@ low_income_access <- merge(DB_lowincome,
   pull(pop)
   
 # R Markdowbn -------------------------------------------------------------
-ggplot2::ggsave(filename = here::here("output/axe3/parks_map.pdf"), 
-                plot = parks_map, width = 7.5, height = 6)
+
 
 qs::qsavem(parks_map, parks_total, only_parks, only_berge, park_access, low_income_access,
            park_table,

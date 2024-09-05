@@ -6,7 +6,7 @@ ttm <- function(mode = "foot", under_x_minutes = 15) {
   file_name <- sprintf("data/ttm_%s_%s.qs", mode, under_x_minutes)
   
   # If it already exists, just grab it
-  if (file.exists(file_name)) return(qs::qread(file_name))
+  if (file.exists(file_name)) return(unique(qs::qread(file_name)))
   
   # Connect to the database
   conn <- cc.data::db_connect()
@@ -24,7 +24,7 @@ ttm <- function(mode = "foot", under_x_minutes = 15) {
   self <- tibble::tibble(from = matrix$from,
                          to = matrix$from,
                          travel_seconds = 0)
-  matrix <- rbind(matrix, self)
+  matrix <- rbind(matrix, self) |> unique()
   
   # Disconnect
   DBI::dbDisconnect(conn)

@@ -32,7 +32,12 @@ CMA <- cancensus::get_census("CA21", regions = list(CMA = 24462), level = "CMA",
 
 supermarkets <- sf::st_transform(supermarkets, crs = sf::st_crs(CMA_DBs))
 supermarkets <- sf::st_filter(supermarkets, CMA)
-supermarkets <- sf::st_intersection(supermarkets, CMA_DBs["GeoUID"])
+sm_db_int <- sf::st_intersects(supermarkets, CMA_DBs["GeoUID"], prepared = TRUE)
+supermarkets$GeoUID <- sapply(sm_db_int, \(x) {
+  ID <- CMA_DBs$GeoUID[x]
+  if (length(ID) == 0) return(NA)
+  ID
+}, simplify = TRUE)
 
 access_supermarkets <- cc.buildr::merge(tt, sf::st_drop_geometry(supermarkets), 
                                  by.x = "to", by.y = "GeoUID")
@@ -66,25 +71,26 @@ access_supermarkets$travel_mins <- access_supermarkets$travel_seconds / 60
 labels <- c("0-10", "10-20", "20-30", "30-40", "40+")
 
 # Add our bins in the data
-access_supermarkets <- add_bins(df = access_supermarkets,
+access_supermarkets_plot <- access_supermarkets
+access_supermarkets_plot <- add_bins(df = access_supermarkets_plot,
                          variable = "travel_mins",
                          breaks = c(0, 10, 20, 30, 40, Inf),
                          labels = labels
 )
 
-t <- access_supermarkets
-t <- Reduce(rbind,
-            split(t, t$binned_variable) |>
-              lapply(\(x) {
-                out <- tibble::tibble(x$binned_variable)
-                out$geometry <- sf::st_union(x)
-                sf::st_as_sf(out, crs = 4326)[1, ]
-              })
-) |> sf::st_as_sf()
-names(t)[1] <- "binned_variable"
+# t <- access_supermarkets_plot
+# t <- Reduce(rbind,
+#             split(t, t$binned_variable) |>
+#               lapply(\(x) {
+#                 out <- tibble::tibble(x$binned_variable)
+#                 out$geometry <- sf::st_union(x)
+#                 sf::st_as_sf(out, crs = 4326)[1, ]
+#               })
+# ) |> sf::st_as_sf()
+# names(t)[1] <- "binned_variable"
 
 how_long_access_supermarkets <-
-  t |> 
+  access_supermarkets_plot |> 
   ggplot() +
   gg_cc_tiles +
   geom_sf(aes(fill = binned_variable), color = "transparent") +
@@ -138,25 +144,25 @@ hm_access_supermarket <- add_bins(df = hm_access_supermarket,
                                   labels = labels
 )
 
-# Union the features so the polygons don't show their borders. Might revisit
-# with the addition of streets!
-t <- Reduce(rbind,
-            split(hm_access_supermarket, hm_access_supermarket$binned_variable) |>
-              lapply(\(x) {
-                out <- tibble::tibble(x$binned_variable)
-                out$geometry <- sf::st_union(x)
-                sf::st_as_sf(out, crs = 4326)[1, ]
-              })
-) |> sf::st_as_sf()
-names(t)[1] <- "binned_variable"
+# # Union the features so the polygons don't show their borders. Might revisit
+# # with the addition of streets!
+# t <- Reduce(rbind,
+#             split(hm_access_supermarket, hm_access_supermarket$binned_variable) |>
+#               lapply(\(x) {
+#                 out <- tibble::tibble(x$binned_variable)
+#                 out$geometry <- sf::st_union(x)
+#                 sf::st_as_sf(out, crs = 4326)[1, ]
+#               })
+# ) |> sf::st_as_sf()
+# names(t)[1] <- "binned_variable"
 
 variety_access_supermarkets <- 
-  t |> 
+  hm_access_supermarket |> 
   ggplot() +
   gg_cc_tiles +
   geom_sf(aes(fill = binned_variable), color = "transparent") +
   scale_fill_manual(values = curbcut_colors$left_5$fill[c(2, 4, 6)],
-                    name = "Supermarchés accessibles (n)",
+                    name = "Nombre de supermarchés accessibles",
                     labels = labels,
                     guide = guide_legend(title.position = "top",
                                          label.position = "bottom", nrow = 1)) +
@@ -172,17 +178,20 @@ variety_access_supermarkets <-
 library(patchwork)
 
 # Assuming how_long_access_supermarkets and variety_access_supermarkets are your two ggplot objects
-combined_plot <- how_long_access_supermarkets + variety_access_supermarkets
+combined_plot <- plot_spacer() + how_long_access_supermarkets + plot_spacer() + 
+  variety_access_supermarkets + plot_spacer() + plot_layout(widths = c(0.5, 5, 0.2, 5, 0.5))
+
 
 # Display the combined plot
-print(combined_plot)
+combined_plot
 
-
+ggplot2::ggsave(filename = here::here("output/axe3/supermarkets_dual.pdf"), 
+                plot = combined_plot, width = 7.5, height = 4)
 
 # Add values --------------------------------------------------------------
 
 supermarkets_pop <- merge(DBs[c("GeoUID", "Population")], 
-                   sf::st_drop_geometry(access_supermarkets),
+                   sf::st_drop_geometry(access_supermarkets_plot),
                    by.x = "GeoUID", by.y = "from")
 
 supermarkets_pop <- 
@@ -211,11 +220,11 @@ DB_lowincome <- sf::st_drop_geometry(DB_lowincome)
 DB_lowincome$pop_ratio <- DB_lowincome$Population / DB_lowincome$DA_pop
 DB_lowincome$lowincome <- DB_lowincome$lowincome * DB_lowincome$pop_ratio
 DB_lowincome$elderly <- DB_lowincome$elderly * DB_lowincome$pop_ratio
-DB_lowincome <- DB_lowincome[c("GeoUID", "lowincome", "elderly")]
+DB_lowincome <- DB_lowincome[c("GeoUID", "lowincome", "elderly", "Population")]
 
 supermarkets_demo <- merge(DB_lowincome, 
-                   sf::st_drop_geometry(access_supermarkets),
-                   by.x = "GeoUID", by.y = "from")
+                           sf::st_drop_geometry(access_supermarkets_plot),
+                           by.x = "GeoUID", by.y = "from")
 
 supermarkets_demo <- 
   supermarkets_demo |> 
@@ -250,12 +259,10 @@ supermarkets_demo$`Population (%)` <- gsub("%", "", supermarkets_demo$`Populatio
 modified_columns <- c("Faible revenu (n)", "65 ans et plus (n)", "Population (n)")
 supermarkets_demo <- supermarkets_demo |> mutate(across(all_of(modified_columns), ~ gsub(",", " ", .)))
 
+supermarkets_demo <- supermarkets_demo[c(1,6:7,2:5)]
+
 grocery_table <- supermarkets_demo |> 
   gt() |> 
-  tab_options(
-    table.font.names = "KMR Apparat Regular",
-    table.font.size = px(14)
-  ) |>
   data_color(
     columns = ends_with("%)"),
     colors = scales::col_numeric(
@@ -269,44 +276,41 @@ grocery_table <- supermarkets_demo |>
       formatted <- sprintf("%.1f %%", x)
       gsub("\\.", ",", formatted)
     }
+  ) |>
+  tab_style(
+    style = cell_text(
+      font = "KMR Apparat Regular"
+    ),
+    locations = cells_body()
+  ) |> 
+  tab_style(
+    style = cell_text(
+      font = "KMR Apparat Regular"
+    ),
+    locations = cells_column_labels()
+  ) |> 
+  # Options générales pour la table
+  tab_options(
+    table.font.size = indesign_fontsize,
+    row_group.font.size = indesign_title_fontsize
   )
 
-CTs <- cancensus::get_census("CA21", regions = list(CSD = 2465005), level = "CT",
-                             geo_format = "sf")
-
-CTs <- sf::st_centroid(CTs)
-CTs$ID <- CTs$GeoUID
-
-cc.data::tt_calculate(centroids = CTs, max_dist = 5000)
+gtsave(grocery_table, "output/axe3/grocery_table.png")
 
 # R Markdown --------------------------------------------------------------
+
+supermarkets_d <- merge(DB_lowincome, 
+                        sf::st_drop_geometry(access_supermarkets),
+                        by.x = "GeoUID", by.y = "from")
+
 grocery_maps <- combined_plot
-grocery_data <- merge(DB_lowincome, 
-                      sf::st_drop_geometry(access_supermarkets),
-                      by.x = "GeoUID", by.y = "from") |> 
-  sf::st_drop_geometry() |> 
-  group_by(binned_variable) |> 
-  summarize(lowincome = sum(lowincome, na.rm = TRUE),
-            elderly = sum(elderly, na.rm = TRUE)) |> 
-  mutate(lowincome_pct = lowincome / sum(lowincome), 
-         elderly_pct = elderly / sum(elderly))
 
-low_income_20 <- grocery_data |> 
-  filter(binned_variable == "0-10" | binned_variable == "10-20") |> 
-  summarise(lowincome_pct = sum(lowincome_pct)) |> 
-  mutate(lowincome_pct = convert_pct(lowincome_pct)) |> 
-  pull(lowincome_pct)
-age_65_20 <- grocery_data |> 
-  filter(binned_variable == "0-10" | binned_variable == "10-20") |> 
-  summarise(elderly_pct = sum(elderly_pct)) |> 
-  mutate(elderly_pct = convert_pct(elderly_pct)) |> 
-  pull(elderly_pct)
-population_20 <- grocery_data |> 
-  mutate(population_pct = supermarkets_pop$pop / sum(supermarkets_pop$pop)) |> 
-  filter(binned_variable == "0-10" | binned_variable == "10-20") |> 
-  summarise(population_pct = sum(population_pct)) |> 
-  mutate(population_pct = convert_pct(population_pct)) |> 
-  pull(population_pct)
+low_income_15 <- sum(supermarkets_d$lowincome[supermarkets_d$travel_mins <= 15], na.rm=T) / sum(supermarkets_d$lowincome, na.rm=T)
+low_income_15 <- convert_pct(low_income_15)
+age_65_15 <- sum(supermarkets_d$elderly[supermarkets_d$travel_mins <= 15], na.rm=T) / sum(supermarkets_d$elderly, na.rm=T)
+age_65_15 <- convert_pct(age_65_15)
+population_15 <- sum(supermarkets_d$Population[supermarkets_d$travel_mins <= 15], na.rm=T) / sum(supermarkets_d$Population, na.rm=T)
+population_15 <- convert_pct(population_15)
 
-qs::qsavem(grocery_maps, grocery_table, low_income_20, age_65_20, population_20,
+qs::qsavem(grocery_maps, grocery_table, low_income_15, age_65_15, population_15,
            file = "data/axe3/grocery.qsm")

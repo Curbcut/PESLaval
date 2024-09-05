@@ -86,15 +86,15 @@ general_soins <- general_soins |>
   mutate(centre = case_when(CLSC == "Oui" ~ "CSLS", .default = "CHSGS"))
 
 t <- access_sante
-t <- Reduce(rbind,
-            split(t, t$binned_variable) |>
-              lapply(\(x) {
-                out <- tibble::tibble(x$binned_variable)
-                out$geometry <- sf::st_union(x)
-                sf::st_as_sf(out, crs = 4326)[1, ]
-              })
-) |> sf::st_as_sf()
-names(t)[1] <- "binned_variable"
+# t <- Reduce(rbind,
+#             split(t, t$binned_variable) |>
+#               lapply(\(x) {
+#                 out <- tibble::tibble(x$binned_variable)
+#                 out$geometry <- sf::st_union(x)
+#                 sf::st_as_sf(out, crs = 4326)[1, ]
+#               })
+# ) |> sf::st_as_sf()
+# names(t)[1] <- "binned_variable"
 
 healthcare_map <- t |> 
   ggplot() +
@@ -115,6 +115,9 @@ healthcare_map <- t |>
   gg_cc_theme +
   theme(legend.spacing.x = unit(2, 'cm'),
         legend.spacing.y = unit(1, 'cm'))
+
+ggplot2::ggsave(filename = here::here("output/axe3/healthcare_map.pdf"), 
+                plot = healthcare_map, width = 6, height = 5, bg = "transparent")
   
   
   
@@ -208,10 +211,6 @@ sante_age <- sante_age |> mutate(across(all_of(sante_age_modified_columns), ~ gs
 
 healthcare_table <- sante_age |> 
   gt() |> 
-  tab_options(
-    table.font.names = "KMR Apparat Regular",
-    table.font.size = px(14)
-  ) |> 
   data_color(
     columns = vars(`0 à 14 ans (%)`, `65 ans et plus (%)`, `Population (%)`),
     colors = scales::col_numeric(
@@ -225,7 +224,27 @@ healthcare_table <- sante_age |>
       formatted <- sprintf("%.1f %%", x)
       gsub("\\.", ",", formatted)
     }
+  ) |> 
+  # Appliquer le style de la police à toute la table
+  tab_style(
+    style = cell_text(
+      font = "KMR Apparat Regular"
+    ),
+    locations = cells_body()
+  ) |> 
+  tab_style(
+    style = cell_text(
+      font = "KMR Apparat Regular"
+    ),
+    locations = cells_column_labels()
+  ) |> 
+  # Options générales pour la table
+  tab_options(
+    table.font.size = indesign_fontsize,
+    row_group.font.size = indesign_title_fontsize
   )
+
+gtsave(healthcare_table, "output/axe3/healthcare_table.pdf")
 
 
 # R Markdown --------------------------------------------------------------
@@ -239,7 +258,9 @@ sante_age_uncleaned <- merge(DB_children,
   mutate(children_pct = children / sum(children), 
          elderly_pct = elderly / sum(elderly))
 
-laval_pop <- laval_csd |> 
+laval_pop <- get_census(dataset = "CA21", 
+                        regions = list(CSD = c(2465005)), 
+                        level = "CSD") |> 
   pull(Population)
 
 less_15 <- convert_number(less15)
@@ -259,6 +280,12 @@ more_60 <- sante_pop |>
   summarise(pop = sum(pop)) |> 
   mutate(pop = convert_number(pop)) |> 
   pull(pop)
+more_60_pct <- sante_pop |> 
+  filter(binned_variable == "60+") |> 
+  summarise(pop = sum(pop)) |> 
+  mutate(pop = convert_pct(pop / laval_pop)) |> 
+  pull(pop)
+
 less_15_child <- sante_age_uncleaned |> 
   filter(binned_variable == "0-15") |> 
   mutate(children = convert_number(children)) |> 
@@ -287,6 +314,6 @@ more_60_child_pct <- sante_age_uncleaned |>
   pull(children_pct)
 
 qs::qsavem(healthcare_map, healthcare_table, less_15, less_15_prop, less_30,
-           less_30_prop, more_60, less_15_child, less_15_child_pct, less_30_child,
+           less_30_prop, more_60, more_60_pct, less_15_child, less_15_child_pct, less_30_child,
            less_30_child_pct, more_60_child, more_60_child_pct,
            file = "data/axe3/healthcare.qsm")

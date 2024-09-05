@@ -1,355 +1,229 @@
 #Loading up libraries
 source("R/01_startup.R")
-library(patchwork)
-library(sf)
-library(RMySQL)
-library(classInt)
-library(ggnewscale)
-library(biscale)
-library(cowplot)
-library(gt)
-library(scales)
-library(qs)
 
-#Setting up the cancensus api key
-set_cancensus_api_key("CensusMapper_4308d496f011429cf814385050f083dc", install = TRUE)
-
-#Setting up cache path for faster loading (edit for your own folder)
-set_cancensus_cache_path("D:/McGill/can_cache", install = TRUE, overwrite = TRUE)
-
-#Grabbing the Laval shapefiles
-laval_csd <- cancensus::get_census(dataset = "CA21", 
-                                   regions = list(CSD = 2465005), 
-                                   level = "CSD", 
-                                   geo_format = "sf")
-
-laval_ct <- cancensus::get_census(dataset = "CA21", 
-                                  regions = list(CSD = 2465005), 
-                                  level = "CT",
-                                  geo_format = "sf")
-
-laval_da <- cancensus::get_census(dataset = "CA21", 
-                                  regions = list(CSD = 2465005), 
-                                  level = "DA", 
-                                  geo_format = "sf")
-
-laval_db <- cancensus::get_census(dataset = "CA21", 
-                                  regions = list(CSD = 2465005), 
-                                  level = "DB",
-                                  geo_format = "sf")
-
-#Grabbing the shapefile for the Montreal CMA
-mtlcma_sf <- cancensus::get_census(dataset = "CA21", 
-                                   regions = list(CSD = 24462), 
-                                   level = "CMA", 
-                                   geo_format = "sf")
+CT <- cancensus::get_census(dataset = "CA21", 
+                            regions = list(CSD = 2465005), 
+                            level = "CT",
+                            geo_format = "sf")
+DB <- cancensus::get_census(dataset = "CA21", 
+                            regions = list(CSD = 2465005), 
+                            level = "DB",
+                            geo_format = "sf")
 
 #Setting the Laval bound box for maps
-laval_bbox <- st_bbox(laval_ct)
+laval_bbox <- st_bbox(CT)
 
-#Setting up the curbcut scale
-curbcut_scale <- c("#C4CDE1", "#98A8CB", "#6C83B5", "#4C5C7F", "#2B3448")
-curbcut_na <- "#B3B3BB"
 
 # Importing and Cleaning Data for DBs ---------------------------------------------
-#Import 15 minute walking TTM and modifying it with necessary rows
-#Check mobility_transport.R to get the file
-ttm_walk_15 <- read.csv("D://McGill/can_cache/walk15.csv") |> 
-  select(-X, -travel_seconds) |> 
-  mutate(across(everything(), as.character)) |> 
-  rename("GeoUID" = "from") |> 
-  bind_rows(ttm_walk_15_rows) |> 
-  arrange(GeoUID)
 
-ttm_walk_15_rows <- laval_db |> 
-  st_drop_geometry() |> 
-  select(GeoUID) |> 
-  mutate(to = GeoUID)
+ttm_walk_15 <- ttm()
 
-#Importing school data
-school <- read_sf("D://McGill/can_cache/etablissements-meq-mes-esrishp/PPS_Public_Ecole.shp") |> 
+# ttm_walk_15 <- qs::qread("data/axe3/CT_laval_foot_ttm.qs") |> 
+#   enframe(name = "GeoUID", value = "to") |> 
+#   unnest(to) |> 
+#   rowwise() %>%
+#   unite(time, 3:83, na.rm = TRUE, sep = ", ") |> 
+#   mutate(time = as.numeric(time)) |> 
+#   select(GeoUID, DA_ID, time) |> 
+#   rename("to" = DA_ID) |> 
+#   filter(time <= 900) |> 
+#   transmute(from = GeoUID, to) |> 
+#   # Add self
+#   rbind(tibble::tibble(from = CT$GeoUID, to = CT$GeoUID)) |>
+#   unique()
+
+school_public <- read_sf("data/axe3/schools/PPS_Public_Ecole.shp") |> 
   filter(ADULTE != 1, FORM_PRO != 1, ORDRE_ENS != "Préscolaire") |> 
-  st_intersection(laval_csd) |> 
-  distinct(ADRS_ORG_1, .keep_all = TRUE) |> 
-  select(PRIM, SEC, TYPE_CS)
-
-#Filtering for school locations for mapping
-eng_prim_points <- school |> 
-  filter(PRIM == 1, TYPE_CS == "Anglo") |> 
-  select(geometry) |> 
-  mutate(type = "Anglophone")
-
-fr_prim_points <- school |> 
-  filter(PRIM == 1, TYPE_CS == "Franco") |> 
-  select(geometry) |> 
-  mutate(type = "Francophone")
-
-primary_points <- bind_rows(
-  eng_prim_points %>% st_as_sf(),
-  fr_prim_points %>% st_as_sf()
-)
-
-eng_sec_points <- school |> 
-  filter(SEC == 1, TYPE_CS == "Anglo") |> 
-  select(geometry) |> 
-  mutate(type = "Anglophone")
-
-fr_sec_points <- school |> 
-  filter(SEC == 1, TYPE_CS == "Franco") |> 
-  select(geometry) |> 
-  mutate(type = "Francophone")
-
-secondary_points <- bind_rows(
-  eng_sec_points %>% st_as_sf(),
-  fr_sec_points %>% st_as_sf()
-)
-
-#Filtering for school types
-prim <- school |> 
-  filter(PRIM == 1) |> 
-  select() |> 
-  mutate("primary" = 1) |> 
-  st_join(laval_db) |> 
-  st_drop_geometry() |> 
-  group_by(GeoUID) |> 
-  summarize("primary" = sum(primary, na.rm = TRUE))
-
-eng_prim <- school |> 
-  filter(PRIM == 1, TYPE_CS == "Anglo") |> 
-  select() |> 
-  mutate("eng_primary" = 1) |> 
-  st_join(laval_db) |> 
-  st_drop_geometry() |> 
-  group_by(GeoUID) |> 
-  summarize("eng_primary" = sum(eng_primary, na.rm = TRUE))
-
-fr_prim <- school |> 
-  filter(PRIM == 1, TYPE_CS == "Franco") |> 
-  select() |> 
-  mutate("fr_primary" = 1) |> 
-  st_join(laval_db) |> 
-  st_drop_geometry() |> 
-  group_by(GeoUID) |> 
-  summarize("fr_primary" = sum(fr_primary, na.rm = TRUE))
-
-sec <- school |> 
-  filter(SEC == 1) |> 
-  select() |> 
-  mutate("secondary" = 1) |> 
-  st_join(laval_db) |> 
-  st_drop_geometry() |> 
-  group_by(GeoUID) |> 
-  summarize("secondary" = sum(secondary, na.rm = TRUE))
-
-eng_sec <- school |> 
-  filter(SEC == 1, TYPE_CS == "Anglo") |> 
-  select() |> 
-  mutate("eng_secondary" = 1) |> 
-  st_join(laval_db) |> 
-  st_drop_geometry() |> 
-  group_by(GeoUID) |> 
-  summarize("eng_secondary" = sum(eng_secondary, na.rm = TRUE))
-
-fr_sec <- school |> 
-  filter(SEC == 1, TYPE_CS == "Franco") |> 
-  select() |> 
-  mutate("fr_secondary" = 1) |> 
-  st_join(laval_db) |> 
-  st_drop_geometry() |> 
-  group_by(GeoUID) |> 
-  summarize("fr_secondary" = sum(fr_secondary, na.rm = TRUE))
-
-
-school_ttm <- ttm_walk_15 |>
-  left_join(prim, join_by("to" == "GeoUID")) |> 
-  left_join(eng_prim, join_by("to" == "GeoUID")) |> 
-  left_join(fr_prim, join_by("to" == "GeoUID")) |> 
-  left_join(sec, join_by("to" == "GeoUID")) |> 
-  left_join(eng_sec, join_by("to" == "GeoUID")) |> 
-  left_join(fr_sec, join_by("to" == "GeoUID")) |> 
-  select(-to) |> 
-  group_by(GeoUID) |> 
-  summarize(across(everything(), ~ sum(., na.rm = TRUE)))
-
-school_sf <- laval_db |> 
-  left_join(school_ttm, by = "GeoUID") |> 
-  mutate_all(~ replace_na(., 0)) |> 
-  mutate(across(c("primary", "eng_primary", "fr_primary",
-                  "secondary", "eng_secondary", "fr_secondary"),
-                ~ case_when(. == 0 ~ "0", . == 1 ~ "1", . >= 2 ~ "2+", TRUE ~ as.character(.)))) |> 
-  mutate(access_pri = case_when(
-    eng_primary != 0 & fr_primary != 0 ~ "pri_both",
-    eng_primary != 0 & fr_primary == 0 ~ "pri_en",
-    eng_primary == 0 & fr_primary != 0 ~ "pri_fr",
-    eng_primary == 0 & fr_primary == 0 ~ "pri_none"
-  )) |> 
-  mutate(access_sec = case_when(
-    eng_secondary != 0 & fr_secondary != 0 ~ "sec_both",
-    eng_secondary != 0 & fr_secondary == 0 ~ "sec_en",
-    eng_secondary == 0 & fr_secondary != 0 ~ "sec_fr",
-    eng_secondary == 0 & fr_secondary == 0 ~ "sec_none"
-  ))
-
-#Numbers for R markdown
-primary_school_total <- (sum(school$PRIM))
-secondary_school_total <- (sum(school$SEC))
-primary_franco <- school |> 
-  filter(TYPE_CS == "Franco") |> 
-  summarize(sum = sum(PRIM, na.rm = TRUE)) |> 
-  pull(sum)
-secondary_franco <- school |> 
-  filter(TYPE_CS == "Franco") |> 
-  summarize(sum = sum(SEC, na.rm = TRUE)) |> 
-  pull(sum)
-
-# Data for CT level -------------------------------------------------------
-#Prepping extra rows for TTM 15 for CTs
-ttm_walk_15_ct_rows <- laval_ct |> 
-  st_drop_geometry() |> 
-  select(GeoUID) |> 
-  mutate(to = GeoUID)
-
-#15 minute TTM for CTs
-ttm_walk_15_ct <- qread("D://McGill/can_cache/CT_laval_foot_ttm.qs") |> 
-  enframe(name = "GeoUID", value = "to") |> 
-  unnest(to) |> 
-  rowwise() %>%
-  unite(time, 3:83, na.rm = TRUE, sep = ", ") |> 
-  mutate(time = as.numeric(time)) |> 
-  select(GeoUID, DA_ID, time) |> 
-  rename("to" = DA_ID) |> 
-  filter(time <= 900) |> 
-  select(-time) |> 
-  bind_rows(ttm_walk_15_ct_rows) |> 
-  arrange(GeoUID)
-
-#Importing school data
-school <- read_sf("D://McGill/can_cache/etablissements-meq-mes-esrishp/PPS_Public_Ecole.shp") |> 
+  sf::st_filter(laval_sectors) |> 
+  select(OBJECTID, PRIM, SEC, TYPE_CS)
+school_private <- read_sf("data/axe3/schools/PPS_Prive_Installation.shp") |> 
   filter(ADULTE != 1, FORM_PRO != 1, ORDRE_ENS != "Préscolaire") |> 
-  st_intersection(laval_csd) |> 
-  distinct(ADRS_ORG_1, .keep_all = TRUE) |> 
-  select(PRIM, SEC, TYPE_CS)
+  sf::st_filter(laval_sectors) |> 
+  transmute(OBJECTID, PRIM, SEC, TYPE_CS = "Franco")
+school <- rbind(school_public, school_private)
 
-#Filtering for school locations for mapping
-eng_prim_points <- school |> 
-  filter(PRIM == 1, TYPE_CS == "Anglo") |> 
-  select(geometry) |> 
-  mutate(type = "Anglophone")
+## Primary school
+primaire_sf <- school[school$PRIM == 1, ]
+primaire <- sf::st_join(primaire_sf, DB["GeoUID"])
+primaire <- sf::st_drop_geometry(primaire[c("OBJECTID", "GeoUID", "TYPE_CS")])
+primaire <- left_join(primaire, ttm_walk_15, by = c("GeoUID" = "from"), 
+                      relationship = "many-to-many")
 
-fr_prim_points <- school |> 
-  filter(PRIM == 1, TYPE_CS == "Franco") |> 
-  select(geometry) |> 
-  mutate(type = "Francophone")
+primaire <- 
+  primaire |> 
+  group_by(to, TYPE_CS) |> 
+  count() |> 
+  ungroup() |> 
+  transmute(GeoUID = to, lang = TYPE_CS)
 
-primary_points <- bind_rows(
-  eng_prim_points %>% st_as_sf(),
-  fr_prim_points %>% st_as_sf()
-)
+bilingual <- table(primaire$GeoUID)
+bilingual <- names(bilingual)[bilingual == 2]
 
-eng_sec_points <- school |> 
-  filter(SEC == 1, TYPE_CS == "Anglo") |> 
-  select(geometry) |> 
-  mutate(type = "Anglophone")
+primare_access <- sapply(DB$GeoUID, \(ID) {
+  if (!ID %in% primaire$GeoUID) return("Aucun accès")
+  if (ID %in% bilingual) return("Accès à au moins une\n école des deux langues")
+  lang <- primaire$lang[primaire$GeoUID == ID]
+  if (lang == "Franco") return("Accès à au moins une\n école francophone")
+  if (lang == "Anglo") return("Accès à au moins une\n école anglophone")
+})
 
-fr_sec_points <- school |> 
-  filter(SEC == 1, TYPE_CS == "Franco") |> 
-  select(geometry) |> 
-  mutate(type = "Francophone")
+primaire <- tibble::tibble(GeoUID = names(primare_access), 
+                           access = unname(primare_access)) |> 
+  left_join(DB["GeoUID"]) |> 
+  sf::st_as_sf()
 
-secondary_points <- bind_rows(
-  eng_sec_points %>% st_as_sf(),
-  fr_sec_points %>% st_as_sf()
-)
-
-#Filtering for school types
-prim <- school |> 
-  filter(PRIM == 1) |> 
-  select() |> 
-  mutate("primary" = 1) |> 
-  st_join(laval_ct) |> 
-  st_drop_geometry() |> 
-  group_by(GeoUID) |> 
-  summarize("primary" = sum(primary, na.rm = TRUE))
-
-eng_prim <- school |> 
-  filter(PRIM == 1, TYPE_CS == "Anglo") |> 
-  select() |> 
-  mutate("eng_primary" = 1) |> 
-  st_join(laval_ct) |> 
-  st_drop_geometry() |> 
-  group_by(GeoUID) |> 
-  summarize("eng_primary" = sum(eng_primary, na.rm = TRUE))
-
-fr_prim <- school |> 
-  filter(PRIM == 1, TYPE_CS == "Franco") |> 
-  select() |> 
-  mutate("fr_primary" = 1) |> 
-  st_join(laval_ct) |> 
-  st_drop_geometry() |> 
-  group_by(GeoUID) |> 
-  summarize("fr_primary" = sum(fr_primary, na.rm = TRUE))
-
-sec <- school |> 
-  filter(SEC == 1) |> 
-  select() |> 
-  mutate("secondary" = 1) |> 
-  st_join(laval_ct) |> 
-  st_drop_geometry() |> 
-  group_by(GeoUID) |> 
-  summarize("secondary" = sum(secondary, na.rm = TRUE))
-
-eng_sec <- school |> 
-  filter(SEC == 1, TYPE_CS == "Anglo") |> 
-  select() |> 
-  mutate("eng_secondary" = 1) |> 
-  st_join(laval_ct) |> 
-  st_drop_geometry() |> 
-  group_by(GeoUID) |> 
-  summarize("eng_secondary" = sum(eng_secondary, na.rm = TRUE))
-
-fr_sec <- school |> 
-  filter(SEC == 1, TYPE_CS == "Franco") |> 
-  select() |> 
-  mutate("fr_secondary" = 1) |> 
-  st_join(laval_ct) |> 
-  st_drop_geometry() |> 
-  group_by(GeoUID) |> 
-  summarize("fr_secondary" = sum(fr_secondary, na.rm = TRUE))
+primaire_plot <- 
+  ggplot(primaire) +
+  gg_cc_tiles +
+  geom_sf(aes(fill = access), color = "transparent") +
+  scale_fill_manual(values = c("Aucun accès" = "#E8E8E8", 
+                               "Accès à au moins une\n école francophone" = "#6C83B5",
+                               "Accès à au moins une\n école anglophone" = "#73AE80",
+                               "Accès à au moins une\n école des deux langues" = "#2A5A5B")) +
+  geom_sf(data = primaire_sf, aes(color = TYPE_CS), size = 0.75) +
+  scale_color_manual(values = c("Anglo" = "#F5D574", 
+                                "Franco" = "#CD718C"),
+                     labels = c("Anglo" = "École anglophone", 
+                                "Franco" = "École francophone")) +
+  gg_cc_theme +
+  theme(legend.title = element_blank(),
+        legend.spacing = unit(0.75, "cm"),
+        legend.box.spacing = unit(0.75, "cm"))+
+  guides(fill = guide_legend(ncol = 2),
+         color = guide_legend(ncol = 1, override.aes = list(size = 3)))
 
 
-school_ttm <- ttm_walk_15_ct |>
-  left_join(prim, join_by("to" == "GeoUID")) |> 
-  left_join(eng_prim, join_by("to" == "GeoUID")) |> 
-  left_join(fr_prim, join_by("to" == "GeoUID")) |> 
-  left_join(sec, join_by("to" == "GeoUID")) |> 
-  left_join(eng_sec, join_by("to" == "GeoUID")) |> 
-  left_join(fr_sec, join_by("to" == "GeoUID")) |> 
-  select(-to) |> 
-  group_by(GeoUID) |> 
-  summarize(across(everything(), ~ sum(., na.rm = TRUE)))
+ggplot2::ggsave(filename = here::here("output/axe3/primaire_plot.pdf"), 
+                plot = primaire_plot, width = 6, height = 5, bg = "transparent")
 
-school_sf <- laval_ct |> 
-  left_join(school_ttm, by = "GeoUID") |> 
-  mutate_all(~ replace_na(., 0)) |> 
-  #mutate(across(c("primary", "eng_primary", "fr_primary",
-                  #"secondary", "eng_secondary", "fr_secondary"),
-               # ~ case_when(. == 0 ~ "0", . == 1 ~ "1", . >= 2 ~ "2+", TRUE ~ as.character(.)))) |> 
-  mutate(access_pri = case_when(
-    eng_primary != 0 & fr_primary != 0 ~ "pri_both",
-    eng_primary != 0 & fr_primary == 0 ~ "pri_en",
-    eng_primary == 0 & fr_primary != 0 ~ "pri_fr",
-    eng_primary == 0 & fr_primary == 0 ~ "pri_none"
-  )) |> 
-  mutate(access_sec = case_when(
-    eng_secondary != 0 & fr_secondary != 0 ~ "sec_both",
-    eng_secondary != 0 & fr_secondary == 0 ~ "sec_en",
-    eng_secondary == 0 & fr_secondary != 0 ~ "sec_fr",
-    eng_secondary == 0 & fr_secondary == 0 ~ "sec_none"
-  ))
+# Combien d'enfants plutôt que combien de Toutes les familles
+DA_children <- cancensus::get_census(dataset = "CA21", 
+                                     regions = list(CSD = 2465005), 
+                                     level = "DA",
+                                     vectors = c("v_CA21_38", "v_CA21_41", "v_CA21_44",
+                                                 "v_CA21_47", "v_CA21_53", "v_CA21_56",
+                                                 "v_CA21_59"),
+                                     geo_format = "sf")
+DA_children$children <- {DA_children$`v_CA21_38: 6` +  DA_children$`v_CA21_41: 7` + 
+    DA_children$`v_CA21_44: 8` + DA_children$`v_CA21_47: 9` + DA_children$`v_CA21_53: 10` + 
+    DA_children$`v_CA21_56: 11` + DA_children$`v_CA21_59: 12`}
+DA_children <- DA_children[c("GeoUID", "Population", "children")]
+names(DA_children)[names(DA_children) == "Population"] <- "Pop_DA"
+
+DB_pop <- left_join(DB[c("GeoUID", "DA_UID", "Population")], 
+                    sf::st_drop_geometry(DA_children), by = c("DA_UID" = "GeoUID"))
+DB_pop <- sf::st_drop_geometry(DB_pop)
+DB_pop$pop_ratio <- DB_pop$Population / DB_pop$Pop_DA
+DB_pop$children <- as.numeric(DB_pop$children) * DB_pop$pop_ratio
 
 
-# Comparison Data ---------------------------------------------------------
-table5 <- read.csv("D://McGill/can_cache/table5.csv") |> 
+DB_pop <- left_join(DB_pop, sf::st_drop_geometry(primaire), by = "GeoUID")
+children_with_access <- sum(DB_pop$children[DB_pop$access != "Aucun accès"], na.rm = TRUE)
+children_with_access_pct <- convert_pct(children_with_access / sum(DB_pop$children, na.rm = TRUE))
+children_with_access_fr <- sum(DB_pop$children[
+  DB_pop$access %in% c("Accès à au moins une\n école francophone", 
+                       "Accès à au moins une\n école des deux langues")], 
+  na.rm = TRUE)
+children_with_access_fr_pct <- convert_pct(children_with_access_fr / sum(DB_pop$children, na.rm = TRUE))
+children_with_access_en <- sum(DB_pop$children[
+  DB_pop$access %in% c("Accès à au moins une\n école anglophone", 
+                       "Accès à au moins une\n école des deux langues")], 
+  na.rm = TRUE)
+children_with_access_en_pct <- convert_pct(children_with_access_en / sum(DB_pop$children, na.rm = TRUE))
+
+
+## Secondary school
+secondaire_sf <- school[school$SEC == 1, ]
+secondaire <- sf::st_join(secondaire_sf, DB["GeoUID"])
+secondaire <- sf::st_drop_geometry(secondaire[c("OBJECTID", "GeoUID", "TYPE_CS")])
+secondaire <- left_join(secondaire, ttm_walk_15, by = c("GeoUID" = "from"), 
+                      relationship = "many-to-many")
+
+secondaire <- 
+  secondaire |> 
+  group_by(to, TYPE_CS) |> 
+  count() |> 
+  ungroup() |> 
+  transmute(GeoUID = to, lang = TYPE_CS)
+
+bilingual <- table(secondaire$GeoUID)
+bilingual <- names(bilingual)[bilingual == 2]
+
+secondary_access <- sapply(DB$GeoUID, \(ID) {
+  if (!ID %in% secondaire$GeoUID) return("Aucun accès")
+  if (ID %in% bilingual) return("Accès à au moins une\n école des deux langues")
+  lang <- secondaire$lang[secondaire$GeoUID == ID]
+  if (lang == "Franco") return("Accès à au moins une\n école francophone")
+  if (lang == "Anglo") return("Accès à au moins une\n école anglophone")
+})
+
+secondaire <- tibble::tibble(GeoUID = names(secondary_access), 
+                           access = unname(secondary_access)) |> 
+  left_join(DB["GeoUID"]) |> 
+  sf::st_as_sf()
+
+secondaire_plot <- 
+  ggplot(secondaire) +
+  gg_cc_tiles +
+  geom_sf(aes(fill = access), color = "transparent") +
+  scale_fill_manual(values = c("Aucun accès" = "#E8E8E8", 
+                               "Accès à au moins une\n école francophone" = "#6C83B5",
+                               "Accès à au moins une\n école anglophone" = "#73AE80",
+                               "Accès à au moins une\n école des deux langues" = "#2A5A5B")) +
+  geom_sf(data = secondaire_sf, aes(color = TYPE_CS), size = 0.75) +
+  scale_color_manual(values = c("Anglo" = "#F5D574", 
+                                "Franco" = "#CD718C"),
+                     labels = c("Anglo" = "École anglophone", 
+                                "Franco" = "École francophone")) +
+  gg_cc_theme +
+  theme(legend.title = element_blank(),
+        legend.spacing = unit(0.75, "cm"),
+        legend.box.spacing = unit(0.75, "cm"))+
+  guides(fill = guide_legend(ncol = 2),
+         color = guide_legend(ncol = 1, override.aes = list(size = 3)))
+
+
+ggplot2::ggsave(filename = here::here("output/axe3/secondaire_plot.pdf"), 
+                plot = secondaire_plot, width = 6, height = 5, bg = "transparent")
+
+# Combien d'enfants plutôt que combien de Toutes les familles
+DA_children <- cancensus::get_census(dataset = "CA21", 
+                                     regions = list(CSD = 2465005), 
+                                     level = "DA",
+                                     vectors = c("v_CA21_59", "v_CA21_62", "v_CA21_65", 
+                                                 "v_CA21_74", "v_CA21_77", "v_CA21_80"),
+                                     geo_format = "sf")
+DA_children$children <- {DA_children$`v_CA21_59: 12` + DA_children$`v_CA21_62: 13` +
+  DA_children$`v_CA21_65: 14` + DA_children$`v_CA21_74: 15` +
+  DA_children$`v_CA21_77: 16` + DA_children$`v_CA21_80: 17`}
+DA_children <- DA_children[c("GeoUID", "Population", "children")]
+names(DA_children)[names(DA_children) == "Population"] <- "Pop_DA"
+
+DB_pop <- left_join(DB[c("GeoUID", "DA_UID", "Population")], 
+                    sf::st_drop_geometry(DA_children), by = c("DA_UID" = "GeoUID"))
+DB_pop <- sf::st_drop_geometry(DB_pop)
+DB_pop$pop_ratio <- DB_pop$Population / DB_pop$Pop_DA
+DB_pop$children <- as.numeric(DB_pop$children) * DB_pop$pop_ratio
+
+
+DB_pop <- left_join(DB_pop, sf::st_drop_geometry(secondaire), by = "GeoUID")
+children_with_access_sec <- sum(DB_pop$children[DB_pop$access != "Aucun accès"], na.rm = TRUE)
+children_with_access_sec_pct <- convert_pct(children_with_access_sec / sum(DB_pop$children, na.rm = TRUE))
+children_with_access_sec_fr <- sum(DB_pop$children[
+  DB_pop$access %in% c("Accès à au moins une\n école francophone", 
+                       "Accès à au moins une\n école des deux langues")], 
+  na.rm = TRUE)
+children_with_access_sec_fr_pct <- convert_pct(children_with_access_sec_fr / sum(DB_pop$children, na.rm = TRUE))
+children_with_access_sec_en <- sum(DB_pop$children[
+  DB_pop$access %in% c("Accès à au moins une\n école anglophone", 
+                       "Accès à au moins une\n école des deux langues")], 
+  na.rm = TRUE)
+children_with_access_sec_en_pct <- convert_pct(children_with_access_sec_en / sum(DB_pop$children, na.rm = TRUE))
+
+
+# Demo CT numbers ---------------------------------------------------------
+
+table5 <- read.csv("data/axe3/table5.csv") |> 
   rename("notimm_low_child" = "With.children",
          "imm_low_child" = "With.children.1",
          "notimm_notlow_child" = "With.children.2",
@@ -357,7 +231,7 @@ table5 <- read.csv("D://McGill/can_cache/table5.csv") |>
          "GeoUID" = "X") |> 
   slice(-1:-5)
 
-table6 <- read.csv("D://McGill/can_cache/table6.csv") |> 
+table6 <- read.csv("data/axe3/table6.csv") |> 
   rename("notimm_low_child" = "With.children",
          "imm_low_child" = "With.children.1",
          "notimm_notlow_child" = "With.children.2",
@@ -366,7 +240,7 @@ table6 <- read.csv("D://McGill/can_cache/table6.csv") |>
   slice(-1:-2) |> 
   mutate(GeoUID = substr(GeoUID, 1, 10))
 
-table7 <- read.csv("D://McGill/can_cache/table7.csv") |> 
+table7 <- read.csv("data/axe3/table7.csv") |> 
   rename("notimm_low_child" = "With.children",
          "imm_low_child" = "With.children.1",
          "notimm_notlow_child" = "With.children.2",
@@ -375,7 +249,7 @@ table7 <- read.csv("D://McGill/can_cache/table7.csv") |>
   slice(-1:-2) |> 
   mutate(GeoUID = substr(GeoUID, 1, 10))
 
-table8a <- read.csv("D://McGill/can_cache/table8a.csv") |> 
+table8a <- read.csv("data/axe3/table8a.csv") |> 
   rename("notimm_low_child" = "With.children",
          "imm_low_child" = "With.children.1",
          "notimm_notlow_child" = "With.children.2",
@@ -384,7 +258,7 @@ table8a <- read.csv("D://McGill/can_cache/table8a.csv") |>
   slice(-1:-2) |> 
   mutate(GeoUID = substr(GeoUID, 1, 10))
 
-table8b <- read.csv("D://McGill/can_cache/table8b.csv") |> 
+table8b <- read.csv("data/axe3/table8b.csv") |> 
   rename("notimm_low_child" = "With.children",
          "imm_low_child" = "With.children.1",
          "notimm_notlow_child" = "With.children.2",
@@ -397,634 +271,160 @@ table8b <- read.csv("D://McGill/can_cache/table8b.csv") |>
 lowincome_imm <- bind_rows(table5, table6, table7, table8a, table8b) |> 
   mutate_all(~ na_if(., "x"))
 
-lowincome_imm_sf <- laval_db|> 
-  left_join(lowincome_imm, by = join_by("CT_UID" == "GeoUID")) |> 
-  select(notimm_low_child, imm_low_child, notimm_notlow_child, imm_notlow_child) |> 
-  st_join(laval_db)
+CT_demo <- right_join(lowincome_imm, CT[c("Households", "GeoUID")], by = "GeoUID") |> 
+  sf::st_as_sf()
+names(CT_demo)[names(CT_demo) == "Households"] <- "Hou_CT"
 
-lvl_demo <- get_census(dataset = "CA21", 
-                       regions = list(CSD = 2465005), 
-                       level = "DA",
-                       vectors = c("age5_9" = "v_CA21_32", "age10" = "v_CA21_53",
-                                   "age11" = "v_CA21_56", "age12" = "v_CA21_59",
-                                   "age13" = "v_CA21_62", "age14" = "v_CA21_65",
-                                   "age15" = "v_CA21_74", "age16" = "v_CA21_77"))
-# Maps --------------------------------------------------------------------
-primary_map <- ggplot() +
-  geom_sf(data = mtlcma_sf, color = "black", fill = "#FCFCFC") +
-  geom_sf(data = laval_csd, color = "black", fill = NA) +
-  geom_sf(data = school_sf, aes(fill = primary), color = "#f7f7f7", size = 0.1) +
-  geom_sf(data = primary_points) +
-  scale_fill_manual(values = c("0" = "#C4CDE1", 
-                               "1" = "#6C83B5",
-                               "2+" = "#2B3448"),
-                    na.value = curbcut_na) +
-  theme_minimal() +
-  theme(plot.title = element_text(hjust = 0.5), axis.text = element_blank(),
-        legend.position = "none", axis.title = element_blank(),
-        axis.ticks = element_blank(), panel.grid = element_blank(),
-        panel.background = element_rect(fill = "#525252")) +
-  guides(fill = guide_legend(title.position = "top", title.hjust = 0.5)) +
-  labs(title = "École primaire") +
-  coord_sf(xlim = c(laval_bbox$xmin, laval_bbox$xmax),
-           ylim = c(laval_bbox$ymin, laval_bbox$ymax))
-
-eng_primary_map <- ggplot() +
-  geom_sf(data = mtlcma_sf, color = "black", fill = "#FCFCFC") +
-  geom_sf(data = laval_csd, color = "black", fill = NA) +
-  geom_sf(data = school_sf, aes(fill = eng_primary), color = "#f7f7f7", size = 0.1) +
-  geom_sf(data = eng_prim_points, aes(color = "Eng Prim Points")) +
-  scale_fill_manual(values = c("0" = "#C4CDE1", 
-                               "1" = "#6C83B5",
-                               "2+" = "#2B3448"),
-                    na.value = curbcut_na,
-                    name = "Écoles accessibles") +
-  scale_color_manual(name = "École primaire", values = "black") +
-  theme_minimal() +
-  theme(plot.title = element_text(hjust = 0.5), axis.text = element_blank(),
-        legend.position = "bottom", legend.justification = "center",
-        axis.title = element_blank(), axis.ticks = element_blank(),
-        panel.grid = element_blank(), panel.background = element_rect(fill = "#525252")) +
-  guides(fill = guide_legend(title.position = "top", title.hjust = 0.5),
-         color = guide_legend(title.position = "top", title.hjust = 0.5))+
-  coord_sf(xlim = c(laval_bbox$xmin, laval_bbox$xmax),
-           ylim = c(laval_bbox$ymin, laval_bbox$ymax))
-
-fr_primary_map <- ggplot() +
-  geom_sf(data = mtlcma_sf, color = "black", fill = "#FCFCFC") +
-  geom_sf(data = laval_csd, color = "black", fill = NA) +
-  geom_sf(data = school_sf, aes(fill = fr_primary), color = "#f7f7f7", size = 0.1) +
-  geom_sf(data = fr_prim_points) +
-  scale_fill_manual(values = c("0" = "#C4CDE1", 
-                               "1" = "#6C83B5",
-                               "2+" = "#2B3448"),
-                    na.value = curbcut_na,
-                    name = "Nombre de points de vente accessibles") +
-  theme_minimal() +
-  theme(plot.title = element_text(hjust = 0.5), axis.text = element_blank(),
-        legend.position = "none",
-        axis.title = element_blank(), axis.ticks = element_blank(),
-        panel.grid = element_blank(), panel.background = element_rect(fill = "#525252")) +
-  guides(fill = guide_legend(title.position = "top", title.hjust = 0.5))+
-  labs(title = "École primaire francophone") +
-  coord_sf(xlim = c(laval_bbox$xmin, laval_bbox$xmax),
-           ylim = c(laval_bbox$ymin, laval_bbox$ymax))
-
-combined_primary <- fr_primary_map + eng_primary_map + primary_map +
-  plot_annotation(title = "Écoles primaires accessibles à Laval",
-                  theme = theme(plot.title = element_text(hjust = 0.5)))
-
-combined_primary
-
-#Max map
-ggplot() +
-  geom_sf(data = mtlcma_sf, color = "black", fill = "#FCFCFC") +
-  geom_sf(data = laval_csd, color = "black", fill = NA) +
-  geom_sf(data = school_sf, aes(fill = primary), color = NA) +
-  geom_sf(data = primary_points, aes(color = type)) +
-  scale_fill_manual(values = c("0" = "#C4CDE1", 
-                               "1" = "#6C83B5",
-                               "2+" = "#2B3448"),
-                    na.value = curbcut_na,
-                    name = "Écoles accessibles") +
-  scale_color_manual(values = c("Anglophone" = "indianred2", 
-                               "Francophone" = "royalblue2"),
-                    na.value = curbcut_na,
-                    name = "Langue scolaire") +
-  theme_minimal() +
-  theme(plot.title = element_text(hjust = 0.5), axis.text = element_blank(),
-        legend.position = "bottom",
-        axis.title = element_blank(), axis.ticks = element_blank(),
-        panel.grid = element_blank(), panel.background = element_rect(fill = "#525252")) +
-  guides(fill = guide_legend(title.position = "top", title.hjust = 0.5),
-         color = guide_legend(title.position = "top", title.hjust = 0.5))+
-  labs(title = "Écoles primaires accessibles à Laval") +
-  coord_sf(xlim = c(laval_bbox$xmin, laval_bbox$xmax),
-           ylim = c(laval_bbox$ymin, laval_bbox$ymax))
+DB_hou <- left_join(DB[c("GeoUID", "CT_UID", "Households")], 
+                    sf::st_drop_geometry(CT_demo), by = c("CT_UID" = "GeoUID"))
+DB_hou <- sf::st_drop_geometry(DB_hou)
+DB_hou$hou_ratio <- DB_hou$Households / DB_hou$Hou_CT
+DB_hou$notimm_low_child <- as.numeric(DB_hou$notimm_low_child) * DB_hou$hou_ratio
+DB_hou$imm_low_child <- as.numeric(DB_hou$imm_low_child) * DB_hou$hou_ratio
+DB_hou$notimm_notlow_child <- as.numeric(DB_hou$notimm_notlow_child) * DB_hou$hou_ratio
+DB_hou$imm_notlow_child <- as.numeric(DB_hou$imm_notlow_child) * DB_hou$hou_ratio
 
 
-#Kevin Map
-primary_school_map <- ggplot() +
-  gg_cc_tiles +
-  geom_sf(data = school_sf, aes(fill = access_pri), color = NA) +
-  geom_sf(data = primary_points, aes(color = type), size = 0.9, alpha = 0.8) +
-  geom_sf(data = laval_sectors, fill = "transparent", color = "black") +
-  scale_fill_manual(values = c("pri_none" = "#E8E8E8", 
-                               "pri_fr" = "#6C83B5",
-                               "pri_en" = "#73AE80",
-                               "pri_both" = "#2A5A5B"),
-                    labels = c("pri_none" = "Aucun accès",
-                               "pri_fr" = "Accès à au moins une école francophone",
-                               "pri_en" = "Accès à au moins une école anglophone",
-                               "pri_both" = "Accès à au moins une école des deux langues"),
-                    na.value = curbcut_na) +
-  scale_color_manual(values = c("Anglophone" = "#F5D574", 
-                                "Francophone" = "#CD718C"),
-                     na.value = curbcut_na) +
-  theme_void() +
-  geom_sf(data = laval_sectors, fill = "transparent", color = "black") +
-  theme_void() +
-  theme(plot.title = element_blank(), axis.text = element_blank(),
-        legend.position = "bottom", legend.title = element_blank(),
-        axis.title = element_blank(), panel.grid = element_blank(),
-        text=element_text(family="KMR Apparat Regular"),
-        legend.text = element_text(size = 6)) +
-  guides(fill = guide_legend(ncol = 2),
-         color = guide_legend(ncol = 1, override.aes = list(size = 3)))
+# Calculate accessibility to schools combined
+schools_access <- sf::st_join(school, DB["GeoUID"])
+schools_access <- sf::st_drop_geometry(schools_access[c("OBJECTID", "GeoUID", "PRIM", "SEC")])
 
-secondary_school_map <- ggplot() +
-  gg_cc_tiles +
-  geom_sf(data = school_sf, aes(fill = access_sec), color = NA) +
-  geom_sf(data = secondary_points, aes(color = type), size = 0.9, alpha = 0.8) +
-  geom_sf(data = laval_sectors, fill = "transparent", color = "black") +
-  scale_fill_manual(values = c("sec_none" = "#E8E8E8", 
-                               "sec_fr" = "#6C83B5",
-                               "sec_en" = "#73AE80",
-                               "sec_both" = "#2A5A5B"),
-                    labels = c("sec_none" = "Aucun accès",
-                               "sec_fr" = "Accès à au moins une école francophone",
-                               "sec_en" = "Accès à au moins une école anglophone",
-                               "sec_both" = "Accès à au moins une école des deux langues"),
-                    na.value = curbcut_na) +
-  scale_color_manual(values = c("Anglophone" = "#F5D574", 
-                                "Francophone" = "#CD718C"),
-                     na.value = curbcut_na) +
-  theme_void() +
-  theme(plot.title = element_blank(), axis.text = element_blank(),
-        legend.position = "bottom", legend.title = element_blank(),
-        axis.title = element_blank(), panel.grid = element_blank(),
-        text=element_text(family="KMR Apparat Regular"),
-        legend.text = element_text(size = 6)) +
-  guides(fill = guide_legend(ncol = 2),
-         color = guide_legend(ncol = 1, override.aes = list(size = 3)))
+# Quels DB peuvent se rendre à chaque école?
+DB_with_primaire <- schools_access$GeoUID[schools_access$PRIM > 0]
+DB_can_reach_primaire <- ttm_walk_15$to[ttm_walk_15$from %in% DB_with_primaire]
+DB_can_reach_primaire <- unique(DB_can_reach_primaire)
+DB_with_secondaire <- schools_access$GeoUID[schools_access$SEC > 0]
+DB_can_reach_secondaire <- ttm_walk_15$to[ttm_walk_15$from %in% DB_with_secondaire]
+DB_can_reach_secondaire <- unique(DB_can_reach_secondaire)
 
-noprimary <- school_sf |> 
-  filter(eng_secondary >= 1)
+sum_households <- colSums(DB_hou[c("notimm_low_child", "imm_low_child", 
+                                   "notimm_notlow_child", "imm_notlow_child")])
 
 
-# Bivariate CT Maps ---------------------------------------------------------
-#Cross tabulation data for immigrants and low income (only run if school_sf is at CT level)
-low_imm_ct <- school_sf |> 
-  select(GeoUID, Population) |> 
-  left_join(lowincome_imm, by = "GeoUID") |> 
-  left_join(st_drop_geometry(school_sf), by = "GeoUID") |> 
-  select(notimm_low_child, imm_low_child, notimm_notlow_child, imm_notlow_child,
-         fr_primary, fr_secondary, eng_primary, eng_secondary) |> 
-  mutate(
-    notimm_low_child = as.numeric(notimm_low_child), imm_low_child = as.numeric(imm_low_child),
-    notimm_notlow_child = as.numeric(notimm_notlow_child), imm_notlow_child = as.numeric(imm_notlow_child),
-    notimm_low_child = replace_na(notimm_low_child, 0), imm_low_child = replace_na(imm_low_child, 0),
-    notimm_notlow_child = replace_na(notimm_notlow_child, 0), imm_notlow_child = replace_na(imm_notlow_child, 0)
+
+df_summarized <- DB_hou |>
+  filter(GeoUID %in% DB_can_reach_primaire) |> 
+  summarize(
+    school = "Primaire",
+    notimm_low_child = sum(notimm_low_child),
+    ratio_notimm_low_child = notimm_low_child / sum_households[[1]],
+    imm_low_child = sum(imm_low_child),
+    ratio_imm_low_child = imm_low_child / sum_households[[2]],
+    notimm_notlow_child = sum(notimm_notlow_child),
+    ratio_notimm_notlow_child = notimm_notlow_child / sum_households[[3]],
+    imm_notlow_child = sum(imm_notlow_child),
+    ratio_imm_notlow_child = imm_notlow_child / sum_households[[4]],
+    families = sum(notimm_low_child, imm_low_child, notimm_notlow_child, imm_notlow_child),
+    ratio_families = families / sum(sum_households)
   ) |> 
-  mutate(total = notimm_low_child + imm_low_child +
-                 notimm_notlow_child + imm_notlow_child) |> 
-  mutate(notimm_low_child_prop = notimm_low_child / total * 100,
-         imm_low_child_prop = imm_low_child / total * 100,
-         notimm_notlow_child_prop = notimm_notlow_child / total * 100,
-         imm_notlow_child_prop = imm_notlow_child / total * 100)
-  
-#Make sure to comment the mutate that creates 2+ in school_sf
-ct_breaks <- low_imm_ct |> 
-  mutate(fr_primary = as.integer(fr_primary),
-         fr_secondary = as.integer(fr_secondary))
+  rbind({
+    DB_hou |>
+      filter(GeoUID %in% DB_can_reach_secondaire) |> 
+      summarize(
+        school = "Secondaire",
+        notimm_low_child = sum(notimm_low_child),
+        ratio_notimm_low_child = notimm_low_child / sum_households[[1]],
+        imm_low_child = sum(imm_low_child),
+        ratio_imm_low_child = imm_low_child / sum_households[[2]],
+        notimm_notlow_child = sum(notimm_notlow_child),
+        ratio_notimm_notlow_child = notimm_notlow_child / sum_households[[3]],
+        imm_notlow_child = sum(imm_notlow_child),
+        ratio_imm_notlow_child = imm_notlow_child / sum_households[[4]],
+        families = sum(notimm_low_child, imm_low_child, notimm_notlow_child, imm_notlow_child),
+        ratio_families = families / sum(sum_households)
+      )
+  }) |> 
+  rename("Familles non-immigrantes, faible revenu (n)" = "notimm_low_child",
+         "Familles non-immigrantes, faible revenu (%)" = "ratio_notimm_low_child",
+         "Familles immigrantes, faible revenu (n)" = "imm_low_child",
+         "Familles immigrantes, faible revenu (%)" = "ratio_imm_low_child",
+         "Familles non-immigrantes (n)" = "notimm_notlow_child",
+         "Familles non-immigrantes (%)" = "ratio_notimm_notlow_child",
+         "Familles immigrantes (n)" = "imm_notlow_child",
+         "Familles immigrantes (%)" = "ratio_imm_notlow_child",
+         "Toutes les familles (n)" = "families",
+         "Toutes les familles (%)" = "ratio_families") |>
+  select("school", "Toutes les familles (n)", "Toutes les familles (%)",
+         "Familles non-immigrantes (n)", "Familles non-immigrantes (%)",
+         "Familles immigrantes (n)", "Familles immigrantes (%)",
+         "Familles non-immigrantes, faible revenu (n)", "Familles non-immigrantes, faible revenu (%)",
+         "Familles immigrantes, faible revenu (n)", "Familles immigrantes, faible revenu (%)")
 
-#Non-Immigrant low income and primary schools
-pri_notimm_low_child_breaks <- bi_class_breaks(ct_breaks, x ="fr_primary", y = "notimm_low_child_prop",
-                             style = "fisher", dim = 3, split = TRUE)
+df_wide <- df_summarized %>%
+  pivot_wider(names_from = school, 
+              values_from = c(
+                `Toutes les familles (n)`, `Toutes les familles (%)`,
+                `Familles non-immigrantes (n)`, `Familles non-immigrantes (%)`,
+                `Familles immigrantes (n)`, `Familles immigrantes (%)`,
+                `Familles non-immigrantes, faible revenu (n)`, `Familles non-immigrantes, faible revenu (%)`,
+                `Familles immigrantes, faible revenu (n)`, `Familles immigrantes, faible revenu (%)`
+              ))
 
-pri_notimm_low_child_legend <- bi_legend(pal = "DkCyan2", dim = 3, xlab = "Accessibilité à l'école", ylab = "% Ménages",
-          flip_axes = TRUE, size = 10, breaks = pri_notimm_low_child_breaks)
-
-ct_bi <- bi_class(ct_breaks, x = "fr_primary", y = "notimm_low_child_prop",
-                          style = "fisher", dim = 3) |> 
-  mutate(pri_notimm_low_child = bi_class) |> 
-  select(-bi_class)
-
-pri_notimm_low_child_map <- ggplot() +
-  geom_rect(aes(xmin = -Inf, xmax = Inf, ymin = -Inf, ymax = Inf), fill = "#525252", color = NA) +
-  geom_sf(data = mtlcma_sf, fill = "#FCFCFC", color = NA) +
-  geom_sf(data = ct_bi, mapping = aes_string(fill = "pri_notimm_low_child"), color = NA,
-          size = 0.1, show.legend = FALSE) +
-  bi_scale_fill(pal = "DkCyan2", dim = 3, flip_axes = TRUE) +
-  bi_theme() +
-  theme(
-        axis.text = element_blank(), axis.title = element_blank(),
-        axis.ticks = element_blank(), panel.grid = element_blank(),
-        panel.background = element_rect(fill = "#525252", color = NA)) +
-  coord_sf(xlim = c(laval_bbox$xmin, laval_bbox$xmax),
-           ylim = c(laval_bbox$ymin, laval_bbox$ymax))
-
-ggdraw() +
-  draw_plot(pri_notimm_low_child_map, 0, 0, 1, 1) +
-  draw_plot(pri_notimm_low_child_legend, 0.665, 0.041, 0.32, 0.32)
-
-#Primary school and low income immigrant households
-pri_imm_low_child_breaks <- bi_class_breaks(ct_breaks, x ="fr_primary", y = "imm_low_child_prop",
-                                               style = "fisher", dim = 3, split = TRUE)
-
-pri_imm_low_child_legend <- bi_legend(pal = "DkCyan2", dim = 3, xlab = "Accessibilité à l'école", ylab = "% Ménages",
-                                         flip_axes = TRUE, size = 10, breaks = pri_imm_low_child_breaks)
-
-ct_bi <- bi_class(ct_breaks, x = "fr_primary", y = "imm_low_child_prop",
-                  style = "fisher", dim = 3) |> 
-  mutate(pri_imm_low_child = bi_class) |> 
-  select(-bi_class)
-
-pri_imm_low_child_map <- ggplot() +
-  geom_rect(aes(xmin = -Inf, xmax = Inf, ymin = -Inf, ymax = Inf), fill = "#525252", color = NA) +
-  geom_sf(data = mtlcma_sf, fill = "#FCFCFC", color = NA) +
-  geom_sf(data = ct_bi, mapping = aes_string(fill = "pri_imm_low_child"), color = NA,
-          size = 0.1, show.legend = FALSE) +
-  bi_scale_fill(pal = "DkCyan2", dim = 3, flip_axes = TRUE) +
-  bi_theme() +
-  theme(
-        axis.text = element_blank(), axis.title = element_blank(),
-        axis.ticks = element_blank(), panel.grid = element_blank(),
-        panel.background = element_rect(fill = "#525252", color = NA)) +
-  coord_sf(xlim = c(laval_bbox$xmin, laval_bbox$xmax),
-           ylim = c(laval_bbox$ymin, laval_bbox$ymax))
-
-ggdraw() +
-  draw_plot(pri_imm_low_child_map, 0, 0, 1, 1) +
-  draw_plot(pri_imm_low_child_legend, 0.675, 0.041, 0.32, 0.32)
-
-#Primary school and immigrant households
-pri_imm_notlow_child_breaks <- bi_class_breaks(ct_breaks, x ="fr_primary", y = "imm_notlow_child_prop",
-                                            style = "fisher", dim = 3, split = TRUE)
-
-pri_imm_notlow_child_legend <- bi_legend(pal = "DkCyan2", dim = 3, xlab = "Accessibilité à l'école", ylab = "% Ménages",
-                                      flip_axes = TRUE, size = 10, breaks = pri_imm_notlow_child_breaks)
-
-ct_bi <- bi_class(ct_breaks, x = "fr_primary", y = "imm_notlow_child_prop",
-                  style = "fisher", dim = 3) |> 
-  mutate(pri_imm_notlow_child = bi_class) |> 
-  select(-bi_class)
-
-pri_imm_notlow_child_map <- ggplot() +
-  geom_rect(aes(xmin = -Inf, xmax = Inf, ymin = -Inf, ymax = Inf), fill = "#525252", color = NA) +
-  geom_sf(data = mtlcma_sf, fill = "#FCFCFC", color = NA) +
-  geom_sf(data = ct_bi, mapping = aes_string(fill = "pri_imm_notlow_child"), color = NA,
-          size = 0.1, show.legend = FALSE) +
-  bi_scale_fill(pal = "DkCyan2", dim = 3, flip_axes = TRUE) +
-  bi_theme() +
-  theme(
-        axis.text = element_blank(), axis.title = element_blank(),
-        axis.ticks = element_blank(), panel.grid = element_blank(),
-        panel.background = element_rect(fill = "#525252", color = NA)) +
-  coord_sf(xlim = c(laval_bbox$xmin, laval_bbox$xmax),
-           ylim = c(laval_bbox$ymin, laval_bbox$ymax))
-
-ggdraw() +
-  draw_plot(pri_imm_notlow_child_map, 0, 0, 1, 1) +
-  draw_plot(pri_imm_notlow_child_legend, 0.675, 0.041, 0.32, 0.32)
-
-#Primary school and non-immigrant households
-pri_notimm_notlow_child_breaks <- bi_class_breaks(ct_breaks, x ="fr_primary", y = "notimm_notlow_child_prop",
-                                               style = "fisher", dim = 3, split = TRUE)
-
-pri_notimm_notlow_child_legend <- bi_legend(pal = "DkCyan2", dim = 3, xlab = "Accessibilité à l'école", ylab = "% Ménages",
-                                         flip_axes = TRUE, size = 10, breaks = pri_notimm_notlow_child_breaks)
-
-ct_bi <- bi_class(ct_breaks, x = "fr_primary", y = "notimm_notlow_child_prop",
-                  style = "fisher", dim = 3) |> 
-  mutate(pri_notimm_notlow_child = bi_class) |> 
-  select(-bi_class)
-
-pri_notimm_notlow_child_map <- ggplot() +
-  geom_rect(aes(xmin = -Inf, xmax = Inf, ymin = -Inf, ymax = Inf), fill = "#525252", color = NA) +
-  geom_sf(data = mtlcma_sf, fill = "#FCFCFC", color = NA) +
-  geom_sf(data = ct_bi, mapping = aes_string(fill = "pri_notimm_notlow_child"), color = NA,
-          size = 0.1, show.legend = FALSE) +
-  bi_scale_fill(pal = "DkCyan2", dim = 3, flip_axes = TRUE) +
-  bi_theme() +
-  theme(
-        axis.text = element_blank(), axis.title = element_blank(),
-        axis.ticks = element_blank(), panel.grid = element_blank(),
-        panel.background = element_rect(fill = "#525252", color = NA)) +
-  coord_sf(xlim = c(laval_bbox$xmin, laval_bbox$xmax),
-           ylim = c(laval_bbox$ymin, laval_bbox$ymax))
-
-ggdraw() +
-  draw_plot(pri_notimm_notlow_child_map, 0, 0, 1, 1) +
-  draw_plot(pri_notimm_notlow_child_legend, 0.675, 0.041, 0.32, 0.32)
-
-#Non-Immigrant low income and secondary schools
-sec_notimm_low_child_breaks <- bi_class_breaks(ct_breaks, x ="fr_secondary", y = "notimm_low_child_prop",
-                                               style = "fisher", dim = 3, split = TRUE)
-
-sec_notimm_low_child_legend <- bi_legend(pal = "DkCyan2", dim = 3, xlab = "Accessibilité à l'école", ylab = "% Ménages",
-                                         flip_axes = TRUE, size = 10, breaks = sec_notimm_low_child_breaks)
-
-ct_bi <- bi_class(ct_breaks, x = "fr_secondary", y = "notimm_low_child_prop",
-                  style = "fisher", dim = 3) |> 
-  mutate(sec_notimm_low_child = bi_class) |> 
-  select(-bi_class)
-
-sec_notimm_low_child_map <- ggplot() +
-  geom_rect(aes(xmin = -Inf, xmax = Inf, ymin = -Inf, ymax = Inf), fill = "#525252", color = NA) +
-  geom_sf(data = mtlcma_sf, fill = "#FCFCFC", color = NA) +
-  geom_sf(data = ct_bi, mapping = aes_string(fill = "sec_notimm_low_child"), color = NA,
-          size = 0.1, show.legend = FALSE) +
-  bi_scale_fill(pal = "DkCyan2", dim = 3, flip_axes = TRUE) +
-  bi_theme() +
-  theme(
-        axis.text = element_blank(), axis.title = element_blank(),
-        axis.ticks = element_blank(), panel.grid = element_blank(),
-        panel.background = element_rect(fill = "#525252", color = NA)) +
-  coord_sf(xlim = c(laval_bbox$xmin, laval_bbox$xmax),
-           ylim = c(laval_bbox$ymin, laval_bbox$ymax))
-
-ggdraw() +
-  draw_plot(sec_notimm_low_child_map, 0, 0, 1, 1) +
-  draw_plot(sec_notimm_low_child_legend, 0.665, 0.041, 0.32, 0.32)
-
-#secondary school and low income immigrant households
-sec_imm_low_child_breaks <- bi_class_breaks(ct_breaks, x ="fr_secondary", y = "imm_low_child_prop",
-                                            style = "fisher", dim = 3, split = TRUE)
-
-sec_imm_low_child_legend <- bi_legend(pal = "DkCyan2", dim = 3, xlab = "Accessibilité à l'école", ylab = "% Ménages",
-                                      flip_axes = TRUE, size = 10, breaks = sec_imm_low_child_breaks)
-
-ct_bi <- bi_class(ct_breaks, x = "fr_secondary", y = "imm_low_child_prop",
-                  style = "fisher", dim = 3) |> 
-  mutate(sec_imm_low_child = bi_class) |> 
-  select(-bi_class)
-
-sec_imm_low_child_map <- ggplot() +
-  geom_rect(aes(xmin = -Inf, xmax = Inf, ymin = -Inf, ymax = Inf), fill = "#525252", color = NA) +
-  geom_sf(data = mtlcma_sf, fill = "#FCFCFC", color = NA) +
-  geom_sf(data = ct_bi, mapping = aes_string(fill = "sec_imm_low_child"), color = NA,
-          size = 0.1, show.legend = FALSE) +
-  bi_scale_fill(pal = "DkCyan2", dim = 3, flip_axes = TRUE) +
-  bi_theme() +
-  theme(
-        axis.text = element_blank(), axis.title = element_blank(),
-        axis.ticks = element_blank(), panel.grid = element_blank(),
-        panel.background = element_rect(fill = "#525252", color = NA)) +
-  coord_sf(xlim = c(laval_bbox$xmin, laval_bbox$xmax),
-           ylim = c(laval_bbox$ymin, laval_bbox$ymax))
-
-ggdraw() +
-  draw_plot(sec_imm_low_child_map, 0, 0, 1, 1) +
-  draw_plot(sec_imm_low_child_legend, 0.675, 0.041, 0.32, 0.32)
-
-#secondary school and immigrant households
-sec_imm_notlow_child_breaks <- bi_class_breaks(ct_breaks, x ="fr_secondary", y = "imm_notlow_child_prop",
-                                               style = "fisher", dim = 3, split = TRUE)
-
-sec_imm_notlow_child_legend <- bi_legend(pal = "DkCyan2", dim = 3, xlab = "Accessibilité à l'école", ylab = "% Ménages",
-                                         flip_axes = TRUE, size = 10, breaks = sec_imm_notlow_child_breaks)
-
-ct_bi <- bi_class(ct_breaks, x = "fr_secondary", y = "imm_notlow_child_prop",
-                  style = "fisher", dim = 3) |> 
-  mutate(sec_imm_notlow_child = bi_class) |> 
-  select(-bi_class)
-
-sec_imm_notlow_child_map <- ggplot() +
-  geom_rect(aes(xmin = -Inf, xmax = Inf, ymin = -Inf, ymax = Inf), fill = "#525252", color = NA) +
-  geom_sf(data = mtlcma_sf, fill = "#FCFCFC", color = NA) +
-  geom_sf(data = ct_bi, mapping = aes_string(fill = "sec_imm_notlow_child"), color = NA,
-          size = 0.1, show.legend = FALSE) +
-  bi_scale_fill(pal = "DkCyan2", dim = 3, flip_axes = TRUE) +
-  bi_theme() +
-  theme(
-        axis.text = element_blank(), axis.title = element_blank(),
-        axis.ticks = element_blank(), panel.grid = element_blank(),
-        panel.background = element_rect(fill = "#525252", color = NA)) +
-  coord_sf(xlim = c(laval_bbox$xmin, laval_bbox$xmax),
-           ylim = c(laval_bbox$ymin, laval_bbox$ymax))
-
-ggdraw() +
-  draw_plot(sec_imm_notlow_child_map, 0, 0, 1, 1) +
-  draw_plot(sec_imm_notlow_child_legend, 0.675, 0.041, 0.32, 0.32)
-
-#secondary school and non-immigrant households
-sec_notimm_notlow_child_breaks <- bi_class_breaks(ct_breaks, x ="fr_secondary", y = "notimm_notlow_child_prop",
-                                                  style = "fisher", dim = 3, split = TRUE)
-
-sec_notimm_notlow_child_legend <- bi_legend(pal = "DkCyan2", dim = 3, xlab = "Accessibilité à l'école", ylab = "% Ménages",
-                                            flip_axes = TRUE, size = 10, breaks = sec_notimm_notlow_child_breaks)
-
-ct_bi <- bi_class(ct_breaks, x = "fr_secondary", y = "notimm_notlow_child_prop",
-                  style = "fisher", dim = 3) |> 
-  mutate(sec_notimm_notlow_child = bi_class) |> 
-  select(-bi_class)
-
-sec_notimm_notlow_child_map <- ggplot() +
-  geom_rect(aes(xmin = -Inf, xmax = Inf, ymin = -Inf, ymax = Inf), fill = "#525252", color = NA) +
-  geom_sf(data = mtlcma_sf, fill = "#FCFCFC", color = NA) +
-  geom_sf(data = ct_bi, mapping = aes_string(fill = "sec_notimm_notlow_child"), color = NA,
-          size = 0.1, show.legend = FALSE) +
-  bi_scale_fill(pal = "DkCyan2", dim = 3, flip_axes = TRUE) +
-  bi_theme() +
-  theme(
-        axis.text = element_blank(), axis.title = element_blank(),
-        axis.ticks = element_blank(), panel.grid = element_blank(),
-        panel.background = element_rect(fill = "#525252", color = NA)) +
-  coord_sf(xlim = c(laval_bbox$xmin, laval_bbox$xmax),
-           ylim = c(laval_bbox$ymin, laval_bbox$ymax))
-
-ggdraw() +
-  draw_plot(sec_notimm_notlow_child_map, 0, 0, 1, 1) +
-  draw_plot(sec_notimm_notlow_child_legend, 0.675, 0.041, 0.32, 0.32)
-
-#Numbers for R Markdown
-laval_families <- sum(low_imm_ct$total)
-
-primary_access <- low_imm_ct |> 
-  st_drop_geometry() |> 
-  filter(fr_primary >= 1 | eng_primary >= 1) |> 
-  summarize(total = sum(total, na.rm = TRUE)) |> 
-  mutate(total = convert_pct(total / laval_families)) |> 
-  pull(total)
-primary_fr_access <- low_imm_ct |> 
-  st_drop_geometry() |> 
-  filter(fr_primary >= 1) |> 
-  summarize(total = sum(total, na.rm = TRUE)) |> 
-  mutate(total = convert_pct(total / laval_families)) |> 
-  pull(total)
-primary_eng_access <- low_imm_ct |> 
-  st_drop_geometry() |> 
-  filter(eng_primary >= 1) |> 
-  summarize(total = sum(total, na.rm = TRUE)) |> 
-  mutate(total = convert_pct(total / laval_families)) |> 
-  pull(total)
-
-secondary_access <- low_imm_ct |> 
-  st_drop_geometry() |> 
-  filter(fr_secondary >= 1 | eng_secondary >= 1) |> 
-  summarize(total = sum(total, na.rm = TRUE)) |> 
-  mutate(total = convert_pct(total / laval_families)) |> 
-  pull(total)
-secondary_fr_access <- low_imm_ct |> 
-  st_drop_geometry() |> 
-  filter(fr_secondary >= 1) |> 
-  summarize(total = sum(total, na.rm = TRUE)) |> 
-  mutate(total = convert_pct(total / laval_families)) |> 
-  pull(total)
-secondary_eng_access <- low_imm_ct |> 
-  st_drop_geometry() |> 
-  filter(eng_secondary >= 1) |> 
-  summarize(total = sum(total, na.rm = TRUE)) |> 
-  mutate(total = convert_pct(total / laval_families)) |> 
-  pull(total)
-
-# Tables ------------------------------------------------------------------
-#Cross-tabulation table, ONLY use if CT data was used in school_sf
-ct_table_primary <- low_imm_ct |>
-  st_drop_geometry() |> 
-  summarise(across(
-      c(notimm_low_child, imm_low_child, notimm_notlow_child, imm_notlow_child),
-      list(
-        sum_filtered = ~ sum(.x[fr_primary >= 1], na.rm = TRUE),
-        total_sum = ~ sum(.x, na.rm = TRUE)
-      ),
-      .names = "{.col}_{.fn}")
-  ) |> 
-  mutate(
-    ratio_notimm_low_child = convert_pct(notimm_low_child_sum_filtered / notimm_low_child_total_sum ),
-    ratio_imm_low_child = convert_pct(imm_low_child_sum_filtered / imm_low_child_total_sum),
-    ratio_notimm_notlow_child = convert_pct(notimm_notlow_child_sum_filtered / notimm_notlow_child_total_sum),
-    ratio_imm_notlow_child = convert_pct(imm_notlow_child_sum_filtered / imm_notlow_child_total_sum)) |> 
-  mutate(school = "Primary",
-         families = notimm_low_child_sum_filtered + imm_low_child_sum_filtered +
-                            notimm_notlow_child_sum_filtered + imm_notlow_child_sum_filtered) |> 
-  mutate(families_ratio = convert_pct(families / (notimm_low_child_total_sum + imm_low_child_total_sum +
-                                              notimm_notlow_child_total_sum + imm_notlow_child_total_sum))) |> 
-  select(school, notimm_low_child_sum_filtered, ratio_notimm_low_child, 
-         imm_low_child_sum_filtered, ratio_imm_low_child,
-         notimm_notlow_child_sum_filtered, ratio_notimm_notlow_child,
-         imm_notlow_child_sum_filtered, ratio_imm_notlow_child, families, families_ratio)
-
-ct_table_secondary <- low_imm_ct |>
-  st_drop_geometry() |> 
-  summarise(across(
-    c(notimm_low_child, imm_low_child, notimm_notlow_child, imm_notlow_child),
-    list(
-      sum_filtered = ~ sum(.x[fr_secondary >= 1], na.rm = TRUE),
-      total_sum = ~ sum(.x, na.rm = TRUE)
-    ),
-    .names = "{.col}_{.fn}")
-  ) |> 
-  mutate(
-    ratio_notimm_low_child = convert_pct(notimm_low_child_sum_filtered / notimm_low_child_total_sum),
-    ratio_imm_low_child = convert_pct(imm_low_child_sum_filtered / imm_low_child_total_sum),
-    ratio_notimm_notlow_child = convert_pct(notimm_notlow_child_sum_filtered / notimm_notlow_child_total_sum),
-    ratio_imm_notlow_child = convert_pct(imm_notlow_child_sum_filtered / imm_notlow_child_total_sum)) |> 
-  mutate(school = "Secondary",
-         families = notimm_low_child_sum_filtered + imm_low_child_sum_filtered +
-           notimm_notlow_child_sum_filtered + imm_notlow_child_sum_filtered) |> 
-  mutate(families_ratio = convert_pct(families / (notimm_low_child_total_sum + imm_low_child_total_sum +
-                                              notimm_notlow_child_total_sum + imm_notlow_child_total_sum))) |>
-  select(school, notimm_low_child_sum_filtered, ratio_notimm_low_child, 
-         imm_low_child_sum_filtered, ratio_imm_low_child,
-         notimm_notlow_child_sum_filtered, ratio_notimm_notlow_child,
-         imm_notlow_child_sum_filtered, ratio_imm_notlow_child, families, families_ratio)
-
-ct_table <- bind_rows(ct_table_primary, ct_table_secondary) |>
-  rename("Non-immigrant et faible revenu (n)" = "notimm_low_child_sum_filtered",
-         "Non-immigrant et faible revenu (%)" = "ratio_notimm_low_child",
-         "Immigrant et faible revenu (n)" = "imm_low_child_sum_filtered",
-         "Immigrant et faible revenu (%)" = "ratio_imm_low_child",
-         "Non-Immigrant (n)" = "notimm_notlow_child_sum_filtered",
-         "Non-Immigrant (%)" = "ratio_notimm_notlow_child",
-         "Immigrant (n)" = "imm_notlow_child_sum_filtered",
-         "Immigrant (%)" = "ratio_imm_notlow_child",
-         "School Type" = "school",
-         "Familles avec enfants (n)" = "families",
-         "Familles avec enfants (%)" = "families_ratio") |>
-  select("School Type", "Familles avec enfants (n)", "Familles avec enfants (%)",
-         "Non-Immigrant (n)", "Non-Immigrant (%)",
-         "Immigrant (n)", "Immigrant (%)",
-         "Non-immigrant et faible revenu (n)", "Non-immigrant et faible revenu (%)",
-         "Immigrant et faible revenu (n)", "Immigrant et faible revenu (%)") |> 
-  mutate(`Familles avec enfants (n)` = convert_number(`Familles avec enfants (n)`),
-         `Non-Immigrant (n)` = convert_number(`Non-Immigrant (n)`),
-         `Immigrant (n)` = convert_number(`Immigrant (n)`),
-         `Non-immigrant et faible revenu (n)` = convert_number(`Non-immigrant et faible revenu (n)`),
-         `Immigrant et faible revenu (n)` = convert_number(`Immigrant et faible revenu (n)`))
-
-school_table <- ct_table |> gt() |> 
-  tab_options(
-    table.font.names = "KMR Apparat Regular",
-    table.font.size = px(14)
-  ) |> 
-  tab_style(
-    style = cell_fill(color = "#F0F0F0"),
-    locations = cells_body(rows = 2, columns = everything())
-  ) |> 
-  tab_style(
-    style = cell_borders(
-      sides = "right",
-      color = "darkgrey",
-      weight = px(2)
-    ),
-    locations = cells_body(columns = 3)
-  ) |> 
-  tab_style(
-    style = cell_borders(
-      sides = "right",
-      color = "darkgrey",
-      weight = px(2)
-    ),
-    locations = cells_body(columns = 7)
-  ) |> 
-  cols_label(
-    `School Type` = ""
+df_long <- df_wide %>%
+  pivot_longer(
+    cols = starts_with("Familles") | starts_with("Toutes"),
+    names_to = c("Categorie", ".value"),
+    names_pattern = "(.*)_(.*)"
   )
 
-#Exporting the gt table to get around errors
-write.csv(school_table, file = "data/school.csv", row.names = FALSE)
+school_table_data <- df_long[!grepl("%", df_long$Categorie), ]
+school_table_data$Proportion_Primaire <- df_long[grepl("%", df_long$Categorie), ]$Primaire
+school_table_data$Proportion_Secondaire <- df_long[grepl("%", df_long$Categorie), ]$Secondaire
+names(school_table_data)[1:3] <- c(" ", "Familles_Primaire", "Familles_Secondaire")
+school_table_data$` ` <- gsub(" \\(n\\)", "", school_table_data$` `)
+school_table_data <- school_table_data[c(5,2,1,4,3),]
 
-school_table <- read.csv("data/school.csv") |> 
-  gt() |> 
-  tab_options(
-    table.font.names = "KMR Apparat Regular",
-    table.font.size = px(14)
-  ) |> 
-  tab_style(
-    style = cell_fill(color = "#F0F0F0"),
-    locations = cells_body(rows = 2, columns = everything())
-  ) |> 
-  tab_style(
-    style = cell_borders(
-      sides = "right",
-      color = "darkgrey",
-      weight = px(2)
-    ),
-    locations = cells_body(columns = 3)
-  ) |> 
-  tab_style(
-    style = cell_borders(
-      sides = "right",
-      color = "darkgrey",
-      weight = px(2)
-    ),
-    locations = cells_body(columns = 7)
-  ) |> 
+school_table <- 
+  gt(school_table_data) |> 
   cols_label(
-    `School.Type` = "",
-    `Familles.avec.enfants..n.` = "Familles avec enfants (n)",
-    `Familles.avec.enfants....` = "Familles avec enfants (%)",
-    `Non.Immigrant..n.` = "Non-Immigrant (n)",
-    `Non.Immigrant....` = "Non-Immigrant (%)",
-    `Immigrant..n.` = "Immigrant (n)",
-    `Immigrant....` = "Immigrant (%)",
-    `Non.immigrant.et.faible.revenu..n.` = "Non-immigrant et faible revenu (n)",
-    `Non.immigrant.et.faible.revenu....` = "Non-immigrant et faible revenu (%)",
-    `Immigrant.et.faible.revenu..n.` = "Immigrant et faible revenu (n)",
-    `Immigrant.et.faible.revenu....` = "Immigrant et faible revenu (%)"
+    ` ` = " ",
+    `Familles_Primaire` = "Familles",
+    `Familles_Secondaire` = "Familles",
+    `Proportion_Primaire` = "Proportion",
+    `Proportion_Secondaire` = "Proportion"
+  ) |> 
+  tab_spanner(
+    label = "Primaire",
+    columns = c(`Familles_Primaire`, `Proportion_Primaire`)
+  ) |> 
+  tab_spanner(
+    label = "Secondaire",
+    columns = c(`Familles_Secondaire`, `Proportion_Secondaire`)
+  ) |> 
+  fmt(columns = c(2,3), fns = convert_number_tens) |> 
+  fmt(columns = c(4,5), fns = convert_pct) |> 
+  data_color(
+    columns = 4:5,
+    colors = scales::col_numeric(
+      palette = c("white", color_theme("purpletransport")),
+      domain = NULL
+    )
+  ) |> 
+  # Appliquer le style de la police à toute la table
+  tab_style(
+    style = cell_text(
+      font = "KMR Apparat Regular"
+    ),
+    locations = cells_body()
+  ) |> 
+  tab_style(
+    style = cell_text(
+      font = "KMR Apparat Regular"
+    ),
+    locations = cells_column_labels()
+  ) |> 
+  # Options générales pour la table
+  tab_options(
+    table.font.size = indesign_fontsize,
+    row_group.font.size = indesign_title_fontsize
   )
 
-# R Markdown --------------------------------------------------------------
-ggplot2::ggsave(filename = here::here("output/axe3/access/primary_school_map.pdf"), 
-                plot = primary_school_map, width = 7.5, height = 6)
-ggplot2::ggsave(filename = here::here("output/axe3/access/secondary_school_map.pdf"), 
-                plot = secondary_school_map, width = 7.5, height = 6)
-ggplot2::ggsave(filename = here::here("output/axe3/access/school_table.pdf"), 
-                plot = school_table, width = 7.5, height = 3)
+gtsave(school_table, "output/axe3/school_table.png")
 
-qs::qsavem(primary_school_map, secondary_school_map, primary_school_total, secondary_school_total,
-           primary_franco, secondary_franco, primary_access, primary_fr_access,
-           primary_eng_access, secondary_access, secondary_fr_access, secondary_eng_access, school_table,
+
+
+qs::qsavem(primary_school_total, secondary_school_total,primary_franco, secondary_franco,
+           children_with_access_pct, children_with_access_fr_pct, children_with_access_en_pct,
+           children_with_access_sec_pct, children_with_access_sec_fr_pct, 
+           children_with_access_sec_en_pct, primaire_plot, secondaire_plot, school_table,
            file = "data/axe3/schools.qsm")

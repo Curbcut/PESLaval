@@ -1,85 +1,29 @@
 #Loading up libraries
 source("R/01_startup.R")
-library(gbfs)
-library(tidytransit)
-library(osmdata)
-library(tidygeocoder)
-library(RMySQL)
-library(classInt)
-library(ggnewscale)
-library(cowplot)
-library(sf)
-library(extrafont)
-
-
-#Grabbing the Laval shapefiles
-laval_csd <- cancensus::get_census(dataset = "CA21", 
-                                   regions = list(CSD = 2465005), 
-                                   level = "CSD", 
-                                   geo_format = "sf")
-
-laval_ct <- cancensus::get_census(dataset = "CA21", 
-                                  regions = list(CSD = 2465005), 
-                                  level = "CT", 
-                                  geo_format = "sf")
-
-laval_da <- cancensus::get_census(dataset = "CA21", 
-                                  regions = list(CSD = 2465005), 
-                                  level = "DA", 
-                                  geo_format = "sf")
-
-laval_db <- cancensus::get_census(dataset = "CA21", 
-                                  regions = list(CSD = 2465005), 
-                                  level = "DB", 
-                                  geo_format = "sf")
 
 #Grabbing the shapefile for the Montreal CMA
 mtlcma_sf <- cancensus::get_census(dataset = "CA21", 
                                    regions = list(CSD = 24462), 
                                    level = "CMA", 
                                    geo_format = "sf")
+laval_db <- cancensus::get_census(dataset = "CA21", 
+                                  regions = list(CSD = 2465005), 
+                                  level = "DB", 
+                                  geo_format = "sf")
 
-#Setting up the curbcut scale
-curbcut_scale <- curbcut_colors$left_5$fill[2:6]
-curbcut_na <- curbcut_colors$left_5$fill[1]
-
-#Import 15 minute walking TTM and modifying it with necessary rows
+#Import 7 minute walking TTM and modifying it with necessary rows
 ttm_walk_7 <- ttm(under_x_minutes = 7)
 
-extrarows <- laval_db |> 
-  st_drop_geometry() |> 
-  select(GeoUID) |> 
-  rename("from" = "GeoUID") |> 
-  mutate(from = as.double(from),
-         to = as.double(from),
-         travel_seconds = 0)
-
-ttm_walk_7 <- read.csv("data/axe3/ttm.csv") |> 
-  bind_rows(extrarows) |> 
-  arrange("from")
 
 # Bus Stop Location -------------------------------------------------------
 #Importing GTFS data. Available in the data folder under justin
-stl_gtfs <- tidytransit::read_gtfs("data/axe3/GTF_STL.zip")
+stl_gtfs <- tidytransit::read_gtfs("https://www.stlaval.ca/datas/opendata/GTF_STL.zip")
 
-#Grabbing bus stops, converting it to be usable to plot, and removing duplicates
-#Removing duplicates doesn't necessarily reflect real life as there are usually
-#two stops at one intersection, but makes map readability significantly better
-bus_stops <- sf::st_as_sf(stl_gtfs$stops, coords = c("stop_lon", "stop_lat"), crs = 4326) |> 
-  distinct(stop_name, .keep_all = TRUE)
+bus_stops <- sf::st_as_sf(stl_gtfs$stops, coords = c("stop_lon", "stop_lat"), crs = 4326)
 
 bus_stops_cleaned <- sf::st_as_sf(stl_gtfs$stops, coords = c("stop_lon", "stop_lat"), crs = 4326) |> 
-  distinct(stop_name, .keep_all = TRUE) |> 
-  mutate(number = 1) |> 
-  summarize(total_number = convert_number(sum(number))) |> 
-  pull(total_number)
-
-#Finding number of bus stops on the island
-bus_stops_laval <- sf::st_as_sf(stl_gtfs$stops, coords = c("stop_lon", "stop_lat"), crs = 4326) |> 
-  st_intersects(laval_csd, sparse = FALSE) |> 
-  as.logical() |> 
-  sum() |> 
-  convert_number()
+  nrow() |> 
+  convert_number_noround()
 
 # Plot accessibility to bus stops in 7 minutes walk
 bs_db_int <- sf::st_intersects(bus_stops, laval_db["GeoUID"], prepared = TRUE)
@@ -106,61 +50,49 @@ access_busstops <- tibble::as_tibble(access_busstops)
 access_busstops <- cc.buildr::merge(access_busstops, laval_db[c("GeoUID", "Population")])
 
 #Plotting the bus stops
-labels <- c("0", "1-2", "3-4", "5-6", "7+")
+labels <- c("0", "1-4", "5-8", "9-12", "13+")
 
 # Add our bins in the data
 access_busstops <- add_bins(df = access_busstops,
                                variable = "busstops",
-                               breaks = c(-Inf, 0.0001, 2.1, 4.1, 6.1, Inf),
+                               breaks = c(-Inf, 0.0001, 4.1, 8.1, 12.1, Inf),
                                labels = labels
 )
 
-# Union the features so the polygons don't show their borders. Might revisit
-# with the addition of streets!
-t <- Reduce(rbind,
-            split(access_busstops, access_busstops$binned_variable) |>
-              lapply(\(x) {
-                out <- tibble::tibble(x$binned_variable)
-                out$geometry <- sf::st_union(x)
-                sf::st_as_sf(out, crs = 4326)[1, ]
-              })
-) |> sf::st_as_sf()
-names(t)[1] <- "binned_variable"
+# # Union the features so the polygons don't show their borders. Might revisit
+# # with the addition of streets!
+# t <- Reduce(rbind,
+#             split(access_busstops, access_busstops$binned_variable) |>
+#               lapply(\(x) {
+#                 out <- tibble::tibble(x$binned_variable)
+#                 out$geometry <- sf::st_union(x)
+#                 sf::st_as_sf(out, crs = 4326)[1, ]
+#               })
+# ) |> sf::st_as_sf()
+# names(t)[1] <- "binned_variable"
 
-t |> 
-  ggplot() +
+bus_stops_map <- ggplot(data = access_busstops) +
   gg_cc_tiles +
   geom_sf(aes(fill = binned_variable), color = "transparent") +
   scale_fill_manual(values = curbcut_colors$left_5$fill[c(2:6)],
-                    name = "Arrêts d'autobus (n)",
+                    name = "Nombre d'arrêts d'autobus accessibles",
                     labels = labels,
                     guide = guide_legend(title.position = "top",
                                          label.position = "bottom", nrow = 1)) +
   geom_sf(data = bus_stops, color = color_theme("greenurbanlife"),
           size = 0.2, alpha = 0.5) +
-  gg_cc_theme +
-  theme(legend.spacing.x = unit(2, 'cm'),
-        legend.spacing.y = unit(1, 'cm'))
+  gg_cc_theme
 
-bus_stops_map <- ggplot(data = t) +
-  gg_cc_tiles +
-  geom_sf(aes(fill = binned_variable), color = "transparent") +
-  scale_fill_manual(values = curbcut_colors$left_5$fill[c(2:6)],
-                    name = "Arrêts d'autobus (n)",
-                    labels = labels,
-                    guide = guide_legend(title.position = "top",
-                                         label.position = "bottom", nrow = 1)) +
-  geom_sf(data = bus_stops, color = color_theme("greenurbanlife"),
-          size = 0.2, alpha = 0.5) +
-  geom_sf(data = laval_sectors, fill = "transparent", color = "black") +
-  gg_cc_theme_no_sf +
-  theme_void() +
-  default_theme
+ggplot2::ggsave(filename = here::here("output/axe3/bus_stops_map.pdf"), 
+                plot = bus_stops_map, width = 7, height = 6)
 
 # Values
-no_bus_stops <- convert_number(sum(access_busstops$Population[access_busstops$busstops == 0]))
-one_two_bus_stops <- convert_number(sum(access_busstops$Population[access_busstops$busstops %in% c(1,2)]))
-
+no_bus_stops <- sum(access_busstops$Population[access_busstops$busstops == 0])
+no_bus_stops_pct <- convert_pct(no_bus_stops / sum(access_busstops$Population))
+no_bus_stops <- convert_number(no_bus_stops)
+one_two_bus_stops <- sum(access_busstops$Population[access_busstops$busstops %in% c(1,2)])
+one_two_bus_stops_pct <- convert_pct(one_two_bus_stops / sum(access_busstops$Population))
+one_two_bus_stops <- convert_number(one_two_bus_stops)
 
 # Bus routes accessibles ---------------------------------------------------
 
@@ -211,48 +143,37 @@ trips <- add_bins(df = trips,
                        labels = labels
 )
 
-# Union the features so the polygons don't show their borders. Might revisit
-# with the addition of streets!
-t <- Reduce(rbind,
-            split(trips, trips$binned_variable) |>
-              lapply(\(x) {
-                out <- tibble::tibble(x$binned_variable)
-                out$geometry <- sf::st_union(x)
-                sf::st_as_sf(out, crs = 4326)[1, ]
-              })
-) |> sf::st_as_sf()
-names(t)[1] <- "binned_variable"
+# # Union the features so the polygons don't show their borders. Might revisit
+# # with the addition of streets!
+# t <- Reduce(rbind,
+#             split(trips, trips$binned_variable) |>
+#               lapply(\(x) {
+#                 out <- tibble::tibble(x$binned_variable)
+#                 out$geometry <- sf::st_union(x)
+#                 sf::st_as_sf(out, crs = 4326)[1, ]
+#               })
+# ) |> sf::st_as_sf()
+# names(t)[1] <- "binned_variable"
 
-t |> 
-  ggplot() +
+bus_lines_map <- ggplot(data = trips) +
   gg_cc_tiles +
   geom_sf(aes(fill = binned_variable), color = "transparent") +
   scale_fill_manual(values = curbcut_colors$left_5$fill[c(2:6)],
-                    name = "Trajets d'autobus (n)",
+                    name = "Nombre de trajets d'autobus accessibles",
                     labels = labels,
                     guide = guide_legend(title.position = "top",
                                          label.position = "bottom", nrow = 1)) +
-  gg_cc_theme +
-  theme(legend.spacing.x = unit(2, 'cm'),
-        legend.spacing.y = unit(1, 'cm'))
+  gg_cc_theme
 
-bus_lines_map <- ggplot(data = t) +
-  gg_cc_tiles +
-  geom_sf(aes(fill = binned_variable), color = "transparent") +
-  scale_fill_manual(values = curbcut_colors$left_5$fill[c(2:6)],
-                    name = "Trajets d'autobus (n)",
-                    labels = labels,
-                    guide = guide_legend(title.position = "top",
-                                         label.position = "bottom", nrow = 1)) +
-  geom_sf(data = laval_sectors, fill = "transparent", color = "black") +
-  gg_cc_theme_no_sf +
-  theme_void() +
-  default_theme
+ggplot2::ggsave(filename = here::here("output/axe3/bus_stops_map.pdf"), 
+                plot = bus_stops_map, width = 7, height = 6)
 
 # Values
-no_bus_lines <- convert_number(sum(trips$Population[trips$trips == 0]))
+no_bus_lines <- sum(trips$Population[trips$trips == 0])
+no_bus_lines_pct <- convert_pct(no_bus_lines / sum(trips$Population))
+no_bus_lines <- convert_number(no_bus_lines)
 one_two_bus_lines <- convert_number(sum(trips$Population[trips$trips %in% c(1,2)]))
-one_two_bus_lines_prop <- convert_pct(sum(trips$Population[trips$trips %in% c(1,2)]) / sum(trips$Population))
+one_two_bus_lines_pct <- convert_pct(sum(trips$Population[trips$trips %in% c(1,2)]) / sum(trips$Population))
 
 # Bus vehicles accessibles ---------------------------------------------------
 
@@ -301,52 +222,40 @@ stop_times <- add_bins(df = stop_times,
                             labels = labels
 )
 
-# Union the features so the polygons don't show their borders. Might revisit
-# with the addition of streets!
-t <- Reduce(rbind,
-            split(stop_times, stop_times$binned_variable) |>
-              lapply(\(x) {
-                out <- tibble::tibble(x$binned_variable)
-                out$geometry <- sf::st_union(x)
-                sf::st_as_sf(out, crs = 4326)[1, ]
-              })
-) |> sf::st_as_sf()
-names(t)[1] <- "binned_variable"
+# # Union the features so the polygons don't show their borders. Might revisit
+# # with the addition of streets!
+# t <- Reduce(rbind,
+#             split(stop_times, stop_times$binned_variable) |>
+#               lapply(\(x) {
+#                 out <- tibble::tibble(x$binned_variable)
+#                 out$geometry <- sf::st_union(x)
+#                 sf::st_as_sf(out, crs = 4326)[1, ]
+#               })
+# ) |> sf::st_as_sf()
+# names(t)[1] <- "binned_variable"
 
-t |> 
-  ggplot() +
+bus_trips_map <- ggplot(data = stop_times) +
   gg_cc_tiles +
   geom_sf(aes(fill = binned_variable), color = "transparent") +
   scale_fill_manual(values = curbcut_colors$left_5$fill[c(2:6)],
-                    name = "Véhicules (autobus) (n)",
-                    labels = labels,
-                    guide = guide_legend(title.position = "top",
-                                         label.position = "bottom", nrow = 1)) +
-  gg_cc_theme +
-  theme(legend.spacing.x = unit(2, 'cm'),
-        legend.spacing.y = unit(1, 'cm'))
-
-bus_trips_map <- ggplot(data = t) +
-  gg_cc_tiles +
-  geom_sf(aes(fill = binned_variable), color = "transparent") +
-  scale_fill_manual(values = curbcut_colors$left_5$fill[c(2:6)],
-                    name = "Véhicules (autobus) (n)",
+                    name = "Nombre de véhicules (autobus) accessibles",
                     labels = labels,
                     guide = guide_legend(title.position = "top",
                                          label.position = "bottom", nrow = 1)) +
   geom_sf(data = laval_sectors, fill = "transparent", color = "black") +
-  gg_cc_theme_no_sf +
-  theme_void() +
-  default_theme +
-  theme(legend.spacing.x = unit(2, 'cm'),
-        legend.spacing.y = unit(1, 'cm'))
+  gg_cc_theme
+
+ggplot2::ggsave(filename = here::here("output/axe3/bus_trips_map.pdf"), 
+                plot = bus_trips_map, width = 7, height = 6)
 
 # Values
-no_bus_trips <- convert_number(sum(stop_times$Population[stop_times$vehicles == 0]))
-twenty_min_bus_trip <- convert_number(sum(stop_times$Population[stop_times$vehicles < 6]))
-twenty_min_bus_trip_prop <- convert_pct(sum(stop_times$Population[stop_times$vehicles < 6]) / sum(stop_times$Population))
-five_min_bus_trip <- convert_number(sum(stop_times$Population[stop_times$vehicles > 24]))
-five_min_bus_trip_prop <- convert_pct(sum(stop_times$Population[stop_times$vehicles > 24]) / sum(stop_times$Population))
+no_bus_trips <- sum(stop_times$Population[stop_times$vehicles == 0])
+no_bus_trips_pct <- convert_pct(no_bus_trips/ sum(stop_times$Population))
+no_bus_trips <- convert_number(no_bus_trips)
+twenty_min_bus_trip <- convert_number(sum(stop_times$Population[stop_times$vehicles < 120/20]))
+twenty_min_bus_trip_prop <- convert_pct(sum(stop_times$Population[stop_times$vehicles < 120/20]) / sum(stop_times$Population))
+five_min_bus_trip <- convert_number(sum(stop_times$Population[stop_times$vehicles > 120/5]))
+five_min_bus_trip_prop <- convert_pct(sum(stop_times$Population[stop_times$vehicles > 120/5]) / sum(stop_times$Population))
 
 # POIs accessible ---------------------------------------------------------
 
@@ -392,7 +301,6 @@ DA_poi <- cc.buildr::merge(DA_poi, laval_da[c("GeoUID")],
                            by.x = "from", by.y = "GeoUID")
 
 
-#Plotting the bus stops
 labels <- c("0-15K", "15K-30K", "30K-45K", "45K-60K", "60+")
 
 # Add our bins in the data
@@ -402,24 +310,24 @@ DA_poi <- add_bins(df = DA_poi,
                    labels = labels
 )
 
-# Union the features so the polygons don't show their borders. Might revisit
-# with the addition of streets!
-t <- Reduce(rbind,
-            split(DA_poi, DA_poi$binned_variable) |>
-              lapply(\(x) {
-                out <- tibble::tibble(x$binned_variable)
-                out$geometry <- sf::st_union(x)
-                sf::st_as_sf(out, crs = 4326)[1, ]
-              })
-) |> sf::st_as_sf()
-names(t)[1] <- "binned_variable"
+# # Union the features so the polygons don't show their borders. Might revisit
+# # with the addition of streets!
+# t <- Reduce(rbind,
+#             split(DA_poi, DA_poi$binned_variable) |>
+#               lapply(\(x) {
+#                 out <- tibble::tibble(x$binned_variable)
+#                 out$geometry <- sf::st_union(x)
+#                 sf::st_as_sf(out, crs = 4326)[1, ]
+#               })
+# ) |> sf::st_as_sf()
+# names(t)[1] <- "binned_variable"
 
-poi_map <- t |> 
+poi_map <- DA_poi |> 
   ggplot() +
   gg_cc_tiles +
   geom_sf(aes(fill = binned_variable), color = "transparent") +
   scale_fill_manual(values = curbcut_colors$left_5$fill[c(2:6)],
-                    name = "Lieux d'intérêts accessibles (n)",
+                    name = "Nombre de lieux d'intérêts accessibles",
                     labels = labels,
                     guide = guide_legend(title.position = "top",
                                          label.position = "bottom", nrow = 1)) +
@@ -427,12 +335,11 @@ poi_map <- t |>
   theme(legend.spacing.x = unit(2, 'cm'),
         legend.spacing.y = unit(1, 'cm'))
 
+ggplot2::ggsave(filename = here::here("output/axe3/bus_poi_map.pdf"), 
+                plot = poi_map, width = 7, height = 6)
+
 #R Markdown Numbers
-poi_total <- pois |> 
-  mutate(number = 1) |> 
-  summarise(number = sum(number)) |> 
-  mutate(number = convert_number(number)) |> 
-  pull(number)
+poi_total <- convert_number(nrow(pois))
 
 poi_laval <- pois |> 
   mutate(intersect = map_lgl(st_intersects(pois, laval_csd), ~ length(.) > 0)) |>
@@ -444,78 +351,83 @@ poi_laval <- pois |>
 
 # Transit usage -----------------------------------------------------------
 
-flows <- read.csv("data/axe3/mtl_flow_21.csv")
-flows <- tibble::as_tibble(flows[c("POR", "Public.transit")])
-flows$POR <- as.character(flows$POR)
+# flows <- tibble::as_tibble(read.csv("data/axe3/mtl_flow_21.csv"))
+# flows <- flows[c("POR", "Total...Main.mode.of.commuting", "Public.transit")]
+# flows$POR <- as.character(flows$POR)
+# 
+# flows$POR <- sapply(flows$POR, \(x) {
+#   if (grepl("\\.\\d{2}", x)) return(x)
+#   if (grepl("\\.\\d{1}", x)) return(paste0(x, "0"))
+#   paste0(x, ".00")
+# })
+# 
+# flows_pr <- aggregate(Public.transit ~ POR, data = flows, FUN = sum)
+# flows_tot <- aggregate(Total...Main.mode.of.commuting ~ POR, data = flows, FUN = sum)
+# 
+# flows <- tibble::as_tibble(merge(flows_tot, flows_pr))
+# flows$density <- flows$Public.transit / flows$Total...Main.mode.of.commuting
 
-flows$POR <- sapply(flows$POR, \(x) {
-  if (grepl("\\.\\d{2}", x)) return(x)
-  if (grepl("\\.\\d{1}", x)) return(paste0(x, "0"))
-  paste0(x, ".00")
-})
-
-flows <- aggregate(Public.transit ~ POR, data = flows, FUN = sum)
-
-laval_ct_usualplaceofwork <- cancensus::get_census(dataset = "CA21", 
-                                  regions = list(CSD = 2465005), 
-                                  level = "CT", 
-                                  geo_format = "sf", vectors = "v_CA21_7614")
-flows <- cc.buildr::merge(laval_ct_usualplaceofwork, flows, by.x = "GeoUID", by.y = "POR")
-flows$density <- flows$Public.transit / flows$`v_CA21_7614: Usual place of work`
-
+flows <- cancensus::get_census(dataset = "CA21", 
+                            regions = list(CSD = 2465005), 
+                            level = "DA", 
+                            geo_format = "sf",
+                            vectors = c(total = "v_CA21_7632", public_transit = "v_CA21_7644"))
+flows$density <- flows$public_transit / flows$total
 
 #Plotting the bus stops
-labels <- c("0", "0 - 2.5%", "2.5% - 5%", "5% - 7.5%", "+ 7.5%")
+labels <- c("0", "0 - 5%", "5% - 10%", "10% - 15%", "+15%")
 
 # Add our bins in the data
 flows <- add_bins(df = flows,
                    variable = "density",
-                   breaks = c(-Inf, 0.00000001, 0.0250001, 0.0500001, 0.07500001, Inf),
+                   breaks = c(-Inf, 0.00000001, 0.050001, 0.100001, 0.1500001, Inf),
                    labels = labels
 )
 
-# Union the features so the polygons don't show their borders. Might revisit
-# with the addition of streets!
-t <- Reduce(rbind,
-            split(flows, flows$binned_variable) |>
-              lapply(\(x) {
-                out <- tibble::tibble(x$binned_variable)
-                out$geometry <- sf::st_union(x)
-                sf::st_as_sf(out, crs = 4326)[1, ]
-              })
-) |> sf::st_as_sf()
-names(t)[1] <- "binned_variable"
+lvls <- levels(flows$binned_variable)
+lvls <- c(lvls[length(lvls)], lvls[-length(lvls)])
 
-t |> 
-  ggplot() +
+# # Union the features so the polygons don't show their borders. Might revisit
+# # with the addition of streets!
+# t <- Reduce(rbind,
+#             split(flows, flows$binned_variable) |>
+#               lapply(\(x) {
+#                 out <- tibble::tibble(x$binned_variable)
+#                 out$geometry <- sf::st_union(x)
+#                 sf::st_as_sf(out, crs = 4326)[1, ]
+#               })
+# ) |> sf::st_as_sf()
+# names(t)[1] <- "binned_variable"
+
+transit_usage_map <- ggplot(data = flows) +
   gg_cc_tiles +
   geom_sf(aes(fill = binned_variable), color = "transparent") +
-  scale_fill_manual(values = curbcut_colors$left_5$fill[c(2:6)],
-                    name = "Utilisation du transport en commun pour les déplacements domicile-travail (%)",
-                    labels = labels,
+  scale_fill_manual(values = curbcut_colors$left_5$fill[c(1:6)],
+                    na.value = curbcut_colors$left_5$fill[1],
+                    breaks = lvls,  # NA first
+                    labels = lvls,  # NA label first
+                    name = "Transport en commun pour les déplacements domicile-travail (%)",
                     guide = guide_legend(title.position = "top",
                                          label.position = "bottom", nrow = 1)) +
-  gg_cc_theme +
-  theme(legend.spacing.x = unit(2, 'cm'),
-        legend.spacing.y = unit(1, 'cm'))
+  gg_cc_theme
 
-transit_usage_map <- ggplot(data = t) +
-  gg_cc_tiles +
-  geom_sf(aes(fill = binned_variable), color = "transparent") +
-  scale_fill_manual(values = curbcut_colors$left_5$fill[c(2:6)],
-                    name = "Utilisation du transport en commun pour les déplacements domicile-travail (%)",
-                    labels = labels,
-                    guide = guide_legend(title.position = "top",
-                                         label.position = "bottom", nrow = 1)) +
-  geom_sf(data = laval_sectors, fill = "transparent", color = "black") +
-  gg_cc_theme_no_sf +
-  theme_void() +
-  default_theme +
-  theme(legend.spacing.x = unit(2, 'cm'),
-        legend.spacing.y = unit(1, 'cm'))
+ggplot2::ggsave(filename = here::here("output/axe3/transit_usage_map.pdf"), 
+                plot = transit_usage_map, width = 7, height = 6)
 
 # Values
-transit_usage <- convert_pct(sum(flows$Public.transit) / sum(flows$`v_CA21_7614: Usual place of work`))
+flows <- cancensus::get_census(dataset = "CA21", 
+                               regions = list(CSD = 2465005), 
+                               level = "CSD", 
+                               geo_format = "sf",
+                               vectors = c(total = "v_CA21_7632", public_transit = "v_CA21_7644"))
+transit_usage <- convert_pct(flows$public_transit / flows$total)
+
+flows_2016 <- cancensus::get_census(dataset = "CA16", 
+                               regions = list(CSD = 2465005), 
+                               level = "CSD", 
+                               geo_format = "sf",
+                               vectors = c(total = "v_CA16_5792", public_transit = "v_CA16_5801"))
+transit_usage_2016 <- convert_pct(flows_2016$public_transit / flows_2016$total)
 
 
 # # Charging Stations -------------------------------------------------------
@@ -582,7 +494,7 @@ transit_usage <- convert_pct(sum(flows$Public.transit) / sum(flows$`v_CA21_7614:
 #   filter(accessible == 1)
 # 
 # #Joining the 15 minute TTM with the data
-# vending_walk <- ttm_walk_15 |> 
+# vending_walk <- ttm_walk_7 |> 
 #   left_join(vending_join, by = join_by("to" == "GeoUID")) |> 
 #   filter(accessible == 1) |> 
 #   group_by(GeoUID) |> 
@@ -637,216 +549,217 @@ transit_usage <- convert_pct(sum(flows$Public.transit) / sum(flows$`v_CA21_7614:
 #   coord_sf(xlim = c(lvlbbox$xmin, lvlbbox$xmax),
 #            ylim = c(lvlbbox$ymin, lvlbbox$ymax))
 
-# Bus Data ----------------------------------------------------------------
-#Grabbing necessary STL data
-stl_stops <- stl_gtfs$stops
-stl_stoptimes <- stl_gtfs$stop_times
-stl_trips <- stl_gtfs$trips
-stl_routes <- stl_gtfs$routes
+# # Bus Data ----------------------------------------------------------------
+# #Grabbing necessary STL data
+# stl_stops <- stl_gtfs$stops
+# stl_stoptimes <- stl_gtfs$stop_times
+# stl_trips <- stl_gtfs$trips
+# stl_routes <- stl_gtfs$routes
+# 
+# #Filtering only for weekday trips between 7 and 9 AM
+# weekday_trips <- stl_stoptimes |> 
+#   filter(trip_id %in% (stl_trips |> 
+#                          filter(service_id == "JUIN24SEM") |> 
+#                          pull(trip_id))) |> 
+#   mutate(arrival_time = hms(arrival_time)) |> 
+#   filter(arrival_time >= hms("07:00:00") & arrival_time <= hms("09:00:00"))
+# 
+# #Number of vehicle stops per stop on a weekday
+# weekday_headways <- weekday_trips |> 
+#   group_by(stop_id) |> 
+#   summarize(weekday_headways = n())
+# 
+# #Weekday routes per stop
+# weekday_lines <- weekday_trips |> 
+#   rowwise() |> 
+#   mutate(route_id = str_extract(trip_id, paste(stl_routes$route_id, collapse = "|"))) |> 
+#   filter(!is.na(route_id)) |> 
+#   distinct(route_id, stop_id) |> 
+#   select(stop_id, route_id)
+# 
+# #Weekday stops between 7 and 9 AM
+# weekday_stops <- weekday_trips |> 
+#   distinct(stop_id, .keep_all = TRUE) |> 
+#   select(stop_id) |> 
+#   left_join(stl_stops, by = "stop_id")
+# 
+# #Binding the weekday data together with bus stops and converting it into a shapefile
+# lvl_stops_sf <- weekday_stops |> 
+#   select(stop_id, stop_lon, stop_lat) |> 
+#   left_join(weekday_lines, by = "stop_id") |> 
+#   left_join(weekday_headways, by = "stop_id") |> 
+#   mutate(bus_stop = 1) |> 
+#   st_as_sf(coords = c("stop_lon", "stop_lat"), crs = 4326)
+# 
+# #Isolating stop_ids to their DAs
+# stops_sf <- st_join(lvl_stops_sf, laval_db, join = st_within) |> 
+#   st_drop_geometry() |> 
+#   select(GeoUID, stop_id) |> 
+#   na.omit()
+# 
+# #Assigning each bus stop to their respective DBs and then summing up the total number of buses and stop each one has
+# laval_bus_pre <- st_join(lvl_stops_sf, laval_db, join = st_within) |> 
+#   filter(!is.na(GeoUID)) |> 
+#   group_by(GeoUID) |> 
+#   summarize(wd_headways = sum(weekday_headways, na.rm = TRUE),
+#     bus_stops = sum(bus_stop, na.rm = TRUE), .groups = 'drop')
+# 
+# #Joining all the data back to all the Laval DBs
+# laval_bus <- laval_db |> 
+#   st_join(laval_bus_pre) |> 
+#   select(GeoUID.x, Population, wd_headways, bus_stops) |> 
+#   rename("GeoUID" = "GeoUID.x") |> 
+#   replace_na(list(wd_headways = 0, bus_stops = 0))
+# 
+# #Grabbing the travel time matrix data and filtering for under 7 minutes
+# connection <- DBI::dbConnect(
+#   drv = RMySQL::MySQL(),
+#   username = Sys.getenv("DBI_USERNAME"),
+#   password = Sys.getenv("DBI_PASSWORD"),
+#   host = "ccdb-instance-1.cplnwzthenux.us-east-1.rds.amazonaws.com",
+#   port = 3306,
+#   dbname = "ccdb")
+# ids <- paste0(paste0("'", laval_db$GeoUID, "'"), collapse = ", ")
+# ttm_7 <- DBI::dbGetQuery(connection, sprintf("SELECT * FROM ttm_foot_DB WHERE `from` IN (%s)", ids)) |> 
+#   filter(travel_seconds <= 420)
+# ttm_walk_7 <- DBI::dbGetQuery(connection, sprintf("SELECT * FROM ttm_foot_DB WHERE `from` IN (%s)", ids)) |> 
+#   filter(travel_seconds <= 900)
+# DBI::dbDisconnect(connection)
+# 
+# #Writing and importing the ttm data so we don't have to call from the API every time
+# write.csv(ttm_7, "D://McGill/can_cache/ttm.csv")
+# write.csv(ttm_walk_7, "D://McGill/can_cache/walk15.csv")
+# ttm_7 <- read.csv("D://McGill/can_cache/ttm.csv") |> 
+#   select(-X, -travel_seconds) |> 
+#   mutate(across(everything(), as.character)) |> 
+#   rename("GeoUID" = "from")
+# 
+# #Creating extra rows so each DB can access their own DB and binding to ttm7
+# laval_ttm <- laval_db |> 
+#   st_drop_geometry() |> 
+#   select(GeoUID) |> 
+#   mutate(to = GeoUID) |> 
+#   bind_rows(ttm_7) |> 
+#   arrange(GeoUID)
+# 
+# #Calculating number of accessible stops for each DB
+# laval_accessibilty_stop <- laval_ttm |> 
+#   left_join(stops_sf, by = c("to" = "GeoUID"), relationship = "many-to-many") |> 
+#   na.omit() |> 
+#   group_by(GeoUID) |> 
+#   summarise(stop_count = n())
+# 
+# #Calculating number of accessible unique routes for each DB
+# laval_accessibility_route <- laval_ttm |> 
+#   left_join(stops_sf, by = c("to" = "GeoUID"), relationship = "many-to-many") |> 
+#   left_join(weekday_lines, by = "stop_id", relationship = "many-to-many") |> 
+#   distinct(GeoUID, route_id) |> 
+#   na.omit() |> 
+#   group_by(GeoUID) |> 
+#   summarise(route_count = n())
+# 
+# #Calculating number of accessible bus runs for each DB
+# laval_accessibility_headway <- laval_ttm |> 
+#   left_join(stops_sf, by = c("to" = "GeoUID"), relationship = "many-to-many") |>
+#   left_join(weekday_trips, by = "stop_id", relationship = "many-to-many") |> 
+#   na.omit() |> 
+#   group_by(GeoUID) |> 
+#   summarise(headway_count = n())
+# 
+# #Joining data to the original Laval DB shapefile and replacing NAs with 0
+# laval_accessibility <- laval_db |> 
+#   left_join(laval_accessibilty_stop, by = "GeoUID") |> 
+#   left_join(laval_accessibility_route, by = "GeoUID") |> 
+#   left_join(laval_accessibility_headway, by = "GeoUID") |> 
+#   replace_na(list(headway_count = 0, route_count = 0, stop_count = 0))
+# 
+# #Finding proper breaks
+# list(classInt::classIntervals(laval_accessibility$stop_count, n = 5, style = "jenks")$brks)
+# list(classInt::classIntervals(laval_accessibility$route_count, n = 5, style = "jenks")$brks)
+# list(classInt::classIntervals(laval_accessibility$headway_count, n = 5, style = "jenks")$brks)
+# 
+# #Mapping out bus stops
+# ggplot(data = laval_accessibility) +
+#   geom_sf(data = mtlcma_sf, color = "black", fill = "#FCFCFC") +
+#   geom_sf(aes(fill = cut(stop_count, breaks = c(0, 7, 17, 34, 68, 123),
+#                          labels = c("< 7", "7-17", "17-34", "34-68", "> 68"))), color = NA) +
+#   geom_sf(data = laval_csd, color = "black", fill = NA) +
+#   scale_fill_manual(values = curbcut_scale, na.value = curbcut_na) +
+#   labs(title = "Nombre d’arrêts d’autobus STL accessibles à Laval*",
+#        subtitle = "*À moins de 7 minutes à pied entre 7h et 9h en semaine",
+#        fill = "Nombre total d'arrêts de bus accessibles") +
+#   theme_minimal() +
+#   theme(axis.line = element_blank(), axis.text = element_blank(),
+#         axis.title = element_blank(), axis.ticks = element_blank(),
+#         plot.subtitle = element_text(hjust = 0.5),
+#         panel.grid = element_blank(), plot.title = element_text(hjust = 0.5),
+#         legend.position = "bottom", legend.justification = "center",
+#         panel.background = element_rect(fill = "#525252")) +
+#   guides(fill = guide_legend(title.position = "top", title.hjust = 0.5,
+#                              barwidth = 1, barheight = 1, nrow = 1)) +
+#   coord_sf(xlim = c(lvlbbox$xmin, lvlbbox$xmax),
+#            ylim = c(lvlbbox$ymin, lvlbbox$ymax))
+# 
+# #Mapping out route accessibility
+# ggplot(data = laval_accessibility) +
+#   geom_sf(data = mtlcma_sf, color = "black", fill = "#FCFCFC") +
+#   geom_sf(aes(fill = cut(route_count, breaks = c(0, 3, 7, 16, 29, 38),
+#                          labels = c("< 3", "3-7", "7-16", "16-29", "> 29"))), color = NA) +
+#   geom_sf(data = laval_csd, color = "black", fill = NA) +
+#   scale_fill_manual(values = curbcut_scale, na.value = curbcut_na) +
+#   labs(title = "Nombre de lignes d'autobus STL accessibles à Laval 2024*",
+#        subtitle = "*À moins de 7 minutes à pied entre 7h et 9h en semaine",
+#        fill = "Nombre total de lignes de bus accessibles") +
+#   theme_minimal() +
+#   theme(axis.line = element_blank(), axis.text = element_blank(),
+#         axis.title = element_blank(), axis.ticks = element_blank(),
+#         plot.subtitle = element_text(hjust = 0.5),
+#         panel.grid = element_blank(), plot.title = element_text(hjust = 0.5),
+#         legend.position = "bottom", legend.justification = "center",
+#         panel.background = element_rect(fill = "#525252")) +
+#   guides(fill = guide_legend(title.position = "top", title.hjust = 0.5,
+#                              barwidth = 1, barheight = 1, nrow = 1)) +
+#   coord_sf(xlim = c(lvlbbox$xmin, lvlbbox$xmax),
+#            ylim = c(lvlbbox$ymin, lvlbbox$ymax))
+# 
+# #Mapping out bus runs accessibility
+# ggplot(data = laval_accessibility) +
+#   geom_sf(data = mtlcma_sf, color = "black", fill = "#FCFCFC") +
+#   geom_sf(aes(fill = cut(headway_count, breaks = c(0, 141, 420, 1231, 2424, 4317),
+#                          labels = c("< 141", "141-420", "420-1231", "1231-2424", "> 2424"))), color = NA) +
+#   geom_sf(data = laval_csd, color = "black", fill = NA) +
+#   scale_fill_manual(values = curbcut_scale, na.value = curbcut_na) +
+#   labs(title = "Nombre de parcours d'autobus STL accessibles à Laval 2024*",
+#        subtitle = "*À moins de 7 minutes à pied entre 7h et 9h en semaine",
+#        fill = "Nombre total de parcours d'autobus accessibles") +
+#   theme_minimal() +
+#   theme(axis.line = element_blank(), axis.text = element_blank(),
+#         axis.title = element_blank(), axis.ticks = element_blank(),
+#         plot.subtitle = element_text(hjust = 0.5),
+#         panel.grid = element_blank(), plot.title = element_text(hjust = 0.5),
+#         legend.position = "bottom", legend.justification = "center",
+#         panel.background = element_rect(fill = "#525252")) +
+#   guides(fill = guide_legend(title.position = "top", title.hjust = 0.5,
+#                              barwidth = 1, barheight = 1, nrow = 1)) +
+#   coord_sf(xlim = c(lvlbbox$xmin, lvlbbox$xmax),
+#            ylim = c(lvlbbox$ymin, lvlbbox$ymax))
+# 
+# test <- filter(laval_accessibility, laval_accessibility$stop_count == 0)
+# 
+# # R Markdown --------------------------------------------------------------
+# ggplot2::ggsave(filename = here::here("output/axe3/mobility/bus_stops_map.pdf"), 
+#                 plot = bus_stops_map, width = 7.5, height = 6)
+# ggplot2::ggsave(filename = here::here("output/axe3/mobility/bus_lines_map.pdf"), 
+#                 plot = bus_lines_map, width = 7.5, height = 6)
+# ggplot2::ggsave(filename = here::here("output/axe3/mobility/bus_trips_map.pdf"), 
+#                 plot = bus_trips_map, width = 7.5, height = 6)
+# ggplot2::ggsave(filename = here::here("output/axe3/mobility/transit_usage_map.pdf"), 
+#                 plot = transit_usage_map, width = 7.5, height = 6)
 
-#Filtering only for weekday trips between 7 and 9 AM
-weekday_trips <- stl_stoptimes |> 
-  filter(trip_id %in% (stl_trips |> 
-                         filter(service_id == "JUIN24SEM") |> 
-                         pull(trip_id))) |> 
-  mutate(arrival_time = hms(arrival_time)) |> 
-  filter(arrival_time >= hms("07:00:00") & arrival_time <= hms("09:00:00"))
-
-#Number of vehicle stops per stop on a weekday
-weekday_headways <- weekday_trips |> 
-  group_by(stop_id) |> 
-  summarize(weekday_headways = n())
-
-#Weekday routes per stop
-weekday_lines <- weekday_trips |> 
-  rowwise() |> 
-  mutate(route_id = str_extract(trip_id, paste(stl_routes$route_id, collapse = "|"))) |> 
-  filter(!is.na(route_id)) |> 
-  distinct(route_id, stop_id) |> 
-  select(stop_id, route_id)
-
-#Weekday stops between 7 and 9 AM
-weekday_stops <- weekday_trips |> 
-  distinct(stop_id, .keep_all = TRUE) |> 
-  select(stop_id) |> 
-  left_join(stl_stops, by = "stop_id")
-
-#Binding the weekday data together with bus stops and converting it into a shapefile
-lvl_stops_sf <- weekday_stops |> 
-  select(stop_id, stop_lon, stop_lat) |> 
-  left_join(weekday_lines, by = "stop_id") |> 
-  left_join(weekday_headways, by = "stop_id") |> 
-  mutate(bus_stop = 1) |> 
-  st_as_sf(coords = c("stop_lon", "stop_lat"), crs = 4326)
-
-#Isolating stop_ids to their DAs
-stops_sf <- st_join(lvl_stops_sf, laval_db, join = st_within) |> 
-  st_drop_geometry() |> 
-  select(GeoUID, stop_id) |> 
-  na.omit()
-
-#Assigning each bus stop to their respective DBs and then summing up the total number of buses and stop each one has
-laval_bus_pre <- st_join(lvl_stops_sf, laval_db, join = st_within) |> 
-  filter(!is.na(GeoUID)) |> 
-  group_by(GeoUID) |> 
-  summarize(wd_headways = sum(weekday_headways, na.rm = TRUE),
-    bus_stops = sum(bus_stop, na.rm = TRUE), .groups = 'drop')
-
-#Joining all the data back to all the Laval DBs
-laval_bus <- laval_db |> 
-  st_join(laval_bus_pre) |> 
-  select(GeoUID.x, Population, wd_headways, bus_stops) |> 
-  rename("GeoUID" = "GeoUID.x") |> 
-  replace_na(list(wd_headways = 0, bus_stops = 0))
-
-#Grabbing the travel time matrix data and filtering for under 7 minutes
-connection <- DBI::dbConnect(
-  drv = RMySQL::MySQL(),
-  username = Sys.getenv("DBI_USERNAME"),
-  password = Sys.getenv("DBI_PASSWORD"),
-  host = "ccdb-instance-1.cplnwzthenux.us-east-1.rds.amazonaws.com",
-  port = 3306,
-  dbname = "ccdb")
-ids <- paste0(paste0("'", laval_db$GeoUID, "'"), collapse = ", ")
-ttm_7 <- DBI::dbGetQuery(connection, sprintf("SELECT * FROM ttm_foot_DB WHERE `from` IN (%s)", ids)) |> 
-  filter(travel_seconds <= 420)
-ttm_walk_15 <- DBI::dbGetQuery(connection, sprintf("SELECT * FROM ttm_foot_DB WHERE `from` IN (%s)", ids)) |> 
-  filter(travel_seconds <= 900)
-DBI::dbDisconnect(connection)
-
-#Writing and importing the ttm data so we don't have to call from the API every time
-write.csv(ttm_7, "D://McGill/can_cache/ttm.csv")
-write.csv(ttm_walk_15, "D://McGill/can_cache/walk15.csv")
-ttm_7 <- read.csv("D://McGill/can_cache/ttm.csv") |> 
-  select(-X, -travel_seconds) |> 
-  mutate(across(everything(), as.character)) |> 
-  rename("GeoUID" = "from")
-
-#Creating extra rows so each DB can access their own DB and binding to ttm7
-laval_ttm <- laval_db |> 
-  st_drop_geometry() |> 
-  select(GeoUID) |> 
-  mutate(to = GeoUID) |> 
-  bind_rows(ttm_7) |> 
-  arrange(GeoUID)
-
-#Calculating number of accessible stops for each DB
-laval_accessibilty_stop <- laval_ttm |> 
-  left_join(stops_sf, by = c("to" = "GeoUID"), relationship = "many-to-many") |> 
-  na.omit() |> 
-  group_by(GeoUID) |> 
-  summarise(stop_count = n())
-
-#Calculating number of accessible unique routes for each DB
-laval_accessibility_route <- laval_ttm |> 
-  left_join(stops_sf, by = c("to" = "GeoUID"), relationship = "many-to-many") |> 
-  left_join(weekday_lines, by = "stop_id", relationship = "many-to-many") |> 
-  distinct(GeoUID, route_id) |> 
-  na.omit() |> 
-  group_by(GeoUID) |> 
-  summarise(route_count = n())
-
-#Calculating number of accessible bus runs for each DB
-laval_accessibility_headway <- laval_ttm |> 
-  left_join(stops_sf, by = c("to" = "GeoUID"), relationship = "many-to-many") |>
-  left_join(weekday_trips, by = "stop_id", relationship = "many-to-many") |> 
-  na.omit() |> 
-  group_by(GeoUID) |> 
-  summarise(headway_count = n())
-
-#Joining data to the original Laval DB shapefile and replacing NAs with 0
-laval_accessibility <- laval_db |> 
-  left_join(laval_accessibilty_stop, by = "GeoUID") |> 
-  left_join(laval_accessibility_route, by = "GeoUID") |> 
-  left_join(laval_accessibility_headway, by = "GeoUID") |> 
-  replace_na(list(headway_count = 0, route_count = 0, stop_count = 0))
-
-#Finding proper breaks
-list(classInt::classIntervals(laval_accessibility$stop_count, n = 5, style = "jenks")$brks)
-list(classInt::classIntervals(laval_accessibility$route_count, n = 5, style = "jenks")$brks)
-list(classInt::classIntervals(laval_accessibility$headway_count, n = 5, style = "jenks")$brks)
-
-#Mapping out bus stops
-ggplot(data = laval_accessibility) +
-  geom_sf(data = mtlcma_sf, color = "black", fill = "#FCFCFC") +
-  geom_sf(aes(fill = cut(stop_count, breaks = c(0, 7, 17, 34, 68, 123),
-                         labels = c("< 7", "7-17", "17-34", "34-68", "> 68"))), color = NA) +
-  geom_sf(data = laval_csd, color = "black", fill = NA) +
-  scale_fill_manual(values = curbcut_scale, na.value = curbcut_na) +
-  labs(title = "Nombre d’arrêts d’autobus STL accessibles à Laval*",
-       subtitle = "*À moins de 7 minutes à pied entre 7h et 9h en semaine",
-       fill = "Nombre total d'arrêts de bus accessibles") +
-  theme_minimal() +
-  theme(axis.line = element_blank(), axis.text = element_blank(),
-        axis.title = element_blank(), axis.ticks = element_blank(),
-        plot.subtitle = element_text(hjust = 0.5),
-        panel.grid = element_blank(), plot.title = element_text(hjust = 0.5),
-        legend.position = "bottom", legend.justification = "center",
-        panel.background = element_rect(fill = "#525252")) +
-  guides(fill = guide_legend(title.position = "top", title.hjust = 0.5,
-                             barwidth = 1, barheight = 1, nrow = 1)) +
-  coord_sf(xlim = c(lvlbbox$xmin, lvlbbox$xmax),
-           ylim = c(lvlbbox$ymin, lvlbbox$ymax))
-
-#Mapping out route accessibility
-ggplot(data = laval_accessibility) +
-  geom_sf(data = mtlcma_sf, color = "black", fill = "#FCFCFC") +
-  geom_sf(aes(fill = cut(route_count, breaks = c(0, 3, 7, 16, 29, 38),
-                         labels = c("< 3", "3-7", "7-16", "16-29", "> 29"))), color = NA) +
-  geom_sf(data = laval_csd, color = "black", fill = NA) +
-  scale_fill_manual(values = curbcut_scale, na.value = curbcut_na) +
-  labs(title = "Nombre de lignes d'autobus STL accessibles à Laval 2024*",
-       subtitle = "*À moins de 7 minutes à pied entre 7h et 9h en semaine",
-       fill = "Nombre total de lignes de bus accessibles") +
-  theme_minimal() +
-  theme(axis.line = element_blank(), axis.text = element_blank(),
-        axis.title = element_blank(), axis.ticks = element_blank(),
-        plot.subtitle = element_text(hjust = 0.5),
-        panel.grid = element_blank(), plot.title = element_text(hjust = 0.5),
-        legend.position = "bottom", legend.justification = "center",
-        panel.background = element_rect(fill = "#525252")) +
-  guides(fill = guide_legend(title.position = "top", title.hjust = 0.5,
-                             barwidth = 1, barheight = 1, nrow = 1)) +
-  coord_sf(xlim = c(lvlbbox$xmin, lvlbbox$xmax),
-           ylim = c(lvlbbox$ymin, lvlbbox$ymax))
-
-#Mapping out bus runs accessibility
-ggplot(data = laval_accessibility) +
-  geom_sf(data = mtlcma_sf, color = "black", fill = "#FCFCFC") +
-  geom_sf(aes(fill = cut(headway_count, breaks = c(0, 141, 420, 1231, 2424, 4317),
-                         labels = c("< 141", "141-420", "420-1231", "1231-2424", "> 2424"))), color = NA) +
-  geom_sf(data = laval_csd, color = "black", fill = NA) +
-  scale_fill_manual(values = curbcut_scale, na.value = curbcut_na) +
-  labs(title = "Nombre de parcours d'autobus STL accessibles à Laval 2024*",
-       subtitle = "*À moins de 7 minutes à pied entre 7h et 9h en semaine",
-       fill = "Nombre total de parcours d'autobus accessibles") +
-  theme_minimal() +
-  theme(axis.line = element_blank(), axis.text = element_blank(),
-        axis.title = element_blank(), axis.ticks = element_blank(),
-        plot.subtitle = element_text(hjust = 0.5),
-        panel.grid = element_blank(), plot.title = element_text(hjust = 0.5),
-        legend.position = "bottom", legend.justification = "center",
-        panel.background = element_rect(fill = "#525252")) +
-  guides(fill = guide_legend(title.position = "top", title.hjust = 0.5,
-                             barwidth = 1, barheight = 1, nrow = 1)) +
-  coord_sf(xlim = c(lvlbbox$xmin, lvlbbox$xmax),
-           ylim = c(lvlbbox$ymin, lvlbbox$ymax))
-
-test <- filter(laval_accessibility, laval_accessibility$stop_count == 0)
-
-# R Markdown --------------------------------------------------------------
-ggplot2::ggsave(filename = here::here("output/axe3/mobility/bus_stops_map.pdf"), 
-                plot = bus_stops_map, width = 7.5, height = 6)
-ggplot2::ggsave(filename = here::here("output/axe3/mobility/bus_lines_map.pdf"), 
-                plot = bus_lines_map, width = 7.5, height = 6)
-ggplot2::ggsave(filename = here::here("output/axe3/mobility/bus_trips_map.pdf"), 
-                plot = bus_trips_map, width = 7.5, height = 6)
-ggplot2::ggsave(filename = here::here("output/axe3/mobility/transit_usage_map.pdf"), 
-                plot = transit_usage_map, width = 7.5, height = 6)
-
-qs::qsavem(bus_stops_map, bus_stops_laval, bus_stops_cleaned, no_bus_stops, one_two_bus_stops,
-           bus_lines_map, no_bus_lines, one_two_bus_lines, one_two_bus_lines_prop,
-           no_bus_trips, twenty_min_bus_trip, twenty_min_bus_trip_prop, five_min_bus_trip,
-           five_min_bus_trip_prop ,bus_trips_map, transit_usage_map, transit_usage, poi_map,
-           poi_laval, poi_total,
-           file = "data/axe3/transport.qsm")
+qs::qsavem(bus_stops_cleaned, no_bus_stops, no_bus_stops_pct, one_two_bus_stops, 
+           one_two_bus_stops_pct, bus_stops_map, bus_lines_map, no_bus_lines, 
+           no_bus_lines_pct, one_two_bus_lines, one_two_bus_lines_pct, 
+           bus_trips_map, no_bus_trips, no_bus_trips_pct, twenty_min_bus_trip, 
+           twenty_min_bus_trip_prop, five_min_bus_trip, five_min_bus_trip_prop, 
+           poi_map, poi_total, poi_laval, transit_usage_map, transit_usage, 
+           transit_usage_2016, file = "data/axe3/transport.qsm")
