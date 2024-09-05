@@ -73,7 +73,7 @@ municipal_map <- ggplot(equipment_count) +
                          labels = c("0", "1-3", "3-5", "5-7", "> 7"))), color = NA) +
   scale_fill_manual(values = curbcut_colors$left_5$fill[2:6], 
                     na.value = curbcut_colors$left_5$fill[7], 
-                    name = "Édifices et lieux\nmunicipaux accessibles (n)") +
+                    name = "Nombre d'édifices et lieux\nmunicipaux accessibles") +
   geom_sf(data = municipal_csv, aes(color = " "), 
           size = 0.8, alpha = 0.6) +
   scale_color_manual(values = c(" " = "#CD718C"),

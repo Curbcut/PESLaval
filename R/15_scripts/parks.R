@@ -68,7 +68,7 @@ parks_map <- t |>
   gg_cc_tiles +
   geom_sf(aes(fill = binned_variable), color = "transparent") +
   scale_fill_manual(values = curbcut_colors$left_5$fill[2:6],
-                    name = "Parcs accessibles (n)",
+                    name = "Nombre de parcs accessibles",
                     labels = labels,
                     guide = guide_legend(title.position = "top",
                                          label.position = "bottom", nrow = 1)) +
