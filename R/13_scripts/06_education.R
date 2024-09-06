@@ -348,16 +348,16 @@ educ_sectors <- sf::st_drop_geometry(educ_sectors)
 names(educ_sectors) <- c("Zone géographique", 
                          "Aucun diplôme (n)", 
                          "Aucun diplôme (%)", 
-                         "Diplôme d'études secondaires ou équivalent (n)", 
-                         "Diplôme d'études secondaires ou équivalent (%)", 
-                         "Diplôme postsecondaire ou équivalent (n)", 
-                         "Diplôme postsecondaire ou équivalent (%)", 
-                         "Diplôme universitaire (n)", 
-                         "Diplôme universitaire (%)")
+                         "DES ou équivalent (n)", 
+                         "DES ou équivalent (%)", 
+                         "DPS ou équivalent (n)", 
+                         "DPS ou équivalent (%)", 
+                         "Diplôme uni. (n)", 
+                         "Diplôme uni. (%)")
 educ_sectors$`Aucun diplôme (n)` <- convert_number(educ_sectors$`Aucun diplôme (n)`)
-educ_sectors$`Diplôme d'études secondaires ou équivalent (n)` <- convert_number(educ_sectors$`Diplôme d'études secondaires ou équivalent (n)`)
-educ_sectors$`Diplôme postsecondaire ou équivalent (n)` <- convert_number(educ_sectors$`Diplôme postsecondaire ou équivalent (n)`)
-educ_sectors$`Diplôme universitaire (n)` <- convert_number(educ_sectors$`Diplôme universitaire (n)`)
+educ_sectors$`DES ou équivalent (n)` <- convert_number(educ_sectors$`DES ou équivalent (n)`)
+educ_sectors$`DPS ou équivalent (n)` <- convert_number(educ_sectors$`DPS ou équivalent (n)`)
+educ_sectors$`Diplôme uni. (n)` <- convert_number(educ_sectors$`Diplôme uni. (n)`)
 
 educ_sectors$`Zone géographique`[1] <- "Ensemble du Québec"
 educ_sectors$`Zone géographique`[2] <- "Ville de Laval"
@@ -426,10 +426,11 @@ educ_sectors_table <-
   ) |> 
   tab_options(
     table.font.size = indesign_fontsize,
-    row_group.font.size = ggplot_title_fontsize
+    row_group.font.size = indesign_fontsize
+    
   )
 
-gtsave(educ_sectors_table, "output/axe1/education/educ_sectors_table.pdf")
+gtsave(educ_sectors_table, "output/axe1/education/educ_sectors_table.png")
 
 # Composition 2006-2021 ---------------------------------------------------
 
