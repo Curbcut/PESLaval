@@ -38,12 +38,13 @@ lvl <- cancensus::get_census("CA21", regions = list(CSD = 2465005),
 lvlbbox <- sf::st_bbox(lvl)
 laval_sectors <- qs::qread("data/geom_context/secteur.qs")
 
-tiles <- mapboxapi::get_static_tiles(location = lvlbbox,
-                                     username = "curbcut",
-                                     zoom = 11,##
-                                     style_id = "clz1cxvvi021f01nxef327y5p",#"cljkciic3002h01qveq5z1wrp",
-                                     access_token = "pk.eyJ1IjoiY3VyYmN1dCIsImEiOiJjbGprYnVwOTQwaDAzM2xwaWdjbTB6bzdlIn0.Ks1cOI6v2i8jiIjk38s_kg",
-                                     scaling_factor = "2x")
+tiles <- mapboxapi::get_static_tiles(
+  location = lvlbbox, 
+  username = "curbcut",
+  zoom = 11,##
+  style_id = "clz1cxvvi021f01nxef327y5p",#"cljkciic3002h01qveq5z1wrp",
+  access_token = "pk.eyJ1IjoiY3VyYmN1dCIsImEiOiJjbGprYnVwOTQwaDAzM2xwaWdjbTB6bzdlIn0.Ks1cOI6v2i8jiIjk38s_kg",
+  scaling_factor = "2x")
 
 # Indesign fontsize (points) to ggplot sizes (mm)
 indesign_fontsize <- 9
