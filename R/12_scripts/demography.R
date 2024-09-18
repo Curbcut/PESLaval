@@ -95,7 +95,7 @@ pop_density_plot <-
 
 # Save the plot so it's in a good quality
 ggplot2::ggsave(filename = here::here("output/0_demography/CT_pop_density.pdf"), 
-                plot = pop_density_plot, width = 6, height = 4)
+                plot = pop_density_plot, width = 7.5, height = 6)
 
 
 # Population Distribution by Age and Gender------------------------------------
@@ -216,15 +216,15 @@ age_pyramid <- pop_dist |>
   gg_cc_theme_no_sf +
   xlab(element_blank())+
   ylab(element_blank()) +
-  theme(strip.text = element_text(size = 12),
-        legend.text = element_text(size = 8),
-        axis.text.x = element_text(size = 7),
-        axis.text.y = element_text(size = 7)) +
+  theme(strip.text = element_text(size = 11),
+        legend.text = element_text(size = 9),
+        axis.text.x = element_text(size = 9),
+        axis.text.y = element_text(size = 9)) +
   geom_text(aes(label = ifelse(abs(pct) > 0.06, "*", "")), 
             size = 6)
 
 ggplot2::ggsave(filename = here::here("output/0_demography/age_pyramid.pdf"), 
-                plot = age_pyramid, width = 6, height = 4)
+                plot = age_pyramid, width = 9, height = 4.5)
 
 
 # Répartition par genre ---------------------------------------------------
@@ -322,7 +322,7 @@ pop_et_proj <-
   xlab(NULL)
 
 ggplot2::ggsave(filename = here::here("output/0_demography/pop_et_proj.pdf"), 
-                plot = pop_et_proj, width = 7, height = 3)
+                plot = pop_et_proj, width = 8, height = 5)
 
 
 
@@ -360,7 +360,7 @@ laval_births_graph <-
   ylab("Naissances")
 
 ggplot2::ggsave(filename = here::here("output/0_demography/laval_births_graph.pdf"), 
-                plot = laval_births_graph, width = 4, height = 3)
+                plot = laval_births_graph, width = 6.5, height = 4)
 
 qs::qsavem(laval_population_ISQ_pretty, laval_size_pretty, density_pretty,
            pop_density_plot, age_pyramid, age_moyen_pretty,
