@@ -785,6 +785,7 @@ household_evol_graph <-
   gg_cc_theme_no_sf +
   theme(axis.title.x = element_blank())
 
+
 ggplot2::ggsave(filename = here::here("output/axe1/family/household_evol_graph.pdf"), 
                 plot = household_evol_graph, width = 6.5, height = 3, bg = "transparent")
 

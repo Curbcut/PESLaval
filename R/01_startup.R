@@ -49,7 +49,7 @@ tiles <- mapboxapi::get_static_tiles(
 # Indesign fontsize (points) to ggplot sizes (mm)
 indesign_fontsize <- 9
 ggplot_fontsize <- 0.35278 * indesign_fontsize
-indesign_title_fontsize <- 11
+indesign_title_fontsize <- 9
 ggplot_title_fontsize <- 0.35278 * indesign_title_fontsize
 
 gg_cc_tiles <- list(ggspatial::layer_spatial(tiles, alpha = 0.7))
