@@ -120,11 +120,14 @@ imm_evol_graph <-
   geom_point(size = 2.5) +
   scale_y_continuous(labels = convert_pct) +
   labs(y = "Proportion de la population") +
-  scale_color_manual(values = c("Laval" = "#73AD80", "Montréal" = "#E08565",
-                                "Québec" = "#A3B0D1")) +
+  scale_color_manual(values = c("Laval" = "#A3B0D1", "Montréal" = "#E08565",
+                                "Québec" = "#73AD80")) +
   gg_cc_theme_no_sf +
   theme(legend.position = "bottom", legend.box = "horizontal", axis.title.x = element_blank(),
         legend.title = element_blank(), text=element_text(family="KMR Apparat Regular"))
+
+ggplot2::ggsave(filename = here::here("output/axe1/immigration/imm_evol_graph.pdf"), 
+                plot = imm_evol_graph, width = 5, height = 4.5)
 
 #Grabbing specific numbers for the text
 imm_21_lvl_prop <- get_census(dataset = "CA21", 
@@ -174,6 +177,9 @@ imm_prop_map <-
         text=element_text(family="KMR Apparat Regular")) +
   guides(fill = guide_legend(title.position = "top", title.hjust = 0.5,
                              nrow = 1))
+
+ggplot2::ggsave(filename = here::here("output/axe1/immigration/imm_prop_map.pdf"), 
+                plot = imm_prop_map, width = 6.5, height = 4)
 
 #Data Table
 imm_table_21v <- c("Population (n)"= "v_CA21_4404", "Immigrants totaux (n)" = "v_CA21_4410",

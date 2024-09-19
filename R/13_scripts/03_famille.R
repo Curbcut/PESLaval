@@ -217,7 +217,7 @@ family_size_graph <-
   theme(axis.title.x = element_blank())
 
 ggplot2::ggsave(filename = here::here("output/axe1/family/family_size_graph.pdf"), 
-                plot = family_size_graph, width = 4, height = 3, bg = "transparent")
+                plot = family_size_graph, width = 6.5, height = 3, bg = "transparent")
 
 # Couples avec enfants
 famille_couple <- get_census(
@@ -479,7 +479,7 @@ famille_structure_plot <-
   geom_text(aes(label = perc), 
             position = position_stack(vjust = 0.5), 
             size = 3, 
-            color = "white") +
+            color = "black") +
   labs(y = "Proportion de familles",
        x = element_blank(),
        fill = element_blank()) +
@@ -495,7 +495,7 @@ famille_structure_plot <-
   facet_wrap(~ region, scales = "fixed")
 
 ggplot2::ggsave(filename = here::here("output/axe1/family/famille_structure_plot.pdf"), 
-                plot = famille_structure_plot, width = 6, height = 4, bg = "transparent")
+                plot = famille_structure_plot, width = 6.5, height = 4, bg = "transparent")
 
 
 
@@ -620,8 +620,8 @@ household_comp_graph <-
   geom_text(aes(label = perc), 
             position = position_dodge(width = 0.9),
             vjust = 2.5,
-            size = 4, 
-            color = "white") +
+            size = 3, 
+            color = "black") +
   scale_y_continuous(labels = convert_pct) +
   scale_x_discrete(labels = c("une_personne" = "1 personne", "deux_personnes" = "2 personnes",
                               "trois_personnes" = "3 personnes", "quatre_personnes_plus" = "4+ personnes")) +
@@ -632,7 +632,7 @@ household_comp_graph <-
         legend.title = element_blank())
 
 ggplot2::ggsave(filename = here::here("output/axe1/family/household_comp_graph.pdf"), 
-                plot = household_comp_graph, width = 6, height = 4, bg = "transparent")
+                plot = household_comp_graph, width = 6.5, height = 4, bg = "transparent")
 
 # Comparison over time
 laval_household_size16_raw <-  get_census(
@@ -786,7 +786,7 @@ household_evol_graph <-
   theme(axis.title.x = element_blank())
 
 ggplot2::ggsave(filename = here::here("output/axe1/family/household_evol_graph.pdf"), 
-                plot = household_evol_graph, width = 4, height = 3, bg = "transparent")
+                plot = household_evol_graph, width = 6.5, height = 3, bg = "transparent")
 
 
 
