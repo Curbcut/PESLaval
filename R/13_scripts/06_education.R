@@ -47,6 +47,8 @@ education_eleves_var <- convert_pct(students$normalized_eleves[
 education_eleves_var_qc <- convert_pct(students$normalized_eleves[
   students$annee == "2022-2023" & students$region == "Québec"]/100-1)
 
+ggplot2::ggsave(filename = here::here("output/axe1/education/education_indice_plot.pdf"), 
+                plot = education_indice_plot, width = 6.5, height = 4)
 
 # Sorties sans diplôme ----------------------------------------------------
 
@@ -287,7 +289,7 @@ education_uni_aucun_plot <- diplome_uni + patchwork::plot_spacer() + aucun_diplo
   patchwork::plot_layout(widths = c(1, 0.01, 1))
 
 ggplot2::ggsave(filename = here::here("output/axe1/education/education_uni_aucun_plot.pdf"), 
-                plot = education_uni_aucun_plot, width = 7.5, height = 3)
+                plot = education_uni_aucun_plot, width = 10, height = 5.5)
 
 # Séparer par secteurs
 educ_DA_21 <- get_census(dataset = "CA21",
@@ -404,19 +406,19 @@ educ_sectors_table <-
   # Apply font style to the whole table
   tab_style(
     style = cell_text(
-      font = "KMR Apparat Regular"
+      font = "KMR-Apparat-Regular"
     ),
     locations = cells_body()
   ) |>
   tab_style(
     style = cell_text(
-      font = "KMR Apparat Regular"
+      font = "KMR-Apparat-Regular"
     ),
     locations = cells_column_labels()
   ) |>
   tab_style(
     style = cell_text(
-      font = "KMR Apparat Regular"
+      font = "KMR-Apparat-Regular"
     ),
     locations = cells_row_groups()
   ) |>
@@ -541,7 +543,7 @@ edus <- get_census(dataset = "CA21",
 edu_gender_graph <- ggplot(edus, aes(x = education, y = prop, fill = sex)) +
   geom_bar(stat = "identity", position = "dodge") +
   geom_text(aes(label = percent), vjust = 2, position = position_dodge(width = 0.9),
-            color = "white") +
+            color = "black",size = 3) +
   scale_y_continuous(labels = convert_pct) +
   scale_fill_manual(values = c("Femmes" = "#CD718C", "Hommes" = "#A3B0D1")) +
   scale_x_discrete(labels = c("Aucun certificat, diplôme\nou grade",
