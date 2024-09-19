@@ -289,7 +289,7 @@ education_uni_aucun_plot <- diplome_uni + patchwork::plot_spacer() + aucun_diplo
   patchwork::plot_layout(widths = c(1, 0.01, 1))
 
 ggplot2::ggsave(filename = here::here("output/axe1/education/education_uni_aucun_plot.pdf"), 
-                plot = education_uni_aucun_plot, width = 10, height = 5.5)
+                plot = education_uni_aucun_plot, width = 9, height = 5.5)
 
 # Séparer par secteurs
 educ_DA_21 <- get_census(dataset = "CA21",
@@ -432,7 +432,7 @@ educ_sectors_table <-
     
   )
 
-gtsave(educ_sectors_table, "output/axe1/education/educ_sectors_table.png")
+gtsave(educ_sectors_table, "output/axe1/education/educ_sectors_table.png", vwidth = 864, vheight = 528)
 
 # Composition 2006-2021 ---------------------------------------------------
 

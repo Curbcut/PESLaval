@@ -178,7 +178,7 @@ employment_rate_graph <-
   ylim(c(55,70))
 
 ggplot2::ggsave(filename = here::here("output/axe1/employment/employment_rate_graph.pdf"), 
-                plot = employment_rate_graph, width = 7.5, height = 6)
+                plot = employment_rate_graph, width = 6.5, height = 4)
 
 # Working During Reference Year -------------------------------------------
 #Vectors for 2021 working during reference year, for total count, did not work, worked,
@@ -259,7 +259,7 @@ unemployment_rate_graph <-
   ylim(c(0,10))
 
 ggplot2::ggsave(filename = here::here("output/axe1/employment/unemployment_rate_graph.pdf"), 
-                plot = unemployment_rate_graph, width = 7.5, height = 6)
+                plot = unemployment_rate_graph, width = 6.5, height = 4)
 
 unemployment_rate_nb <- convert_pct(unemployment_rate$Value[unemployment_rate$Geography == "Laval" & 
                                                               unemployment_rate$Year == 2021] / 100)
@@ -313,7 +313,7 @@ unemployment_rate_graph_isq <-
   gg_cc_theme_no_sf
 
 ggplot2::ggsave(filename = here::here("output/axe1/employment/unemployment_rate_graph_isq.pdf"), 
-                plot = unemployment_rate_graph_isq, width = 4, height = 3)
+                plot = unemployment_rate_graph_isq, width = 6.5, height = 3)
 
 highest_unemployment_rate_2020 <- convert_pct(max(chomage$tauxchomage) / 100)
 
@@ -509,7 +509,7 @@ emploi_catpro <-
   gg_cc_theme_no_sf
 
 ggplot2::ggsave(filename = here::here("output/axe1/employment/emploi_catpro.pdf"), 
-                plot = emploi_catpro, width = 6, height = 3)
+                plot = emploi_catpro, width = 9, height = 5.5)
 
 
 emploi_vs <- convert_number_noround(noc_occupation_table$count[
