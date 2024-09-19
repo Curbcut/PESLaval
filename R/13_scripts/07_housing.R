@@ -140,7 +140,7 @@ g1 <- ggplot(pto_graph, aes(x = Year, y = Households, fill = Type)) +
 g2 <- ggplot(pto_graph, aes(x = Year, y = Proportion, fill = Type)) +
   geom_bar(stat = "identity", position = "fill") +
   geom_text(aes(label = ProportionLabel, group = Type),
-            vjust = 2, color = "white", size = ggplot_fontsize) +
+            vjust = 2, color = "black", size = 2.75) +
   labs(y = "Proportion des ménages (%)") +
   scale_fill_manual(values = c("owner" = color_theme("redhousing"), "tenant" = color_theme("greenecology")),
                     labels = c("Propriétaire", "Locataire")) +
@@ -156,7 +156,7 @@ logement_statutoccupation <- (g1 + g2) + plot_layout(guides = 'collect') &
   theme(legend.position = "bottom")
 
 ggplot2::ggsave(filename = here::here("output/axe1/housing/logement_statutoccupation.pdf"),
-                plot = logement_statutoccupation, width = 7.5, height = 3)
+                plot = logement_statutoccupation, width = 6.5, height = 3.5)
 
 # Valeurs pour le graph
 
@@ -318,7 +318,7 @@ ggplot(avg_rent_annual, aes(x = Year, y = `Value`, group = Geography, color = Ge
   # facet_wrap(~indexed)
 
 ggplot2::ggsave(filename = here::here("output/axe1/housing/housing_loyermed_plot.pdf"),
-                plot = housing_loyermed_plot, width = 3, height = 2.5)
+                plot = housing_loyermed_plot, width = 3, height = 3)
 
 housing_loyer_2023 <- avg_rent_annual$Value[
   avg_rent_annual$Year == 2023 & avg_rent_annual$Geography == "Laval"]
@@ -413,7 +413,7 @@ housing_loyer_2023_QC <- convert_number_noround(housing_loyer_2023_QC)
 #   theme(
 #     legend.position = "bottom", legend.box = "horizontal", axis.title.x = element_blank(),
 #     legend.title = element_blank(), plot.title = element_text(hjust = 0.5),
-#     text=element_text(family="KMR Apparat Regular"))
+#     text=element_text(family="KMR-Apparat-Regular"))
 # 
 # med_yoy_growth_graph <- ggplot(med_rent_yoy, aes(x = Year, y = Growth, fill = Geography)) +
 #   geom_bar(stat = "identity", position = position_dodge()) +
@@ -424,7 +424,7 @@ housing_loyer_2023_QC <- convert_number_noround(housing_loyer_2023_QC)
 #   labs(y = "Variation du loyer médian") +
 #   theme(legend.position = "none", plot.title = element_text(hjust = 0.5),
 #         axis.text.x = element_text(angle = 45, hjust = 1),
-#         text=element_text(family="KMR Apparat Regular"), axis.title.x = element_blank())
+#         text=element_text(family="KMR-Apparat-Regular"), axis.title.x = element_blank())
 # 
 # # Monthly Tenant Cost by Laval Neighborhood -------------------------------
 # nbhd_mtlcma <- cmhc::get_cmhc(survey = "Rms", series = "Median Rent", 
@@ -462,7 +462,7 @@ housing_loyer_2023_QC <- convert_number_noround(housing_loyer_2023_QC)
 #   labs(fill = "Loyer médian ($)") +
 #   theme_void() +
 #   theme(legend.position = "bottom",  legend.justification = "center",
-#         text=element_text(family="KMR Apparat Regular"),
+#         text=element_text(family="KMR-Apparat-Regular"),
 #         legend.box.margin = margin(t = -20)) +
 #   guides(fill = guide_legend(title.position = "top", title.hjust = 0.5,
 #                              barwidth = 1, barheight = 1, nrow = 1))
@@ -675,7 +675,7 @@ housing_median_rent_plot <-
   gg_cc_theme
 
 ggplot2::ggsave(filename = here::here("output/axe1/housing/housing_median_rent_plot.pdf"),
-                plot = housing_median_rent_plot, width = 5, height = 3)
+                plot = housing_median_rent_plot, width = 6.5, height = 4)
 
 
 # Tableau des loyers médians par secteurs
@@ -717,13 +717,13 @@ housing_loyer_med_table <-
   # Appliquer le style de la police à toute la table
   tab_style(
     style = cell_text(
-      font = "KMR Apparat Regular"
+      font = "KMR-Apparat-Regular"
     ),
     locations = cells_body()
   ) |> 
   tab_style(
     style = cell_text(
-      font = "KMR Apparat Regular"
+      font = "KMR-Apparat-Regular"
     ),
     locations = cells_column_labels()
   ) |> 
@@ -911,19 +911,19 @@ loyer_med_var_table <-
     # Apply font style to the whole table
     tab_style(
       style = cell_text(
-        font = "KMR Apparat Regular"
+        font = "KMR-Apparat-Regular"
       ),
       locations = cells_body()
     ) |>
     tab_style(
       style = cell_text(
-        font = "KMR Apparat Regular"
+        font = "KMR-Apparat-Regular"
       ),
       locations = cells_column_labels()
     ) |>
     tab_style(
       style = cell_text(
-        font = "KMR Apparat Regular"
+        font = "KMR-Apparat-Regular"
       ),
       locations = cells_row_groups()
     ) |>
@@ -1016,7 +1016,7 @@ housing_median_cost_plot <-
   gg_cc_theme
 
 ggplot2::ggsave(filename = here::here("output/axe1/housing/housing_median_cost_plot.pdf"),
-                plot = housing_median_rent_plot, width = 5, height = 3)
+                plot = housing_median_rent_plot, width = 6.5, height = 4)
 
 housing_cost_med_table <-
   gt(owner_tenant[1:6, c(1,3)]) |> 
@@ -1041,13 +1041,13 @@ housing_cost_med_table <-
   # Appliquer le style de la police à toute la table
   tab_style(
     style = cell_text(
-      font = "KMR Apparat Regular"
+      font = "KMR-Apparat-Regular"
     ),
     locations = cells_body()
   ) |> 
   tab_style(
     style = cell_text(
-      font = "KMR Apparat Regular"
+      font = "KMR-Apparat-Regular"
     ),
     locations = cells_column_labels()
   ) |> 
@@ -1100,19 +1100,19 @@ housing_cost_med_table_var <-
   # Apply font style to the whole table
   tab_style(
     style = cell_text(
-      font = "KMR Apparat Regular"
+      font = "KMR-Apparat-Regular"
     ),
     locations = cells_body()
   ) |>
   tab_style(
     style = cell_text(
-      font = "KMR Apparat Regular"
+      font = "KMR-Apparat-Regular"
     ),
     locations = cells_column_labels()
   ) |>
   tab_style(
     style = cell_text(
-      font = "KMR Apparat Regular"
+      font = "KMR-Apparat-Regular"
     ),
     locations = cells_row_groups()
   ) |>
@@ -1206,7 +1206,7 @@ housing_starts <-
   theme(legend.title.position = "top")
 
 ggplot2::ggsave(filename = here::here("output/axe1/housing/housing_starts.pdf"), 
-                plot = housing_starts, width = 7.5, height = 2.5, bg = "transparent")
+                plot = housing_starts, width = 9, height = 3, bg = "transparent")
 
 # Completions
 completions_lvl <- get_cmhc(survey = "Scss", series = "Completions", dimension = "Intended Market",
@@ -1245,7 +1245,7 @@ housing_completions <-
   theme(legend.title.position = "top")
 
 ggplot2::ggsave(filename = here::here("output/axe1/housing/housing_completions.pdf"), 
-                plot = housing_completions, width = 7.5, height = 2.5, bg = "transparent")
+                plot = housing_completions, width = 9, height = 3, bg = "transparent")
 
 
 # Ratio
@@ -1275,7 +1275,7 @@ ggplot(starts_completions[starts_completions$`Marché visé` != "Total", ],
   theme(legend.title.position = "top")
 
 ggplot2::ggsave(filename = here::here("output/axe1/housing/housing_starts_completions_ratio.pdf"), 
-                plot = housing_starts_completions_ratio, width = 7.5, height = 2.5, bg = "transparent")
+                plot = housing_starts_completions_ratio, width = 9, height = 3, bg = "transparent")
 
 
 # Affordability 30% -------------------------------------------------------
@@ -1453,19 +1453,19 @@ gt(taux_efforts) |>
   # Apply font style to the whole table
   tab_style(
     style = cell_text(
-      font = "KMR Apparat Regular"
+      font = "KMR-Apparat-Regular"
     ),
     locations = cells_body()
   ) |>
   tab_style(
     style = cell_text(
-      font = "KMR Apparat Regular"
+      font = "KMR-Apparat-Regular"
     ),
     locations = cells_column_labels()
   ) |>
   tab_style(
     style = cell_text(
-      font = "KMR Apparat Regular"
+      font = "KMR-Apparat-Regular"
     ),
     locations = cells_row_groups()
   ) |>
@@ -1596,19 +1596,19 @@ gt(acceptable_housing) |>
   # Apply font style to the whole table
   tab_style(
     style = cell_text(
-      font = "KMR Apparat Regular"
+      font = "KMR-Apparat-Regular"
     ),
     locations = cells_body()
   ) |>
   tab_style(
     style = cell_text(
-      font = "KMR Apparat Regular"
+      font = "KMR-Apparat-Regular"
     ),
     locations = cells_column_labels()
   ) |>
   tab_style(
     style = cell_text(
-      font = "KMR Apparat Regular"
+      font = "KMR-Apparat-Regular"
     ),
     locations = cells_row_groups()
   ) |>
@@ -1756,19 +1756,19 @@ core_need_table <-
   # Apply font style to the whole table
   tab_style(
     style = cell_text(
-      font = "KMR Apparat Regular"
+      font = "KMR-Apparat-Regular"
     ),
     locations = cells_body()
   ) |>
   tab_style(
     style = cell_text(
-      font = "KMR Apparat Regular"
+      font = "KMR-Apparat-Regular"
     ),
     locations = cells_column_labels()
   ) |>
   tab_style(
     style = cell_text(
-      font = "KMR Apparat Regular"
+      font = "KMR-Apparat-Regular"
     ),
     locations = cells_row_groups()
   ) |>
