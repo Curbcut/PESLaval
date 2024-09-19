@@ -155,7 +155,7 @@ knowledge_official <-
   geom_text(aes(label = convert_pct(Percentage/100)),
             position = position_fill(vjust = 0.5),
             size = 3,
-            color = "white") +
+            color = "black") +
   ylab(NULL) +
   xlab(NULL) +
   scale_fill_manual(values = c("Aucune" = color_theme("yellowclimate"), 
@@ -167,7 +167,7 @@ knowledge_official <-
   theme(legend.title = element_blank())
 
 ggplot2::ggsave(filename = here::here("output/axe1/langues/knowledge_official.pdf"), 
-                plot = knowledge_official, width = 6, height = 4)
+                plot = knowledge_official, width = 6.5, height = 6.5)
 
 # Values for the text
 bilingual_1996 <- combinedKnowOffLang$Percentage[
@@ -235,7 +235,7 @@ know_official_laval_qc_diff <-
   geom_text(aes(label = convert_pct(Percentage/100)),
             position = position_fill(vjust = 0.5),
             size = 3,
-            color = "white") +
+            color = "black") +
   ylab(NULL) +
   xlab(NULL) +
   scale_fill_manual(values = c("Aucune" = color_theme("yellowclimate"), 
@@ -247,7 +247,7 @@ know_official_laval_qc_diff <-
   theme(legend.title = element_blank())
 
 ggplot2::ggsave(filename = here::here("output/axe1/langues/know_official_laval_qc_diff.pdf"), 
-                plot = know_official_laval_qc_diff, width = 4, height = 4)
+                plot = know_official_laval_qc_diff, width = 4, height = 6.5)
 
 
 # Languages spoken (most) at Home ------------------------------------------------
@@ -591,12 +591,14 @@ most_spoken_at_home_density <-
         legend.spacing.y = unit(0.2, 'cm'),
         legend.key.width = unit(1, 'cm'))
 
+theme(legend.title = element_text(size = 9))
+
 library(patchwork)
 most_spoken_at_home_maps <- plot_spacer() + most_spoken_at_home_DAs + plot_spacer() + 
   most_spoken_at_home_density + plot_spacer() + plot_layout(widths = c(0.5, 5, 0.2, 5, 0.5))
 
 ggplot2::ggsave(filename = here::here("output/axe1/langues/most_spoken_at_home_maps.pdf"), 
-                plot = most_spoken_at_home_maps, width = 7.5, height = 4)
+                plot = most_spoken_at_home_maps, width = 10, height = 5.5)
 
 
 # Language most spoken at work --------------------------------------------
