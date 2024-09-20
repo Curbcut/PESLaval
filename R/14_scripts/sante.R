@@ -37,7 +37,7 @@ degre_solitude_graph <- ggplot(sol, aes(x = `Groupe d'âge`, y = `Degré moyen`,
   theme(legend.title = element_blank())
 
 ggplot2::ggsave(filename = here::here("output/axe2/degre_solitude_graph.pdf"), 
-                plot = degre_solitude_graph, width = 7.5, height = 4)
+                plot = degre_solitude_graph, width = 9, height = 5.5)
 
 
 # Statut pondéral ---------------------------------------------------------
@@ -73,7 +73,7 @@ statut_ponderal_graph <-
   theme(legend.title = element_blank())
 
 ggplot2::ggsave(filename = here::here("output/axe2/statut_ponderal_graph.pdf"), 
-                plot = statut_ponderal_graph, width = 7.5, height = 4)
+                plot = statut_ponderal_graph, width = 9, height = 5.5)
 
 
 # Buccodentaire -----------------------------------------------------------
@@ -178,5 +178,5 @@ buccodentaire_graph <-
   theme(legend.title = element_blank())
 
 ggplot2::ggsave(filename = here::here("output/axe2/buccodentaire_graph.pdf"), 
-                plot = buccodentaire_graph, width = 7.5, height = 4)
+                plot = buccodentaire_graph, width = 9, height = 5.5)
 
