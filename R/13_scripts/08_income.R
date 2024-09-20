@@ -185,7 +185,7 @@ median_income_sf_plot <-
   gg_cc_theme
 
 ggplot2::ggsave(filename = here::here("output/axe1/income/median_income_sf_plot.pdf"),
-                plot = median_income_sf_plot, width = 5, height = 3)
+                plot = median_income_sf_plot, width = 6.5, height = 4)
 
 
 # Tableau des loyers médians par secteurs
@@ -739,7 +739,7 @@ ggplot(ind_total_bar[ind_total_bar$Geography != "Laval", ],
         legend.box.margin = margin(t = -20))
 
 ggplot2::ggsave(filename = here::here("output/axe1/income/revenue_annuel_plot.pdf"),
-                plot = revenue_annuel_plot, width = 5, height = 3)
+                plot = revenue_annuel_plot, width = 6.5, height = 3.5)
 
 
 
@@ -804,7 +804,7 @@ median_income_ind_plot <-
   gg_cc_theme
 
 ggplot2::ggsave(filename = here::here("output/axe1/income/median_income_ind_plot.pdf"),
-                plot = median_income_ind_plot, width = 5, height = 3)
+                plot = median_income_ind_plot, width = 6.5, height = 4)
 
 
 # Tableau des loyers médians par secteurs
@@ -1603,7 +1603,7 @@ frev_sf_plot <-
   gg_cc_theme
 
 ggplot2::ggsave(filename = here::here("output/axe1/income/frev_sf_plot.pdf"),
-                plot = frev_sf_plot, width = 5, height = 3)
+                plot = frev_sf_plot, width = 6.5, height = 4)
 
 
 # Tableau des loyers médians par secteurs
@@ -1790,7 +1790,7 @@ defav_plot <-
 
 
 ggplot2::ggsave(filename = here::here("output/axe1/income/defav_plot.pdf"),
-                plot = defav_plot, width = 5, height = 3)
+                plot = defav_plot, width = 6.5, height = 4)
 
 
 qs::qsavem(rev_med, rev_med_2015, rev_med_aug, rev_med_aug_QC, mhh_plot,
