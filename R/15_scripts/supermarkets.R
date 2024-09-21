@@ -186,7 +186,7 @@ combined_plot <- plot_spacer() + how_long_access_supermarkets + plot_spacer() +
 combined_plot
 
 ggplot2::ggsave(filename = here::here("output/axe3/supermarkets_dual.pdf"), 
-                plot = combined_plot, width = 7.5, height = 4)
+                plot = combined_plot, width = 10, height = 5.5)
 
 # Add values --------------------------------------------------------------
 
