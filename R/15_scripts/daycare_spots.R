@@ -326,7 +326,7 @@ daycare_map <- ggplot(t) +
         legend.spacing.y = unit(1, 'cm'))
 
 ggplot2::ggsave(filename = here::here("output/axe3/daycare.pdf"), 
-                plot = daycare_map, width = 6, height = 5, bg = "transparent")
+                plot = daycare_map, width = 7, height = 5.5, bg = "transparent")
 
 
 
@@ -369,7 +369,7 @@ child_map <- ggplot(DAs) +
   gg_cc_theme
 
 ggplot2::ggsave(filename = here::here("output/axe3/child_map.pdf"), 
-                plot = child_map, width = 6, height = 5, bg = "transparent")
+                plot = child_map, width = 7, height = 5.5, bg = "transparent")
 
 
 # R Markdown Numbers ------------------------------------------------------
