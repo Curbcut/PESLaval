@@ -159,7 +159,7 @@ cultural_map <- hm_access_cultural |>
         legend.spacing.y = unit(1, 'cm'))
 
 ggplot2::ggsave(filename = here::here("output/axe3/cultural_map.pdf"), 
-                plot = cultural_map, width = 6, height = 5, bg = "transparent")
+                plot = cultural_map, width = 10, height = 5.5, bg = "transparent")
 
 
 # Values ------------------------------------------------------------------
