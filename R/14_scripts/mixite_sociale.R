@@ -210,7 +210,7 @@ mixite_sociale <-
         legend.spacing.y = unit(1, 'cm'))
 
 ggplot2::ggsave(filename = here::here("output/axe2/mixitecomposite.pdf"), 
-                plot = mixite_sociale, width = 6, height = 4)
+                plot = mixite_sociale, width = 6.5, height = 6)
 
 
 # Facet wrap entropy ------------------------------------------------------
@@ -255,7 +255,7 @@ names(all_data)[1:2] <- c("dimension", "binned_variable")
 
 mixite_sociale_facet <- 
   ggplot(all_data) +
-  # gg_cc_tiles +
+  gg_cc_tiles +
   geom_sf(aes(fill = binned_variable), color = "transparent", lwd = 0) +
   scale_fill_manual(values = curbcut_colors$left_5$fill[2:6],
                     name = "Indice de mixité",
@@ -267,7 +267,7 @@ mixite_sociale_facet <-
         legend.spacing.y = unit(1, 'cm'))
 
 ggplot2::ggsave(filename = here::here("output/axe2/mixitefacet.pdf"), 
-                plot = mixite_sociale_facet, width = 6, height = 4)
+                plot = mixite_sociale_facet, width = 9, height = 7)
 
 
 # Save --------------------------------------------------------------------
