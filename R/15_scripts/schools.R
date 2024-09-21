@@ -94,7 +94,7 @@ primaire_plot <-
 
 
 ggplot2::ggsave(filename = here::here("output/axe3/primaire_plot.pdf"), 
-                plot = primaire_plot, width = 6, height = 5, bg = "transparent")
+                plot = primaire_plot, width = 7, height = 5, bg = "transparent")
 
 # Combien d'enfants plutôt que combien de Toutes les familles
 DA_children <- cancensus::get_census(dataset = "CA21", 
@@ -184,7 +184,7 @@ secondaire_plot <-
 
 
 ggplot2::ggsave(filename = here::here("output/axe3/secondaire_plot.pdf"), 
-                plot = secondaire_plot, width = 6, height = 5, bg = "transparent")
+                plot = secondaire_plot, width = 7, height = 5, bg = "transparent")
 
 # Combien d'enfants plutôt que combien de Toutes les familles
 DA_children <- cancensus::get_census(dataset = "CA21", 
