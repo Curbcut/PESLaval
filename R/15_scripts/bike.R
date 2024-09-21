@@ -66,7 +66,7 @@ bike_map <- ggplot(data = bike_comfort) +
   gg_cc_theme
 
 ggplot2::ggsave(filename = here::here("output/axe3/bike_map.pdf"), 
-                plot = bike_map, width = 7, height = 6)
+                plot = bike_map, width = 9, height = 6)
 
 bixi_stations_number <- convert_number(nrow(bixi_sf_laval))
 
