@@ -88,7 +88,7 @@ municipal_map <- ggplot(equipment_count) +
         legend.spacing.y = unit(1, 'cm'))
 
 ggplot2::ggsave(filename = here::here("output/axe3/municipal_map.pdf"), 
-                plot = municipal_map, width = 6, height = 5)
+                plot = municipal_map, width = 6.5, height = 5.5)
 
 # Tables ------------------------------------------------------------------
 
