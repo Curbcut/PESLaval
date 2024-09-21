@@ -79,7 +79,7 @@ parks_map <- t |>
         legend.spacing.y = unit(1, 'cm'))
 
 ggplot2::ggsave(filename = here::here("output/axe3/parks_map.pdf"), 
-                plot = parks_map, width = 7, height = 6)
+                plot = parks_map, width = 9, height = 6)
 
 
 # Values ------------------------------------------------------------------
