@@ -120,14 +120,14 @@ imm_evol_graph <-
   geom_point(size = 2.5) +
   scale_y_continuous(labels = convert_pct) +
   labs(y = "Proportion de la population") +
-  scale_color_manual(values = c("Laval" = "#A3B0D1", "Montréal" = "#E08565",
-                                "Québec" = "#73AD80")) +
+  scale_color_manual(values = c("Laval" = "#73AD80", "Montréal" = "#E08565",
+                                "Québec" = "#A3B0D1")) +
   gg_cc_theme_no_sf +
   theme(legend.position = "bottom", legend.box = "horizontal", axis.title.x = element_blank(),
         legend.title = element_blank(), text=element_text(family="KMR Apparat Regular"))
 
 ggplot2::ggsave(filename = here::here("output/axe1/immigration/imm_evol_graph.pdf"), 
-                plot = imm_evol_graph, width = 5, height = 4.5)
+                plot = imm_evol_graph, width = 6.5, height = 4)
 
 #Grabbing specific numbers for the text
 imm_21_lvl_prop <- get_census(dataset = "CA21", 
@@ -179,7 +179,7 @@ imm_prop_map <-
                              nrow = 1))
 
 ggplot2::ggsave(filename = here::here("output/axe1/immigration/imm_prop_map.pdf"), 
-                plot = imm_prop_map, width = 6.5, height = 4)
+                plot = imm_prop_map, width = 6.5, height = 5)
 
 #Data Table
 imm_table_21v <- c("Population (n)"= "v_CA21_4404", "Immigrants totaux (n)" = "v_CA21_4410",
@@ -263,10 +263,6 @@ gtsave(imm_table, "output/axe1/immigration/imm_table.png")
 
 
 
-
-
-
-
 # Immigrant Status --------------------------------------------------------
 #Pulling the number for the non-resident population
 non_res_prop <- get_census(dataset = "CA21", 
@@ -305,6 +301,9 @@ recimm_prop_map <- ggplot(data = recimm_lvl_21_da) +
         text=element_text(family="KMR Apparat Regular")) +
   guides(fill = guide_legend(title.position = "top", title.hjust = 0.5,
                              nrow = 1))
+
+ggplot2::ggsave(filename = here::here("output/axe1/immigration/recimm_prop_map.pdf"), 
+                plot = recimm_prop_map, width = 6.5, height = 5)
 
 #Citizen proportion
 Citizenship <- cancensus::get_census(dataset = "CA21", 
@@ -398,13 +397,16 @@ combined_decade_data <- bind_rows(immigrant_decade_percent, immigrant_decade_que
 period_imm_graph <- ggplot(data = combined_decade_data, aes(x = name, y = value, fill = Region)) +
   geom_bar(stat = "identity", position = position_dodge()) +
   geom_text(aes(label = percentage), position = position_dodge(width = 0.9),
-            vjust = 2.5, color = "white") +
+            vjust = 2.5, color = "black", size = 3) +
   labs(x = "Decade", y = "Proportion de la population", title = "Period of Immigration: Laval vs. Quebec") +
   scale_fill_manual(values = c("Laval" = color_theme("greenecology"), "Québec" = color_theme("blueexplorer"))) +
   scale_y_continuous(labels = convert_pct) +
   gg_cc_theme_no_sf +
   theme(legend.position = "bottom", plot.title = element_blank(), axis.title.x = element_blank(),
         legend.title = element_blank(), text = element_text(family = "KMR Apparat Regular"))
+
+ggplot2::ggsave(filename = here::here("output/axe1/immigration/period_imm_graph.pdf"), 
+                plot = period_imm_graph, width = 6.5, height = 4)
 
 # Immigration Admission Category ------------------------------------------
 immigrant_admissioncat <- cancensus::get_census(dataset = "CA21", 
@@ -453,13 +455,16 @@ admission_cat_combined <- bind_rows(immigrant_admissioncat_percent, immigrant_ad
 ad_cat_graph <- ggplot(data = admission_cat_combined, aes(x = Type, y = Percent, fill = Region)) +
   geom_col(position = "dodge") +
   geom_text(aes(label = perc), position = position_dodge(width = 0.9),
-            vjust = -0.5, color = "white") +
+            vjust = -0.5, color = "black", size = 3) +
   scale_y_continuous(labels = convert_pct) +
   scale_fill_manual(values = c("Laval" = color_theme("greenecology"), "Québec" = color_theme("blueexplorer"))) +
   labs(y = "Proportion d'immigrants", x = "Catégorie d'admission") +
   gg_cc_theme_no_sf +
   theme(legend.position = "bottom", plot.title = element_blank(),
         legend.title = element_blank(), text = element_text(family = "KMR Apparat Regular"))
+
+ggplot2::ggsave(filename = here::here("output/axe1/immigration/ad_cat_graph.pdf"), 
+                plot = ad_cat_graph, width = 6.5, height = 5)
 
 #Grabbing specific numbers for markdown
 laval_ad_cat <- admission_cat_combined |> 
@@ -531,7 +536,7 @@ imm_age_sex_graph <- ggplot(data = age_21, aes(x = gender, y = count, fill = Age
   geom_bar(stat = "identity") +
   geom_text(aes(label = percentage), 
             position = position_stack(vjust = 0.5), 
-            color = "white") +
+            color = "black", size = 3) +
   scale_y_continuous(labels = scales::label_number(big.mark = " ")) +
   scale_fill_manual(values = curbcut_colors$left_5$fill[2:6]) +
   labs(y = "Individus",
@@ -547,7 +552,7 @@ imm_age_sex_prop_graph <- ggplot(data = age_21, aes(x = gender, y = prop, fill =
   geom_bar(stat = "identity") +
   geom_text(aes(label = percentage), 
             position = position_stack(vjust = 0.5), 
-            color = "white") +
+            color = "black", size = 3) +
   scale_fill_manual(values = curbcut_colors$left_5$fill[2:6]) +
   scale_y_continuous(labels = convert_pct) +
   labs(x = "Tranche d'âge",
@@ -563,7 +568,7 @@ imm_age_sex_prop_graph <- ggplot(data = age_21, aes(x = gender, y = prop, fill =
 imm_age_graph <- ggplot(data = age_21_rev, aes(x = Age, y = count, fill = gender)) +
   geom_bar(stat = "identity", position = "dodge") +
   geom_text(aes(label = percentage), position = position_dodge(width = 0.9),
-            vjust = 2.5, color = "white") +
+            vjust = 2.5, color = "black", size = 3) +
   scale_fill_manual(values = c("Homme" = "#A3B0D1", "Femme" = "#CD718C")) +
   scale_y_continuous(labels = scales::label_number(big.mark = " ")) +
   labs(x = "Gender",
@@ -574,11 +579,14 @@ imm_age_graph <- ggplot(data = age_21_rev, aes(x = Age, y = count, fill = gender
         legend.title = element_blank(), text = element_text(family = "KMR Apparat Regular"),
         axis.title.x = element_blank())
 
+ggplot2::ggsave(filename = here::here("output/axe1/immigration/imm_age_graph.pdf"), 
+                plot = imm_age_graph, width = 6.5, height = 5)
+
 imm_stackedage_graph <- ggplot(data = age_21, aes(x = Age, y = count, fill = gender)) +
   geom_bar(stat = "identity") +
   geom_text(aes(label = percentage), 
             position = position_stack(vjust = 0.5), 
-            color = "white") +
+            color = "black", size = 3) +
   scale_fill_manual(values = c("Homme" = "#A3B0D1", "Femme" = "#CD718C")) +
   scale_y_continuous(labels = scales::label_number(big.mark = " ")) +
   labs(x = "Gender",
@@ -588,6 +596,10 @@ imm_stackedage_graph <- ggplot(data = age_21, aes(x = Age, y = count, fill = gen
   theme(legend.position = "bottom", plot.title = element_blank(),
         legend.title = element_blank(), text = element_text(family = "KMR Apparat Regular"),
         axis.title.x = element_blank())
+
+ggplot2::ggsave(filename = here::here("output/axe1/immigration/imm_stackedage_graph.pdf"), 
+                plot = imm_stackedage_graph, width = 6.5, height = 5)
+
 
 # Ethnic Origins ----------------------------------------------------------
 #Grabbing total immigration numbers
@@ -666,7 +678,7 @@ imm_origin <- bind_rows(imm_origin_recent, imm_origin_total) |>
 imm_origin_graph <- ggplot(data = imm_origin, aes(x = origin, y = proportion, fill = Type)) +
   geom_bar(stat = "identity", position = position_dodge()) +
   geom_text(aes(label = perc), position = position_dodge(width = 0.9),
-            vjust = 2, color = "white") +
+            vjust = 2, color = "black", size = 3) +
   scale_y_continuous(labels = convert_pct) +
   scale_fill_manual(values = c("Total" = "#A3B0D1", "Récent" = "#CD718C")) +
   labs(x = "Lieu de naissance",
@@ -675,6 +687,9 @@ imm_origin_graph <- ggplot(data = imm_origin, aes(x = origin, y = proportion, fi
   theme(legend.position = "bottom", plot.title = element_blank(),
         legend.title = element_blank(), text = element_text(family = "KMR Apparat Regular"),
         axis.text.x = element_text(angle = 45, hjust = 1), axis.title.x = element_text(margin = margin(t = -10)))
+
+ggplot2::ggsave(filename = here::here("output/axe1/immigration/imm_origin_graph.pdf"), 
+                plot = imm_origin_graph, width = 9, height = 6)
 
 #Grabbing specific percentages for the text
 imm_asia <- get_census(dataset = "CA21",
@@ -799,7 +814,7 @@ vis_min <- get_census(dataset = "CA21",
 vis_min_graph <- ggplot(data = vis_min, aes(x = type, y = count, fill = type)) +
   geom_bar(stat = "identity", position = position_dodge(), fill = "#A3B0D1") +
   geom_text(aes(label = perc), position = position_dodge(width = 0.9),
-            vjust = -0.5, color = "white") +
+            vjust = -0.5, color = "black", size = 3) +
   scale_y_continuous(labels = convert_number) +
   labs(x = "Lieu de naissance",
        y = "Individus") +
@@ -807,6 +822,9 @@ vis_min_graph <- ggplot(data = vis_min, aes(x = type, y = count, fill = type)) +
   theme(legend.position = "none", plot.title = element_blank(),
         legend.title = element_blank(), text = element_text(family = "KMR Apparat Regular"),
         axis.text.x = element_text(angle = 45, hjust = 1), axis.title.x = element_blank())
+
+ggplot2::ggsave(filename = here::here("output/axe1/immigration/vis_min_graph.pdf"), 
+                plot = vis_min_graph, width = 6.5, height = 4)
 
 #Grabbing numbers for the text
 vis_min_laval <- get_census(dataset = "CA21",
