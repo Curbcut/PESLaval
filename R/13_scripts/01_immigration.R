@@ -689,7 +689,7 @@ imm_origin_graph <- ggplot(data = imm_origin, aes(x = origin, y = proportion, fi
         axis.text.x = element_text(angle = 45, hjust = 1), axis.title.x = element_text(margin = margin(t = -10)))
 
 ggplot2::ggsave(filename = here::here("output/axe1/immigration/imm_origin_graph.pdf"), 
-                plot = imm_origin_graph, width = 9, height = 6)
+                plot = imm_origin_graph, width = 9, height = 7)
 
 #Grabbing specific percentages for the text
 imm_asia <- get_census(dataset = "CA21",
