@@ -117,7 +117,7 @@ healthcare_map <- t |>
         legend.spacing.y = unit(1, 'cm'))
 
 ggplot2::ggsave(filename = here::here("output/axe3/healthcare_map.pdf"), 
-                plot = healthcare_map, width = 6, height = 5, bg = "transparent")
+                plot = healthcare_map, width = 6.5, height = 5, bg = "transparent")
   
   
   
