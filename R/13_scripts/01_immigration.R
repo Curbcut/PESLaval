@@ -124,7 +124,7 @@ imm_evol_graph <-
                                 "Québec" = "#A3B0D1")) +
   gg_cc_theme_no_sf +
   theme(legend.position = "bottom", legend.box = "horizontal", axis.title.x = element_blank(),
-        legend.title = element_blank(), text=element_text(family="KMR Apparat Regular"))
+        legend.title = element_blank(), text=element_text(family="KMR-Apparat-Regular"))
 
 ggplot2::ggsave(filename = here::here("output/axe1/immigration/imm_evol_graph.pdf"), 
                 plot = imm_evol_graph, width = 6.5, height = 4)
@@ -174,7 +174,7 @@ imm_prop_map <-
   gg_cc_theme +
   theme(legend.position = "bottom", legend.box = "horizontal",
         legend.title = element_blank(),
-        text=element_text(family="KMR Apparat Regular")) +
+        text=element_text(family="KMR-Apparat-Regular")) +
   guides(fill = guide_legend(title.position = "top", title.hjust = 0.5,
                              nrow = 1))
 
@@ -234,19 +234,19 @@ imm_table <-
   # Apply font style to the whole table
   tab_style(
     style = cell_text(
-      font = "KMR Apparat Regular"
+      font = "KMR-Apparat-Regular"
     ),
     locations = cells_body()
   ) |>
   tab_style(
     style = cell_text(
-      font = "KMR Apparat Regular"
+      font = "KMR-Apparat-Regular"
     ),
     locations = cells_column_labels()
   ) |>
   tab_style(
     style = cell_text(
-      font = "KMR Apparat Regular"
+      font = "KMR-Apparat-Regular"
     ),
     locations = cells_row_groups()
   ) |>
@@ -255,11 +255,12 @@ imm_table <-
     locations = cells_row_groups()
   ) |> 
   tab_options(
-    table.font.size = indesign_fontsize,
-    row_group.font.size = indesign_title_fontsize
+    table.font.size = 9.5,
+    row_group.font.size = 9.5,
+    table.width = px(6 * 96),
   )
 
-gtsave(imm_table, "output/axe1/immigration/imm_table.png")
+gtsave(imm_table, "output/axe1/immigration/imm_table.png", zoom = 2)
 
 
 
@@ -298,7 +299,7 @@ recimm_prop_map <- ggplot(data = recimm_lvl_21_da) +
   gg_cc_theme +
   theme(legend.position = "bottom", legend.box = "horizontal",
         legend.title = element_blank(),
-        text=element_text(family="KMR Apparat Regular")) +
+        text=element_text(family="KMR-Apparat-Regular")) +
   guides(fill = guide_legend(title.position = "top", title.hjust = 0.5,
                              nrow = 1))
 
@@ -403,7 +404,7 @@ period_imm_graph <- ggplot(data = combined_decade_data, aes(x = name, y = value,
   scale_y_continuous(labels = convert_pct) +
   gg_cc_theme_no_sf +
   theme(legend.position = "bottom", plot.title = element_blank(), axis.title.x = element_blank(),
-        legend.title = element_blank(), text = element_text(family = "KMR Apparat Regular"))
+        legend.title = element_blank(), text = element_text(family = "KMR-Apparat-Regular"))
 
 ggplot2::ggsave(filename = here::here("output/axe1/immigration/period_imm_graph.pdf"), 
                 plot = period_imm_graph, width = 6.5, height = 4)
@@ -461,7 +462,7 @@ ad_cat_graph <- ggplot(data = admission_cat_combined, aes(x = Type, y = Percent,
   labs(y = "Proportion d'immigrants", x = "Catégorie d'admission") +
   gg_cc_theme_no_sf +
   theme(legend.position = "bottom", plot.title = element_blank(),
-        legend.title = element_blank(), text = element_text(family = "KMR Apparat Regular"))
+        legend.title = element_blank(), text = element_text(family = "KMR-Apparat-Regular"))
 
 ggplot2::ggsave(filename = here::here("output/axe1/immigration/ad_cat_graph.pdf"), 
                 plot = ad_cat_graph, width = 6.5, height = 5)
@@ -543,7 +544,7 @@ imm_age_sex_graph <- ggplot(data = age_21, aes(x = gender, y = count, fill = Age
        fill = "Age Group") +
   gg_cc_theme_no_sf +
   theme(legend.position = "bottom", plot.title = element_blank(),
-        legend.title = element_blank(), text = element_text(family = "KMR Apparat Regular"),
+        legend.title = element_blank(), text = element_text(family = "KMR-Apparat-Regular"),
         axis.title.x = element_blank()) +
   guides(fill = guide_legend(reverse = TRUE))
 
@@ -560,7 +561,7 @@ imm_age_sex_prop_graph <- ggplot(data = age_21, aes(x = gender, y = prop, fill =
        fill = "Age Group") +
   gg_cc_theme_no_sf +
   theme(legend.position = "bottom", plot.title = element_blank(),
-        legend.title = element_blank(), text = element_text(family = "KMR Apparat Regular"),
+        legend.title = element_blank(), text = element_text(family = "KMR-Apparat-Regular"),
         axis.title.x = element_blank()) +
   guides(fill = guide_legend(reverse = TRUE))
 
@@ -576,7 +577,7 @@ imm_age_graph <- ggplot(data = age_21_rev, aes(x = Age, y = count, fill = gender
        fill = "Age Group") +
   gg_cc_theme_no_sf +
   theme(legend.position = "bottom", plot.title = element_blank(),
-        legend.title = element_blank(), text = element_text(family = "KMR Apparat Regular"),
+        legend.title = element_blank(), text = element_text(family = "KMR-Apparat-Regular"),
         axis.title.x = element_blank())
 
 ggplot2::ggsave(filename = here::here("output/axe1/immigration/imm_age_graph.pdf"), 
@@ -594,7 +595,7 @@ imm_stackedage_graph <- ggplot(data = age_21, aes(x = Age, y = count, fill = gen
        fill = "Age Group") +
   gg_cc_theme_no_sf +
   theme(legend.position = "bottom", plot.title = element_blank(),
-        legend.title = element_blank(), text = element_text(family = "KMR Apparat Regular"),
+        legend.title = element_blank(), text = element_text(family = "KMR-Apparat-Regular"),
         axis.title.x = element_blank())
 
 ggplot2::ggsave(filename = here::here("output/axe1/immigration/imm_stackedage_graph.pdf"), 
@@ -685,7 +686,7 @@ imm_origin_graph <- ggplot(data = imm_origin, aes(x = origin, y = proportion, fi
        y = "Proportion d'immigrants") +
   gg_cc_theme_no_sf +
   theme(legend.position = "bottom", plot.title = element_blank(),
-        legend.title = element_blank(), text = element_text(family = "KMR Apparat Regular"),
+        legend.title = element_blank(), text = element_text(family = "KMR-Apparat-Regular"),
         axis.text.x = element_text(angle = 45, hjust = 1), axis.title.x = element_text(margin = margin(t = -10)))
 
 ggplot2::ggsave(filename = here::here("output/axe1/immigration/imm_origin_graph.pdf"), 
@@ -820,7 +821,7 @@ vis_min_graph <- ggplot(data = vis_min, aes(x = type, y = count, fill = type)) +
        y = "Individus") +
   gg_cc_theme_no_sf +
   theme(legend.position = "none", plot.title = element_blank(),
-        legend.title = element_blank(), text = element_text(family = "KMR Apparat Regular"),
+        legend.title = element_blank(), text = element_text(family = "KMR-Apparat-Regular"),
         axis.text.x = element_text(angle = 45, hjust = 1), axis.title.x = element_blank())
 
 ggplot2::ggsave(filename = here::here("output/axe1/immigration/vis_min_graph.pdf"), 
