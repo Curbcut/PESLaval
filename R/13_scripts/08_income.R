@@ -104,19 +104,19 @@ mhh_plot <-
   # Apply font style to the whole table
   tab_style(
     style = cell_text(
-      font = "KMR Apparat Regular"
+      font = "KMR-Apparat-Regular"
     ),
     locations = cells_body()
   ) |>
   tab_style(
     style = cell_text(
-      font = "KMR Apparat Regular"
+      font = "KMR-Apparat-Regular"
     ),
     locations = cells_column_labels()
   ) |>
   tab_style(
     style = cell_text(
-      font = "KMR Apparat Regular"
+      font = "KMR-Apparat-Regular"
     ),
     locations = cells_row_groups()
   ) |>
@@ -129,11 +129,12 @@ mhh_plot <-
     columns = c("Ville de Laval", "Ensemble du Québec")
   ) |> 
   tab_options(
-    table.font.size = indesign_fontsize,
-    row_group.font.size = indesign_title_fontsize
+    table.font.size = 9.5,
+    row_group.font.size = 9.5,
+    table.width = px(6 * 96)
   )
 
-gtsave(mhh_plot, "output/axe1/income/mhh_plot.png")
+gtsave(mhh_plot, "output/axe1/income/mhh_plot.png", zoom = 2)
 
 
 # Household median income DA / Sector -------------------------------------
@@ -226,23 +227,24 @@ median_income_table <-
   # Appliquer le style de la police à toute la table
   tab_style(
     style = cell_text(
-      font = "KMR Apparat Regular"
+      font = "KMR-Apparat-Regular"
     ),
     locations = cells_body()
   ) |> 
   tab_style(
     style = cell_text(
-      font = "KMR Apparat Regular"
+      font = "KMR-Apparat-Regular"
     ),
     locations = cells_column_labels()
   ) |> 
   # Options générales pour la table
   tab_options(
-    table.font.size = indesign_fontsize,
-    row_group.font.size = indesign_title_fontsize
+    table.font.size = 9.5,
+    row_group.font.size = 9.5,
+    table.width = px(6 * 96)
   )
 
-gtsave(median_income_table, "output/axe1/housing/median_income_table.png")
+gtsave(median_income_table, "output/axe1/income/median_income_table.png", zoom = 2)
 
 
 # # Répartition des revenus des ménages -------------------------------------
@@ -609,19 +611,19 @@ mii_plot <-
   # Apply font style to the whole table
   tab_style(
     style = cell_text(
-      font = "KMR Apparat Regular"
+      font = "KMR-Apparat-Regular"
     ),
     locations = cells_body()
   ) |>
   tab_style(
     style = cell_text(
-      font = "KMR Apparat Regular"
+      font = "KMR-Apparat-Regular"
     ),
     locations = cells_column_labels()
   ) |>
   tab_style(
     style = cell_text(
-      font = "KMR Apparat Regular"
+      font = "KMR-Apparat-Regular"
     ),
     locations = cells_row_groups()
   ) |>
@@ -634,11 +636,13 @@ mii_plot <-
     columns = c("Ville de Laval", "Ensemble du Québec")
   ) |> 
   tab_options(
-    table.font.size = indesign_fontsize,
-    row_group.font.size = indesign_title_fontsize
+    table.font.size = 9.5,
+    row_group.font.size = 9.5,
+    table.width = px(6 * 96)
   )
 
-gtsave(mii_plot, "output/axe1/income/mii_plot.png")
+
+gtsave(mii_plot, "output/axe1/income/mii_plot.png", zoom = 2)
 
 
 
@@ -845,23 +849,24 @@ median_income_ind_table <-
   # Appliquer le style de la police à toute la table
   tab_style(
     style = cell_text(
-      font = "KMR Apparat Regular"
+      font = "KMR-Apparat-Regular"
     ),
     locations = cells_body()
   ) |> 
   tab_style(
     style = cell_text(
-      font = "KMR Apparat Regular"
+      font = "KMR-Apparat-Regular"
     ),
     locations = cells_column_labels()
   ) |> 
   # Options générales pour la table
   tab_options(
-    table.font.size = indesign_fontsize,
-    row_group.font.size = indesign_title_fontsize
+    table.font.size = 9.5,
+    row_group.font.size = 9.5,
+    table.width = px(6 * 96)
   )
 
-gtsave(median_income_table, "output/axe1/housing/median_income_table.png")
+gtsave(median_income_table, "output/axe1/income/median_income_table.png", zoom = 2)
 
 
 
@@ -1540,23 +1545,25 @@ frev_wide |>
   # Appliquer le style de la police à toute la table
   tab_style(
     style = cell_text(
-      font = "KMR Apparat Regular"
+      font = "KMR-Apparat-Regular"
     ),
     locations = cells_body()
   ) |> 
   tab_style(
     style = cell_text(
-      font = "KMR Apparat Regular"
+      font = "KMR-Apparat-Regular"
     ),
     locations = cells_column_labels()
   ) |> 
   # Options générales pour la table
   tab_options(
-    table.font.size = indesign_fontsize,
-    row_group.font.size = indesign_title_fontsize
+    table.font.size = 9.5,
+    row_group.font.size = 9.5,
+    table.width = px(6 * 96)
   )
 
-gtsave(frev_wide_table, "output/axe1/income/frev_wide_table.png")
+
+gtsave(frev_wide_table, "output/axe1/income/frev_wide_table.png", zoom = 2)
 
 frev_total <- convert_pct(frev_wide$`valeur.y_Ville de Laval`[frev_wide$variable == "Total"])
 frev_total_QC <- convert_pct(frev_wide$`valeur.y_Ensemble du Québec`[frev_wide$variable == "Total"])
@@ -1644,23 +1651,24 @@ frev_sector_table <-
   # Appliquer le style de la police à toute la table
   tab_style(
     style = cell_text(
-      font = "KMR Apparat Regular"
+      font = "KMR-Apparat-Regular"
     ),
     locations = cells_body()
   ) |> 
   tab_style(
     style = cell_text(
-      font = "KMR Apparat Regular"
+      font = "KMR-Apparat-Regular"
     ),
     locations = cells_column_labels()
   ) |> 
   # Options générales pour la table
   tab_options(
-    table.font.size = indesign_fontsize,
-    row_group.font.size = indesign_title_fontsize
+    table.font.size = 9.5,
+    row_group.font.size = 9.5,
+    table.width = px(6 * 96)
   )
 
-gtsave(frev_sector_table, "output/axe1/housing/frev_sector_table.png")
+gtsave(frev_sector_table, "output/axe1/income/frev_sector_table.png", zoom = 2)
 
 
 

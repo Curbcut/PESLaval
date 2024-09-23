@@ -729,11 +729,12 @@ housing_loyer_med_table <-
   ) |> 
   # Options générales pour la table
   tab_options(
-    table.font.size = indesign_fontsize,
-    row_group.font.size = indesign_title_fontsize
+    table.font.size = 9.5,
+    row_group.font.size = 9.5,
+    table.width = px(6 * 96)
   )
 
-gtsave(housing_loyer_med_table, "output/axe1/housing/housing_loyer_med_table.png")
+gtsave(housing_loyer_med_table, "output/axe1/housing/housing_loyer_med_table.png", zoom = 2)
 
 
 lavalouest_loyer <- owner_tenant$`Loyer médian mensuel`[owner_tenant$Secteur == "Laval-Ouest, Sainte-Dorothée, Laval-sur-le-Lac"]
@@ -932,12 +933,13 @@ loyer_med_var_table <-
       locations = cells_row_groups()
     ) |> 
     tab_options(
-      table.font.size = indesign_fontsize,
-      row_group.font.size = indesign_title_fontsize
+      table.font.size = 9.5,
+      row_group.font.size = 9.5,
+      table.width = px(6 * 96)
     )
   
 
-gtsave(loyer_med_var_table, "output/axe1/housing/loyer_med_var_table.png")
+gtsave(loyer_med_var_table, "output/axe1/housing/loyer_med_var_table.png", zoom = 2)
 
 losd <- "Laval-Ouest, Sainte-Dorothée, Laval-sur-le-Lac"
 housing_rent_losd <- owner_tenant_sf_var$med_tenant[owner_tenant_sf_var == losd]
@@ -1053,11 +1055,12 @@ housing_cost_med_table <-
   ) |> 
   # Options générales pour la table
   tab_options(
-    table.font.size = indesign_fontsize,
-    row_group.font.size = indesign_title_fontsize
+    table.font.size = 9.5,
+    row_group.font.size = 9.5,
+    table.width = px(6 * 96)
   )
 
-gtsave(housing_cost_med_table, "output/axe1/housing/housing_cost_med_table.png")
+gtsave(housing_cost_med_table, "output/axe1/housing/housing_cost_med_table.png", zoom = 2)
 
 
 housing_cost_med_table_var <-
@@ -1121,11 +1124,12 @@ housing_cost_med_table_var <-
     locations = cells_row_groups()
   ) |> 
   tab_options(
-    table.font.size = indesign_fontsize,
-    row_group.font.size = indesign_title_fontsize
+    table.font.size = 9.5,
+    row_group.font.size = 9.5,
+    table.width = px(6 * 96)
   )
 
-gtsave(housing_cost_med_table_var, "output/axe1/housing/housing_cost_med_table_var.png")
+gtsave(housing_cost_med_table_var, "output/axe1/housing/housing_cost_med_table_var.png", zoom = 2)
 
 losd <- "Laval-Ouest, Sainte-Dorothée, Laval-sur-le-Lac"
 housing_cost_losd <- owner_tenant_sf_var$med_owner[owner_tenant_sf_var == losd]
@@ -1474,11 +1478,12 @@ gt(taux_efforts) |>
     locations = cells_row_groups()
   ) |> 
   tab_options(
-    table.font.size = indesign_fontsize,
-    row_group.font.size = indesign_title_fontsize
+    table.font.size = 9.5,
+    row_group.font.size = 9.5,
+    table.width = px(6 * 96)
   )
 
-gtsave(taux_efforts_table, "output/axe1/housing/taux_efforts_table.png")
+gtsave(taux_efforts_table, "output/axe1/housing/taux_efforts_table.png", zoom = 2)
 
 
 rent_2021 <- avg_rent_annual$Value[avg_rent_annual$Geography == "Laval" & avg_rent_annual$Year == 2021]
@@ -1615,13 +1620,14 @@ gt(acceptable_housing) |>
   tab_style(
     style = cell_fill(color = "#F0F0F0"),
     locations = cells_row_groups()
-  )# |> 
-  # tab_options(
-  #   table.font.size = indesign_fontsize,
-  #   row_group.font.size = indesign_title_fontsize
-  # )
+  ) |> 
+  tab_options(
+    table.font.size = 9.5,
+    row_group.font.size = 9.5,
+    table.width = px(6 * 96)
+  )
 
-gtsave(acceptable_housing_table, "output/axe1/housing/acceptable_housing_table.png")
+gtsave(acceptable_housing_table, "output/axe1/housing/acceptable_housing_table.png", zoom = 2)
 
 taille <- "Inférieur au seuil de taille convenable"
 taille_all <- convert_pct(acceptable_housing$`Tous les ménages_Laval`[acceptable_housing$` ` == taille])
@@ -1777,8 +1783,9 @@ core_need_table <-
     locations = cells_row_groups()
   ) |> 
   tab_options(
-    table.font.size = indesign_fontsize,
-    row_group.font.size = indesign_title_fontsize
+      table.font.size = 9.5,
+      row_group.font.size = 9.5,
+      table.width = px(6 * 96)
   )
 
 core_need_2006 <- core_need_time$`Besoins impérieux (%)`[core_need_time$Région == "Ville de Laval" &
@@ -1790,7 +1797,7 @@ core_need_2021 <- core_need_time$`Besoins impérieux (%)`[core_need_time$Région
 
 
 
-gtsave(core_need_table, "output/axe1/housing/core_need_table.png")
+gtsave(core_need_table, "output/axe1/housing/core_need_table.png", zoom = 2)
 
 qs::qsavem(housing_owner_2016, housing_owner_2001, housing_owner_2021,
            logement_statutoccupation, housing_owner_2016, housing_owner_2021, housing_evol_owner_1621,
