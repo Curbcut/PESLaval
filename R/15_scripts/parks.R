@@ -197,11 +197,12 @@ park_table <- park_table_data |>
   ) |> 
   # Options générales pour la table
   tab_options(
-    table.font.size = indesign_fontsize,
-    row_group.font.size = indesign_title_fontsize
+    table.font.size = 9.5,
+    row_group.font.size = 9.5,
+    table.width = px(8 * 96)
   )
 
-gtsave(park_table, "output/axe3/park_table.png")
+gtsave(park_table, "output/axe3/park_table.png", zoom = 2)
 
 #Numbers for markdown
 laval_pop <- parks_pop |> 

@@ -140,23 +140,24 @@ municipal_table <- equipment_demo |>
   # Appliquer le style de la police à toute la table
   tab_style(
     style = cell_text(
-      font = "KMR Apparat Regular"
+      font = "KMR-Apparat-Regular"
     ),
     locations = cells_body()
   ) |> 
   tab_style(
     style = cell_text(
-      font = "KMR Apparat Regular"
+      font = "KMR-Apparat-Regular"
     ),
     locations = cells_column_labels()
   ) |> 
   # Options générales pour la table
   tab_options(
-    table.font.size = indesign_fontsize,
-    row_group.font.size = indesign_title_fontsize
+    table.font.size = 9.5,
+    row_group.font.size = 9.5,
+    table.width = px(6 * 96)
   )
 
-gtsave(municipal_table, "output/axe3/municipal_table.png")
+gtsave(municipal_table, "output/axe3/municipal_table.png", zoom = 2)
 
 
 municipal_population <- sum(DA_demo$Population, na.rm = TRUE)

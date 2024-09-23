@@ -19,4 +19,4 @@ ggplot(df, aes(x = factor(years), y = values)) +
   ylab(NULL)
 
 ggplot2::ggsave(filename = here::here("output/axe2/crime_plot.pdf"), 
-                plot = crime_plot, width = 4, height = 2, bg = "transparent")
+                plot = crime_plot, width = 6, height = 3, bg = "transparent")
