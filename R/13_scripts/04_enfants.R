@@ -343,7 +343,7 @@ ggplot(data = combined_screentime, aes(x = Age, y = rev(value), fill = name)) +
 
 
 ggplot2::ggsave(filename = here::here("output/axe1/children/children_internet_usage.pdf"), 
-                plot = children_internet_usage, width = 4, height = 5.75, bg = "transparent")
+                plot = children_internet_usage, width = 4, height = 6, bg = "transparent")
 
 # Kindergarten children vulnerability --------------------------------------------
 # data = quebec survery on child development in kindergarten 2022
@@ -387,7 +387,7 @@ ggplot(data = combined_child_vulnerability, aes(x = name, y = value, fill = Regi
   theme(legend.title = element_blank())
 
 ggplot2::ggsave(filename = here::here("output/axe1/children/children_vulnerability_plot.pdf"), 
-                plot = children_vulnerability_plot, width = 6.5, height = 3, bg = "transparent")
+                plot = children_vulnerability_plot, width = 6.5, height = 4, bg = "transparent")
 
 # # Vulnerability over the years 
 # female_change_vulnerability <- data.frame(`Gender` = c("Female"),
