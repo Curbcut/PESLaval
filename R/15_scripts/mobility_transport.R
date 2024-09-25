@@ -165,8 +165,8 @@ bus_lines_map <- ggplot(data = trips) +
                                          label.position = "bottom", nrow = 1)) +
   gg_cc_theme
 
-ggplot2::ggsave(filename = here::here("output/axe3/bus_stops_map.pdf"), 
-                plot = bus_stops_map, width = 9, height = 6)
+ggplot2::ggsave(filename = here::here("output/axe3/bus_lines_map.pdf"), 
+                plot = bus_lines_map, width = 9, height = 6)
 
 # Values
 no_bus_lines <- sum(trips$Population[trips$trips == 0])
@@ -246,7 +246,7 @@ bus_trips_map <- ggplot(data = stop_times) +
   gg_cc_theme
 
 ggplot2::ggsave(filename = here::here("output/axe3/bus_trips_map.pdf"), 
-                plot = bus_trips_map, width = 5.5, height = 4)
+                plot = bus_trips_map, width = 9, height = 6)
 
 # Values
 no_bus_trips <- sum(stop_times$Population[stop_times$vehicles == 0])
@@ -336,7 +336,7 @@ poi_map <- DA_poi |>
         legend.spacing.y = unit(1, 'cm'))
 
 ggplot2::ggsave(filename = here::here("output/axe3/bus_poi_map.pdf"), 
-                plot = poi_map, width = 5.5, height = 4)
+                plot = poi_map, width = 9, height = 6)
 
 #R Markdown Numbers
 poi_total <- convert_number(nrow(pois))
@@ -412,7 +412,7 @@ transit_usage_map <- ggplot(data = flows) +
   gg_cc_theme
 
 ggplot2::ggsave(filename = here::here("output/axe3/transit_usage_map.pdf"), 
-                plot = transit_usage_map, width = 7.5, height = 6)
+                plot = transit_usage_map, width = 9, height = 6)
 
 # Values
 flows <- cancensus::get_census(dataset = "CA21", 
