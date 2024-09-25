@@ -123,7 +123,7 @@ ndvi_plot <-
   theme(legend.title = element_blank())
 
 ggplot2::ggsave(filename = here::here("output/axe1/climaterisk/ndvi_plot.pdf"),
-                plot = ndvi_plot, width = 9, height = 4)
+                plot = ndvi_plot, width = 12, height = 6)
 
 
 # Flooding ----------------------------------------------------------------
@@ -145,7 +145,7 @@ ggplot(curbcut_flooding) +
   theme(legend.title = element_blank())
 
 ggplot2::ggsave(filename = here::here("output/axe1/climaterisk/flood_plot.pdf"),
-                plot = flood_plot, width = 9, height = 4)
+                plot = flood_plot, width = 12, height = 6)
 
 
 # Residential buildings
