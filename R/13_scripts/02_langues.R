@@ -598,7 +598,7 @@ most_spoken_at_home_maps <- plot_spacer() + most_spoken_at_home_DAs + plot_space
   most_spoken_at_home_density + plot_spacer() + plot_layout(widths = c(0.5, 5, 0.2, 5, 0.5))
 
 ggplot2::ggsave(filename = here::here("output/axe1/langues/most_spoken_at_home_maps.pdf"), 
-                plot = most_spoken_at_home_maps, width = 10, height = 5.5)
+                plot = most_spoken_at_home_maps, width = 10, height = 6.5)
 
 
 # Language most spoken at work --------------------------------------------
