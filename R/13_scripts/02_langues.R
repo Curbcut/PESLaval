@@ -371,7 +371,7 @@ most_spoken_at_home <-
   geom_text(aes(label = convert_pct(Percentage/100)),
             position = position_fill(vjust = 0.5),
             size = 3,
-            color = "white") +
+            color = "black") +
   ylab(NULL) +
   xlab(NULL) +
   scale_fill_manual(values = c("Autres" = color_theme("yellowclimate"), 
@@ -380,6 +380,9 @@ most_spoken_at_home <-
   guides(fill = guide_legend(reverse = TRUE)) +
   gg_cc_theme_no_sf +
   theme(legend.title = element_blank())
+
+ggplot2::ggsave(filename = here::here("output/axe1/langues/most_spoken_at_home.pdf"), 
+                plot = most_spoken_at_home, width = 6.5, height = 4)
 
 # Values for the text
 maison_fun <- \(year, lang) {
