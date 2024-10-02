@@ -245,7 +245,7 @@ healthcare_table <- sante_age |>
     table.width = px(6 * 96)
   )
 
-gtsave(healthcare_table, "output/axe3/healthcare_table.pdf", zoom = 2)
+gt::gtsave(healthcare_table, "output/axe3/healthcare_table.png", zoom = 2)
 
 
 # R Markdown --------------------------------------------------------------

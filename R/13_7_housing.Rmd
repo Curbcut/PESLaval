@@ -18,7 +18,7 @@ qs::qload("data/axe1/housing.qsm")
 
 À Laval, la proportion de ménages propriétaires a longtemps été élevée. En 2016, `r housing_owner_2016_pct` des ménages étaient propriétaires de leur logement, contre `r housing_owner_2001_pct` en 2001. Cependant, entre 2016 et 2021, cette tendance s'est inversée et le taux de propriétaires a chuté à `r housing_owner_2021_pct`, revenant au niveau de 2001. En parallèle, la proportion de ménages locataires a augmentée (voir le graphique \@ref(fig:housingStatut)). Malgré cette baisse, la proportion de propriétaires à Laval reste plus élevées qu'à Montréal et au Québec, où respectivement 36,8 % et 60,1 % des ménages sont propriétaires.
 
-```{r housingStatut, include=TRUE, fig.cap="Évolution du nombre et de la répartition des ménages selon le mode d'occupation du logement (2001-2021)", fig.align = 'center'}
+```{r housingStatut, include=TRUE, fig.cap="Évolution du nombre et de la répartition des ménages selon le mode d'occupation du logement (2001-2021). Source: Statistique Canada.", fig.align = 'center'}
 logement_statutoccupation
 ```
 
@@ -40,17 +40,17 @@ housing_loyermed_plot
 
 En 2021, le secteur de Laval ayant le loyer médian le plus élevé était Laval-Ouest, Sainte-Dorothée, Laval-sur-le-Lac, où le loyer médian était de `r lavalouest_loyer` \$ par mois (Tableau \@ref(tab:housingLoyerMed)). Le secteur de Chomedey présentait aussi un loyer médian particulièrement élevé (`r chomedey_loyer` \$), bien qu'il s'agisse d'un secteur de Laval où les revenus des ménages sont plus faibles. Ce loyer médian élevé peut être attribué en parti à un taux de rotation élevé des résident·e·s, ce qui permet aux propriétaires d'augmenter les loyers plus souvent, car les nouveaux locataires doivent généralement payer un loyer plus élevé que les résident·e·s de longue date qui bénéficient de la réglementation sur le contrôle des loyers. Effectivement, le secteur de Chomedey suit Laval-des-Rapides, Pont-Viau (`r mobility_status_ldr`) de près, avec un taux de mobilité des résidents de `r mobility_status_chomedey` entre 2016 et 2021, se classant ainsi au deuxième rang pour la mobilité résidentielle. Pour l'ensemble de Laval, ce taux était de `r mobility_status_CSD`. 
 
-```{r housingMedRent, include=TRUE, fig.cap="Loyer mensuel médian (2021)", fig.align = 'center'}
+```{r housingMedRent, include=TRUE, fig.cap="Loyer mensuel médian (2021). Source: Statistique Canada.", fig.align = 'center'}
 housing_median_rent_plot
 ```
 
-```{r housingLoyerMed, include=TRUE, tab.cap="Répartition des loyers médians par secteur (2021)"}
+```{r housingLoyerMed, include=TRUE, tab.cap="Répartition des loyers médians par secteur (2021). Source: Statistique Canada, données traitées par Curbcut."}
 housing_loyer_med_table
 ```
 
 De 2016 à 2021, tous les secteurs de Laval ont connu une augmentation significative du loyer médian, comme l'indique le tableau \@ref(tab:housingLoyerMedVar). Laval-Ouest, Sainte-Dorothée, Laval-sur-le-Lac est le secteur ayant connu la plus forte variation de loyer, passant de `r housing_rent_losd_2016` \$ à `r housing_rent_losd` \$, soit une augmentation de `r housing_rent_var_losd` en 5 ans. Chomedey a aussi connu une augmentation rapide de `r housing_rent_var_srfb` au cours de la même période, passant de `r housing_rent_srfb_2016` à `r housing_rent_srfb`. À l'inverse, le quartier qui a connu la plus faible augmentation est Duvernay, Saint-Vincent-de-Paul, Saint-François avec `r housing_rent_var_svpsf`, passant de `r housing_rent_svpsf_2016` à `r housing_rent_svpsf`.
 
-```{r housingLoyerMedVar, include=TRUE, tab.cap="Variation du loyer médian par secteur entre 2016 et 2021"}
+```{r housingLoyerMedVar, include=TRUE, tab.cap="Variation du loyer médian par secteur entre 2016 et 2021. Source: Statistique Canada, données traitées par Curbcut."}
 loyer_med_var_table
 ```
 
@@ -63,17 +63,17 @@ Définition. Frais de logement des ménages propriétaires
 
 Comme pour les loyers mensuels médians, en 2021, Laval-Ouest, Sainte-Dorothée, Laval-sur-le-Lac était le secteur avec les plus haut frais de logements mensuels médians pour les ménages propriétaires (`r housing_cost_losd` \$). Ce dernier était suivi par Sainte-Rose, Fabreville (`r housing_cost_srfb` \$).
 
-```{r housingMedCost, include=TRUE, fig.cap="Frais de logements mensuels médians pour les ménages propriétaires (2021)", fig.align = 'center'}
+```{r housingMedCost, include=TRUE, fig.cap="Frais de logements mensuels médians pour les ménages propriétaires (2021). Source: Statistique Canada.", fig.align = 'center'}
 housing_median_rent_plot
 ```
 
-```{r housingCostMed, include=TRUE, tab.cap="Répartition des frais de logements mensuels médians pour les ménages propriétaires par secteur (2021)"}
+```{r housingCostMed, include=TRUE, tab.cap="Répartition des frais de logements mensuels médians pour les ménages propriétaires par secteur (2021). Source: Statistique Canada, données traitées par Curbcut."}
 housing_cost_med_table
 ```
 
 De 2016 à 2021, tous les secteurs de Laval ont connu une augmentation des frais de logement des ménages propriétaires. Leur distribution est présentée au tableau \@ref(tab:housingCostMedTableSectors). Le secteur avec la plus haute augmentation était Laval-des-Rapides, Pont-Viau avec une augmentation de `r housing_cost_var_lrpv`, passant de `r housing_cost_lrpv_2016` \$ en 2016 à `r housing_cost_lrpv` \$ en 2021.
 
-```{r housingCostMedTableSectors, include=TRUE, tab.cap="Variation des frais de logements mensuels médians pour les ménages propriétaires par secteur entre 2016 et 2021"}
+```{r housingCostMedTableSectors, include=TRUE, tab.cap="Variation des frais de logements mensuels médians pour les ménages propriétaires par secteur entre 2016 et 2021. Source: Statistique Canada, données traitées par Curbcut."}
 housing_cost_med_table_var
 ```
 
@@ -110,7 +110,7 @@ La baisse du taux d'effort pourrait s'expliquer en partie par les prestations li
 
 Comme l'indique le tableau \@ref(tab:TauxEffortsTable), une proportion plus élevée de ménages locataires occupent un logement inabordable par rapport aux ménages propriétaires. En effet, en 2021, `r housing_te_tenant` des locataires vivaient dans des logements inabordables, contre `r housing_te_owner` des propriétaires. Cette tendance se manifeste dans tous les secteurs de Laval, avec Chomedey enregistrant les taux d'effort les plus élevés, tous statuts d'occupation confondus.
 
-```{r TauxEffortsTable, include=TRUE, tab.cap="Proportion de ménages consacrant 30 % ou plus de leur revenu avant impôt au coût du logement, par secteur (2021)"}
+```{r TauxEffortsTable, include=TRUE, tab.cap="Proportion de ménages consacrant 30 % ou plus de leur revenu avant impôt au coût du logement, par secteur (2021). Source: Statistique Canada, données traitées par Curbcut."}
 taux_efforts_table
 ```
 
@@ -133,7 +133,7 @@ En 2021, plus d'un ménage lavallois sur 20 (`r taille_all`) occupait un logemen
 
 Cette tendance se poursuit si l'on examine la proportion de logements jugés acceptables. À Laval, seulement `r acceptable_tenant` des ménages locataires occupent un logement acceptable, ce qui est nettement inférieur au `r acceptable_owner` observé chez les propriétaires. Cela souligne les défis plus prononcés auxquels font face les locataires en matière de qualité et de taille de logement, en plus des contraintes d'abordabilité déjà mentionnées.
 
-```{r acceptableHousingTable, include=TRUE, tab.cap="Logement acceptable par mode d'occupation (2021)"}
+```{r acceptableHousingTable, include=TRUE, tab.cap="Logement acceptable par mode d'occupation (2021). Source: Statistique Canada."}
 acceptable_housing_table
 ```
 
