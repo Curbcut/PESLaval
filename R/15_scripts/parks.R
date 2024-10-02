@@ -180,10 +180,10 @@ park_table_data_with_dup_first_col <- park_table_data_with_dup_first_col[c(1,2,3
 park_table <- 
   park_table_data_with_dup_first_col |> 
   gt() |> 
-  fmt(columns = c(2,4,6), fns = convert_number_tens) |> 
-  fmt(columns = c(3,5,7), fns = convert_pct) |> 
+  fmt(columns = c(2,4,7), fns = convert_number_tens) |> 
+  fmt(columns = c(3,6,8), fns = convert_pct) |> 
   data_color(
-    columns = c(3,5,7),
+    columns = c(3,6,8),
     colors = scales::col_numeric(
       palette = c("white", color_theme("purpletransport")),
       domain = NULL
@@ -206,7 +206,11 @@ park_table <-
   tab_options(
     table.font.size = 9.5,
     row_group.font.size = 9.5,
-    table.width = px(8 * 96)
+    table.width = px(4 * 96)
+  ) |> 
+  cols_width(
+    1 ~ px(1 * 96),
+    5 ~ px(1 * 96)
   ) |> 
   # Split the table at the specified point, including the duplicated first column
   gt_split(col_slice_at = ceiling(ncol(park_table_data_with_dup_first_col) / 2))

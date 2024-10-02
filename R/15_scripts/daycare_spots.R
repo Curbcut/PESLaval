@@ -196,6 +196,14 @@ no_spots <- DBs$GeoUID[!DBs$GeoUID %in% access_spots$DB_ID]
 access_spots <- rbind(access_spots, tibble::tibble(DB_ID = no_spots, PLACE_TOTAL = 0))
 access_spots <- tibble::as_tibble(access_spots)
 
+# How many daycare-aged children per DBs? ---------------------------------
+
+DB_children <- cc.buildr::merge(DBs[c("GeoUID", "DA_UID", "Population")], 
+                                sf::st_drop_geometry(DAs), by = "DA_UID")
+DB_children$pop_ratio <- DB_children$Population / DB_children$DA_pop
+DB_children$children <- DB_children$children * DB_children$pop_ratio
+DB_children <- DB_children[c("GeoUID", "children")]
+
 # How many children can reach them? ---------------------------------------
 
 children_cant_reach <- 
@@ -318,7 +326,7 @@ daycare_map <- ggplot(t) +
                     guide = guide_legend(title.position = "top", label.position = "bottom", nrow = 1)) +
   geom_sf(data = daycares, aes(color = binned_PLACE_TOTAL), size = 0.8, alpha = 0.8) +
   scale_color_manual(values = place_colors, 
-                     name = "Places par garderie", 
+                     name = "Places par\nservice de garde", 
                      guide = guide_legend(title.position = "top", label.position = "bottom", nrow = 1,
                                           override.aes = list(size = 5, stroke = 0.5))) +
   gg_cc_theme +

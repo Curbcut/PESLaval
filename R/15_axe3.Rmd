@@ -37,13 +37,13 @@ Le graphique \@ref(fig:daycareMap) illustre donc cette mesure d’accessibilité
 
 Ce sont `r poor_no_access` enfants qui n’ont soit aucun accès, soit un faible accès aux places en SGEEI, considérant la compétitivité pour ces places dans leur zone. Au contraire, ce sont `r good_access` enfants, soit un enfant sur 5, qui ont relativement un très bon accès.
 
-```{r daycareMap, include=TRUE, fig.cap="Accessibilité aux places en services de garde éducatifs à l'enfance à Laval (2024)", fig.align = 'center'}
+```{r daycareMap, include=TRUE, fig.cap="Accessibilité aux places en services de garde éducatifs à l'enfance à Laval (2024). Source : Ministère de la Famille, localisations des services de garde.", fig.align = 'center'}
 daycare_map
 ```
 
 La carte suivante offre un contexte supplémentaire en présentant la densité d’enfants de 0 à 5 ans par kilomètre carré. En général, les zones à faible densité d'enfants sont aussi des zones où l'accès aux places en SGEEi à moins de 15 minutes de marche est faible ou inexistant. Ceci dit, il n’existe pas de corrélation entre les deux mesures. En d’autres mots, à Laval, une zone à forte densité d’enfants n’a pas nécessairement un meilleur accès aux places en SGEEI.
 
-```{r childMap, include=TRUE, fig.cap="Densité de population des enfants de 0 à 5 ans à Laval (2021)", fig.align = 'center'}
+```{r childMap, include=TRUE, fig.cap="Densité de population des enfants de 0 à 5 ans à Laval (2021). Source: Statistique Canada.", fig.align = 'center'}
 child_map
 ```
 
@@ -57,13 +57,13 @@ Selon les données publiées par le ministère de l’Éducation en 2024, la Vil
 
 METHODOLOGIE NOTES DE FIN : Les temps de marche ont été calculés à l'échelle des îlots de diffusion avec une grande précision. Pour correspondre à cette granularité, nous avons estimé les données démographiques en utilisant celles disponibles au niveau des aires de diffusion, plus étendues géographiquement. Cette estimation repose sur l’hypothèse que la répartition démographique à l’intérieur d’une aire de diffusion est proportionnelle à la population totale de chaque îlot qui la compose. Bien que cette méthode soit utile pour affiner les estimations en l'absence de données directes, elle comporte des incertitudes dues à la variabilité au sein des aires de diffusion et à l'hypothèse de répartition uniforme. Ces incertitudes peuvent affecter la précision des résultats, qui doivent donc être interprétés avec prudence en tenant compte de ces limitations.
 
-```{r primarySchoolMap, include=TRUE, fig.cap="Accès aux écoles primaires (2024)", fig.align = 'center'}
+```{r primarySchoolMap, include=TRUE, fig.cap="Accès aux écoles primaires (2024). Source : Ministère de l'Éducation, localisations des écoles primaires.", fig.align = 'center'}
 primaire_plot
 ```
 
 Étant moins nombreuses, les écoles secondaires offrent naturellement une accessibilité réduite par rapport aux écoles primaires. Seulement `r children_with_access_sec_pct` des adolescents de 12 à 17 ans ont accès à une école secondaire en moins de 15 minutes de marche. Ce taux diminue à `r children_with_access_sec_fr_pct` pour les écoles primaires francophones et à `r children_with_access_sec_en_pct` anglophones respectivement.
 
-```{r secondarySchoolMap, include=TRUE, fig.cap="Accès aux écoles secondaires (2024)", fig.align = 'center'}
+```{r secondarySchoolMap, include=TRUE, fig.cap="Accès aux écoles secondaires (2024). Source : Ministère de l'Éducation, localisations des écoles secondaires.", fig.align = 'center'}
 secondaire_plot
 ```
 
@@ -71,7 +71,7 @@ Le tableau suivant indique que les familles présentant des facteurs de vulnéra
 
 METHODOLOGIE NOTES DE FIN : Les temps de marche ont été calculés à l'échelle des îlots de diffusion avec une grande précision. Nous avons estimé les données démographiques à ce même niveau en nous basant sur les données des secteurs de recensement, plus larges géographiquement.Cette estimation repose sur l'hypothèse que la répartition des familles avec enfants dans un secteur de recensement est proportionnelle à la population totale de chaque îlot de diffusion qui la compose. Bien que cette méthode soit pertinente pour obtenir des estimations à un niveau local plus fin en l'absence de données directes, elle comporte des incertitudes liées à la variabilité intra-secteur de recensement et à l'hypothèse d'une répartition uniforme. Ces incertitudes peuvent affecter la précision des résultats, quidoivent donc être interprétés avec prudence en tenant compte de ces limitations méthodologiques.
 
-```{r schoolTable, include=TRUE, tab.cap="Familles avec enfants présentant des facteurs de vulnérabilité et accès aux écoles (2024)"}
+```{r schoolTable, include=TRUE, tab.cap="Familles avec enfants présentant des facteurs de vulnérabilité et accès aux écoles (2024). Source : Statistique Canada, données démographiques."}
 school_table
 ```
 
@@ -85,7 +85,7 @@ Généralement, un individu nécessite un accès régulier et facile à un étab
 
 Comme les résident·e·s ont généralement besoin d’avoir accès à un seul établissement de soins de santé généraux, la carte du graphique \@ref(fig:healthcareMap)) présente le temps de marchnécessaire pour atteindre le centre le plus proche. Ce temps est plus court dans les pochettes les plus densément peuplées. Toutefois, Sainte-Dorothée se démarque par son manque d’accès. Ce sont `r less_15` (`r less_15_prop`) Lavallois·e·s qui ont accès à l’un de ces centres en moins de 15 minutes, et la moitié de la population lavalloise (`r less_30` ou `r less_30_prop`) qui peuvent y accéder en moins de 30 minutes de marche. En revanche, `r more_60` (`r more_60_pct`) individus n’ont pas d’accès réaliste à la marche et doivent marcher plus d'une heure pour accéder à ces services.
 
-```{r healthcareMap, include=TRUE, fig.cap="Accès aux services de santé et aux services sociaux (2024)", fig.align = 'center'}
+```{r healthcareMap, include=TRUE, fig.cap="Accès aux services de santé et aux services sociaux (2024). Source : Ministère de la Santé et des Services sociaux, localisations des services.", fig.align = 'center'}
 healthcare_map
 ``` 
 
@@ -95,7 +95,7 @@ Les enfants ont généralement un accès à pied moins favorable que la populati
 
 METHODOLOGIE NOTES DE FIN : Les temps de marche ont été calculés à l'échelle des îlots de diffusion avec une grande précision. Nous avons estimé les données démographiques à cette même échelle en utilisant celles disponibles au niveau des aires de diffusion, plus larges géographiquement. Cette estimation repose sur l’hypothèse que la répartition des démographies étudiées dans une aire de diffusion est proportionnelle à la population totale de chaque îlot qui la compose. Bien que cette méthode soit utile pour affiner les estimations à un niveau local plus précis en l’absence de données directes, elle comporte des incertitudes liées à la variabilité intra-aire de diffusion et à l’hypothèse d'une répartition uniforme. Ces incertitudes peuvent affecter la précision des résultats, qui doivent donc être interprétés avec prudence en tenant compte de ces limitations méthodologiques.
 
-```{r healthcareTable, include=TRUE, tab.cap="Accès aux services sociaux et de santé pour les enfants et les personnes âgées"}
+```{r healthcareTable, include=TRUE, tab.cap="Accès aux services sociaux et de santé pour les enfants et les personnes âgées. Source : Statistique Canada, données démographiques."}
 healthcare_table
 ``` 
 
@@ -109,7 +109,7 @@ qs::qload(here::here("data/axe3/municipal.qsm"))
 
 Les lieux et édifices municipaux^[Ville de Laval, Données Québec. (2024). Lieux et édifices municipaux. Récupéré de https://www.donneesquebec.ca/recherche/dataset/lieux-et-edifices-municipaux], incluant des lieux comme les bibliothèques et les centres communautaires, mais aussi les arénas et les sites avec équipements de parcs, offrent des espaces aux résidents pour interagir et entretenir des relations sociales, accéder aux services municipaux et participer à des activités récréatives et de loisirs. La carte ne vise pas à représenter une desserte complète ou parfaite en infrastructures: certains établissements municipaux clés peuvent manquer dans certaines zones, malgré une apparente bonne couverture d'autres types d'équipements. La diversité des infrastructures, au-delà de leur simple présence, est donc un facteur à considérer dans l'analyse de l'accessibilité aux services municipaux. Ainsi, pour une exploration plus fine et détaillée de l'accessibilité des différents types d'équipements municipaux, la plateforme Curbcut peut être utilisée afin de répondre à ces questions (https://curbcut.ca/laval/acces).
 
-```{r municipalMap, include=TRUE, fig.cap="Accessibilité aux lieux et bâtiments municipaux (2024)", fig.align = 'center'}
+```{r municipalMap, include=TRUE, fig.cap="Accessibilité aux lieux et bâtiments municipaux (2024). Source : Ville de Laval, localisations des lieux et bâtiments municipaux.", fig.align = 'center'}
 municipal_map
 ```
 
@@ -117,7 +117,7 @@ La quasi-totalité des Lavallois·es (`r municipal_access`) a accès à au moins
 
 METHODOLOGIE NOTES DE FIN : Les temps de marche ont été calculés à l'échelle des îlots de diffusion avec une grande précision. Nous avons estimé les données démographiques à cette même échelle en utilisant celles disponibles au niveau des aires de diffusion, plus larges géographiquement. Cette estimation repose sur l’hypothèse que la répartition des démographies étudiées dans une aire de diffusion est proportionnelle à la population totale de chaque îlot qui la compose. Bien que cette méthode soit utile pour affiner les estimations à un niveau local plus précis en l’absence de données directes, elle comporte des incertitudes liées à la variabilité intra-aire de diffusion et à l’hypothèse d'une répartition uniforme. Ces incertitudes peuvent affecter la précision des résultats, qui doivent donc être interprétés avec prudence en tenant compte de ces limitations méthodologiques.
 
-```{r municipalTable, include=TRUE, tab.cap="Comparaison des facteurs démographiques pour l'accessibilité aux lieux municipaux (2021)"}
+```{r municipalTable, include=TRUE, tab.cap="Comparaison des facteurs démographiques pour l'accessibilité aux lieux municipaux (2021). Source : Statistique Canada, données démographiques."}
 municipal_table
 ```
 
@@ -128,7 +128,7 @@ qs::qload(here::here("data/axe3/parks.qsm"))
 
 Pour évaluer l’accessibilité aux parcs, nous mesurons le nombre de parcs d'un minimum de 2 000m² accessibles à une distance de 15 minutes de marche. Dans la ville, `r parks_total` espaces verts remplissent cette définition.
 
-```{r parkMap, include=TRUE, fig.cap="Accessibilité aux parcs (2024)", fig.align = 'center'}
+```{r parkMap, include=TRUE, fig.cap="Accessibilité aux parcs (2024). Source : Ville de Laval, localisations des parcs. ", fig.align = 'center'}
 parks_map
 ```
 
@@ -138,7 +138,7 @@ La grande majorité (`r park_access`) de la population lavalloise a accès à au
 
 METHODOLOGIE NOTES DE FIN : Les temps de marche ont été calculés à l'échelle des îlots de diffusion avec une grande précision. Nous avons estimé les données démographiques à cette même échelle en utilisant celles disponibles au niveau des aires de diffusion, plus larges géographiquement. Cette estimation repose sur l’hypothèse que la répartition des démographies étudiées dans une aire de diffusion est proportionnelle à la population totale de chaque îlot qui la compose. Bien que cette méthode soit utile pour affiner les estimations à un niveau local plus précis en l’absence de données directes, elle comporte des incertitudes liées à la variabilité intra-aire de diffusion et à l’hypothèse d'une répartition uniforme. Ces incertitudes peuvent affecter la précision des résultats, qui doivent donc être interprétés avec prudence en tenant compte de ces limitations méthodologiques.
 
-```{r parkTable, include=TRUE, tab.cap="Accessibilité aux parcs selon la démographie (2021)"}
+```{r parkTable, include=TRUE, tab.cap="Accessibilité aux parcs selon la démographie (2021). Source : Statistique Canada, données démographiques."}
 park_table
 ```
 
@@ -152,7 +152,7 @@ METHODOLOGIE NOTES DE FIN : En ce qui concerne l’accessibilité aux commerces 
 
 L'accessibilité aux supermarchés est évaluée selon deux critères : le temps de marche nécessaire pour atteindre le supermarché le plus proche et le nombre de supermarchés accessibles en moins de 15 minutes de marche. Ce dernier indicateur reflète la variété et le choix offerts aux résidents.Cette approche à deux cartes permet d'identifier les zones qui, bien que desservies par un supermarché à proximité, pourraient manquer de variété, ou inversement.
 
-```{r foodMap, include=TRUE, fig.cap="Temps de marche jusqu'à l'épicerie la plus proche (à gauche) et nombre d'épiceries accessibles en 15 minutes à pieds (à droite) (2024)", fig.align = 'center'}
+```{r foodMap, include=TRUE, fig.cap="Temps de marche jusqu'à l'épicerie la plus proche (à gauche) et nombre d'épiceries accessibles en 15 minutes à pieds (à droite) (2024). Source : OpenStreetMap, localisations des supermarchés.", fig.align = 'center'}
 
 grocery_maps
 
@@ -162,7 +162,7 @@ Les résidents des ménages à faible revenu peuvent avoir un accès plus limit�
 
 METHODOLOGIE NOTES DE FIN : Les temps de marche ont été calculés à l'échelle des îlots de diffusion avec une grande précision. Nous avons estimé les données démographiques à cette même échelle en utilisant celles disponibles au niveau des aires de diffusion, plus larges géographiquement. Cette estimation repose sur l’hypothèse que la répartition des démographies étudiées dans une aire de diffusion est proportionnelle à la population totale de chaque îlot qui la compose. Bien que cette méthode soit utile pour affiner les estimations à un niveau local plus précis en l’absence de données directes, elle comporte des incertitudes liées à la variabilité intra-aire de diffusion et à l’hypothèse d'une répartition uniforme. Ces incertitudes peuvent affecter la précision des résultats, qui doivent donc être interprétés avec prudence en tenant compte de ces limitations méthodologiques.
 
-```{r foodTable, include=TRUE, tab.cap="Temps de marche jusqu'à l'épicerie la plus proche (2021)"}
+```{r foodTable, include=TRUE, tab.cap="Temps de marche jusqu'à l'épicerie la plus proche (2021). Source : Statistique Canada, données démographiques."}
 grocery_table
 ``` 
 
@@ -176,7 +176,7 @@ La carte du graphique \@ref(fig:cultureMap)) indique le nombre d’installations
 
 METHODOLOGIE NOTES DE FIN : Nous utilisons les données de la Base de données ouvertes sur les installations culturelles et artistiques (BDOICA) de Statistique Canada, qui inclut les sources des gouvernements provinciaux, les autorités municipales ainsi que les associations professionnelles^[Statistique Canada. (2020). La Base de données ouvertes sur les installations culturelles et artistiques. Récupéré de https://www.statcan.gc.ca/fr/ecdo/bases-donnees/bdoica]. Bien que ces données ne prétendent pas à une couverture parfaite et exhaustive, elles représentent une option de départ valable pour qualifier l'accessibilité. À Laval, 28 installations sont représentées dans ce jeu de données. Nous avons ajouté les 3 installations manquantes listées par Signé Laval (Studio Synapses, [co]motion agitateur de culture et House of Jazz Laval)^[Signé Laval. (2024). Répertoire culturel. Récupéré de https://signelaval.com/fr/repertoire-culturel/lieu-de-diffusion]. De plus, des 66 installations municipales ou autres listées dans le Diagnostic culturel de la région de Laval de 2017, nous avons réussi à en géocoder et donc à en ajouter 56^[Conseil régional de la culture de Laval. (2017). Diagnostic culturel de la région de Laval. Récupéré de https://www.repensonslaval.ca/vieculturelle/news_feed/diagnostic-culturel]. Les autres installations peuvent avoir été fermées depuis. Après suppression des doublons potentiels dû à l’incorporation de sources diverses, nous avons recensé 65 installations dans la ville de Laval.
 
-```{r cultureMap, include=TRUE, fig.cap="Accessibilité aux installations culturelles", fig.align = 'center'}
+```{r cultureMap, include=TRUE, fig.cap="Accessibilité aux installations culturelles. Sources : Statistique Canada ; Signé Laval ; Conseil régional de la culture de Laval, localisations des installations culturelles et artistiques. Données traitées et complétées par Curbcut.", fig.align = 'center'}
 cultural_map
 ```
 
@@ -201,7 +201,7 @@ La Société de transport de Laval (STL) opère `r bus_stops_cleaned` arrêts d�
 
 La carte suivante montre le nombre d’arrêts d’autobus accessibles à 7 minutes de marche. Cette durée représente un compromis optimal entre accessibilité et confort pour les usagers : elle est suffisamment courte pour être pratique et encourager l'utilisation du transport en commun, tout en couvrant une distance raisonnable pour desservir un large nombre de résidents.
 
-```{r busStopMap, include=TRUE, fig.cap="Nombre d’arrêts d’autobus accessibles en 7 minutes de marche", fig.align = 'center'}
+```{r busStopMap, include=TRUE, fig.cap="Nombre d’arrêts d’autobus accessibles en 7 minutes de marche. Source : GTFS (General Transit Feed Specification), localisation des arrêts d'autobus.", fig.align = 'center'}
 bus_stops_map
 ``` 
 
@@ -215,7 +215,7 @@ La carte ci-dessous montre le nombre de lignes d’autobus accessibles à moins 
 
 Les secteurs Chomedey et Laval-des-Rapides, Pont-Viau se démarquent par une haute connectivitée, tout comme le long du boulevard des Laurentides dans le secteur Vimont, Auteuil. En revanche, ce sont `r no_bus_lines` (`r no_bus_lines_pct`) Lavallois·es qui n'ont accès à aucune ligne d’autobus en 7 minutes de marche entre 7h et 9h en semaine, et plus du quart de la population (`r one_two_bus_lines`, soit `r one_two_bus_lines_pct`) n'a accès qu’à une ou deux lignes.
 
-```{r busLineMap, include=TRUE, fig.cap="Nombre de lignes d'autobus accessibles en 7 minutes de marche aux heures de pointe du matin (7 à 9 heures) en semaine (2024)", fig.align = 'center'}
+```{r busLineMap, include=TRUE, fig.cap="Nombre de lignes d'autobus accessibles en 7 minutes de marche aux heures de pointe du matin (7 à 9 heures) en semaine (2024). Source : GTFS (General Transit Feed Specification), lignes d'autobus.", fig.align = 'center'}
 bus_lines_map
 ```
 ### Fréquence des passages d'autobus
@@ -224,7 +224,7 @@ Si l’accès à un grand nombre de lignes d’autobus est essentiel pour une bo
 
 Les pochettes avec un accès à un plus large nombre de véhicules accessibles en 7 minutes de marche, aux heures de pointe du matin en semaine, sont naturellement près des terminus d’autobus et des stations de métro. Chomedey et Laval-des-Rapides, Pont-Viau se démarquent encore une fois par lettre haute connectivité, ainsi que le long du boulevard des Laurentides dans le secteur Vimont, Auteuil. 
 
-```{r busTripMap, include=TRUE, fig.cap="Nombre de véhicules accessibles en 7 minutes de marche aux heures de pointe du matin (7 à 9 heures) en semaine (2024)", fig.align = 'center'}
+```{r busTripMap, include=TRUE, fig.cap="Nombre de véhicules accessibles en 7 minutes de marche aux heures de pointe du matin (7 à 9 heures) en semaine (2024). Source : GTFS (General Transit Feed Specification), localisation des véhicules d'autobus.", fig.align = 'center'}
 
 bus_trips_map
 
@@ -238,7 +238,7 @@ Dans cette analyse, les lieux d’intérêt incluent des endroits tels que les �
 
 La carte ci-dessous montre le nombre de lieux d’intérêts accessibles en 20 minutes en transport en commun pendant les heures de pointe du matin en semaine, entre 7h à 9h. Bien que les extrémités nord et sud de l’île soient connectées à un nombre réduit de lieux d’intérêt, on observe un dégradé nord-sud, lié à la proximité des lieux d’intérêt sur l’île de Montréal. Les habitant·e·s de Chomedey et de Laval-des-Rapides, Pont-Viau, notamment ceux situés au sud près de l’autoroute des Laurentides (15), ont accès à une plus grande variété de points d’intérêt ou de services en 20 minutes de transport en commun.
 
-```{r poiMap, include=TRUE, fig.cap="Nombre de lieux d’intérêts accessibles en 20 minutes en transport en commun aux heures de pointe du (matin 7 à 9 heures) en semaine (2024)", fig.align = 'center'}
+```{r poiMap, include=TRUE, fig.cap="Nombre de lieux d’intérêts accessibles en 20 minutes en transport en commun aux heures de pointe du (matin 7 à 9 heures) en semaine (2024). Source : GTFS (General Transit Feed Specification), trajets d'autobus; DMTI Spatial, localisation des lieux d'intérêt.", fig.align = 'center'}
 poi_map
 ```
 
@@ -248,7 +248,7 @@ poi_map
 
 Les zones où la connectivité au réseau de transport en commun est plus élevée sont également celles où la proportion d'utilisateurs de ce mode de déplacement est plus importante, soulignant l'importance de l'accessibilité et de la fréquence des transports en commun pour encourager leur utilisation. Laval-des-Rapides, Pont-Viau ainsi que le long du boulevard des Laurentides dans le secteur Vimont, Auteuil se distinguent par une connectivité supérieure et une utilisation plus importante des transports en commun.
 
-```{r transitUseMap, include=TRUE, fig.cap="Proportion des travailleurs se déplaçant au travail utilisant les transports en commun", fig.align = 'center'}
+```{r transitUseMap, include=TRUE, fig.cap="Proportion des travailleurs se déplaçant au travail utilisant les transports en commun. Source : Statistique Canada.", fig.align = 'center'}
 transit_usage_map
 ```
 
@@ -265,8 +265,6 @@ cyclables canadiennes (Can-BICS) : convention d’appellation commune des aména
 
 La carte met en évidence une différence marquée entre les zones les plus densément peuplées et celles qui le sont moins. Le centre-sud de l’île présente des niveaux plus élevés de confort et de sécurité, grâce à une densité d’infrastructures cyclables de qualité et une meilleure accessibilité aux stations Bixi. En revanche, les zones périphériques affichent des niveaux de confort plus bas, potentiellement en raison d’une densité de la population plus faible.
 
-```{r bikeMap, include=TRUE, fig.cap="Can-BICS, pistes cyclables et stations Bixi", fig.align = 'center'}
-
+```{r bikeMap, include=TRUE, fig.cap="Can-BICS, pistes cyclables et stations Bixi. Source: Winters et al., indice Can-BICS ; Ville de Laval, pistes cyclables ; BIXI Montréal, localisation des stations de Bixi.", fig.align = 'center'}
 bike_map
-
 ```
