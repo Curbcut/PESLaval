@@ -171,7 +171,14 @@ park_table_data <- merge(DB_lowincome,
 percent_columns <- c("Faible revenu (%)", "Familles avec enfant(s) (%)", "Population (%)")
 park_table_data <- park_table_data[c(1,6:7,2:5)]
 
-park_table <- park_table_data |> 
+# Duplicate the first column manually
+park_table_data_with_dup_first_col <- park_table_data |> 
+  mutate(` Parcs accessibles (n)` = park_table_data[[1]])
+park_table_data_with_dup_first_col <- park_table_data_with_dup_first_col[c(1,2,3,4,8,5,6,7)]
+
+# Then apply your gt logic with the split
+park_table <- 
+  park_table_data_with_dup_first_col |> 
   gt() |> 
   fmt(columns = c(2,4,6), fns = convert_number_tens) |> 
   fmt(columns = c(3,5,7), fns = convert_pct) |> 
@@ -200,9 +207,14 @@ park_table <- park_table_data |>
     table.font.size = 9.5,
     row_group.font.size = 9.5,
     table.width = px(8 * 96)
-  )
+  ) |> 
+  # Split the table at the specified point, including the duplicated first column
+  gt_split(col_slice_at = ceiling(ncol(park_table_data_with_dup_first_col) / 2))
 
-gtsave(park_table, "output/axe3/park_table.png", zoom = 2)
+
+gtsave(grp_pull(park_table, 1), "output/axe3/park_table1.png", zoom = 1)
+gtsave(grp_pull(park_table, 2), "output/axe3/park_table2.png", zoom = 1)
+
 
 #Numbers for markdown
 laval_pop <- parks_pop |> 
