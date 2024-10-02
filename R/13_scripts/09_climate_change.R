@@ -64,6 +64,96 @@ source("R/01_startup.R")
 #   coord_sf(xlim = c(laval_bbox$xmin, laval_bbox$xmax),
 #            ylim = c(laval_bbox$ymin, laval_bbox$ymax))
 
+
+library(httr)
+library(sf)
+
+fetch_all_pages <- function(base_url) {
+  # Function to fetch data with pagination and error handling
+  # Set initial query parameters
+  query_params <- list(
+    where = "1=1", # to get all the data; no filter
+    outFields = "*",
+    outSR = "4326", # output spatial reference; EPSG:4326 is WGS84 lat/long
+    f = "geojson", # output format
+    returnGeometry = "true" # to ensure geometry is included
+  )
+  
+  all_data <- list()
+  offset <- 0
+  keep_fetching <- TRUE
+  
+  while (keep_fetching) {
+    # Update the query parameters with the current offset and limit
+    query_params$resultOffset <- offset
+    query_params$resultRecordCount <- 1000
+    
+    # Make the GET request
+    response <- httr::GET(url = base_url, query = query_params)
+    
+    # Check if the request was successful
+    if (httr::status_code(response) != 200) {
+      stop("Failed to retrieve data: ", httr::status_code(response))
+    }
+    
+    # Inspect the content type to ensure it's GeoJSON
+    content_type <- httr::headers(response)$`content-type`
+    # if (!grepl("application/geo", content_type, ignore.case = TRUE)) {
+    #   break
+    # }
+    
+    # Read the content as geojson and convert to an sf object
+    page_data <- tryCatch(
+      sf::st_read(httr::content(response, "text"), quiet = TRUE),
+      error = function(e) {
+        message("Error reading data: ", e$message)
+        return(NULL)
+      }
+    )
+    
+    # Check if data was successfully read
+    if (is.null(page_data) || nrow(page_data) == 0) {
+      keep_fetching <- FALSE
+    } else {
+      # Store the fetched data
+      all_data[[length(all_data) + 1]] <- page_data
+      # Increment the offset for the next page
+      offset <- offset + 1000
+      print(length(all_data))
+    }
+  }
+  
+  all_data <- Reduce(rbind, all_data)
+  all_data <- sf::st_make_valid(all_data)
+  
+  return(all_data)
+}
+
+heat <- fetch_all_pages(
+  "https://services2.arcgis.com/iMo05rGDH0l2KYh8/ArcGIS/rest/services/Chaleur_Vulnérabilité/FeatureServer/1/query"
+)
+
+heat <- heat[c("ADIDU", "VulnTot")]
+heat <- heat[heat$VulnTot != "#NULL!", ]
+
+heat$VulnTot <- as.factor(heat$VulnTot)  # Convert the vulnerability levels to factors.
+
+heat_plot <- 
+ggplot(heat) +
+  gg_cc_tiles +
+  geom_sf(aes(fill = VulnTot), color = "transparent", lwd = 0) +
+  scale_fill_manual(values = curbcut_colors$left_5$fill[3:6],
+                    name = "Vulnérabilité à la chaleur (2023, 2024)",
+                    labels = c("Vulnérabilité 1",
+                               "Vulnérabilité 2a",
+                               "Vulnérabilité 2b",
+                               "Vulnérabilité 3"),
+                    guide = guide_legend(title.position = "top", label.position = "bottom", nrow = 1)) +
+  gg_cc_theme
+
+ggplot2::ggsave(filename = here::here("output/axe1/climaterisk/heat_plot.pdf"),
+                plot = heat_plot, width = 7.5, height = 6)
+
 # Biodiversity ------------------------------------------------------------
 # #Reading greenspace shapefile and canopy .tif
 # greenspace_shp <- st_read("/Users/justin/Documents/R/curbcut/parc_espace_vert_20240607_PG.shp")
