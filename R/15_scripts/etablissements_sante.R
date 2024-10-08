@@ -240,12 +240,12 @@ healthcare_table <- sante_age |>
   ) |> 
   # Options générales pour la table
   tab_options(
-    table.font.size = 9.5,
-    row_group.font.size = 9.5,
+    table.font.size = 12,
+    row_group.font.size = 12,
     table.width = px(6 * 96)
   )
 
-gt::gtsave(healthcare_table, "output/axe3/healthcare_table.png", zoom = 2)
+gt::gtsave(healthcare_table, "output/axe3/healthcare_table.png", zoom = 1)
 
 
 # R Markdown --------------------------------------------------------------

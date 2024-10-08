@@ -427,13 +427,13 @@ educ_sectors_table <-
     locations = cells_row_groups()
   ) |> 
   tab_options(
-    table.font.size = 9.5,
-    row_group.font.size = 9.5,
+    table.font.size = 12,
+    row_group.font.size = 12,
     table.width = px(6 * 96)
     
   )
 
-gtsave(educ_sectors_table, "output/axe1/education/educ_sectors_table.png", zoom = 2)
+gtsave(educ_sectors_table, "output/axe1/education/educ_sectors_table.png", zoom = 1)
 
 # Composition 2006-2021 ---------------------------------------------------
 

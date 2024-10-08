@@ -152,12 +152,12 @@ municipal_table <- equipment_demo |>
   ) |> 
   # Options générales pour la table
   tab_options(
-    table.font.size = 9.5,
-    row_group.font.size = 9.5,
+    table.font.size = 12,
+    row_group.font.size = 12,
     table.width = px(6 * 96)
   )
 
-gtsave(municipal_table, "output/axe3/municipal_table.png", zoom = 2)
+gtsave(municipal_table, "output/axe3/municipal_table.png", zoom = 1)
 
 
 municipal_population <- sum(DA_demo$Population, na.rm = TRUE)

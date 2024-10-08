@@ -291,12 +291,12 @@ grocery_table <- supermarkets_demo |>
   ) |> 
   # Options générales pour la table
   tab_options(
-    table.font.size = 9.5,
-    row_group.font.size = 9.5,
+    table.font.size = 12,
+    row_group.font.size = 12,
     table.width = px(6 * 96)
   )
 
-gtsave(grocery_table, "output/axe3/grocery_table.png", zoom = 2)
+gtsave(grocery_table, "output/axe3/grocery_table.png", zoom = 1)
 
 # R Markdown --------------------------------------------------------------
 

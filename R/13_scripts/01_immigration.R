@@ -234,19 +234,19 @@ imm_table <-
   # Apply font style to the whole table
   tab_style(
     style = cell_text(
-      font = "KMR-Apparat-Regular"
+      font = "KMR Apparat Regular"
     ),
     locations = cells_body()
   ) |>
   tab_style(
     style = cell_text(
-      font = "KMR-Apparat-Regular"
+      font = "KMR Apparat Regular"
     ),
     locations = cells_column_labels()
   ) |>
   tab_style(
     style = cell_text(
-      font = "KMR-Apparat-Regular"
+      font = "KMR Apparat Regular"
     ),
     locations = cells_row_groups()
   ) |>
@@ -255,12 +255,12 @@ imm_table <-
     locations = cells_row_groups()
   ) |> 
   tab_options(
-    table.font.size = 9.5,
-    row_group.font.size = 9.5,
+    table.font.size = 12,
+    row_group.font.size = 12,
     table.width = px(6 * 96),
   )
 
-gtsave(imm_table, "output/axe1/immigration/imm_table.png", zoom = 2)
+gtsave(imm_table, "output/axe1/immigration/imm_table.png", zoom = 1)
 
 
 

@@ -204,8 +204,8 @@ park_table <-
   ) |> 
   # Options générales pour la table
   tab_options(
-    table.font.size = 9.5,
-    row_group.font.size = 9.5,
+    table.font.size = 12,
+    row_group.font.size = 12,
     table.width = px(6 * 96)
   ) |> 
   cols_width(
@@ -216,8 +216,8 @@ park_table <-
   gt_split(col_slice_at = ceiling(ncol(park_table_data_with_dup_first_col) / 2))
 
 
-gtsave(grp_pull(park_table, 1), "output/axe3/park_table1.png", zoom = 2)
-gtsave(grp_pull(park_table, 2), "output/axe3/park_table2.png", zoom = 2)
+gtsave(grp_pull(park_table, 1), "output/axe3/park_table1.png", zoom = 1)
+gtsave(grp_pull(park_table, 2), "output/axe3/park_table2.png", zoom = 1)
 
 
 #Numbers for markdown

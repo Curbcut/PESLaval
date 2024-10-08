@@ -129,12 +129,12 @@ mhh_plot <-
     columns = c("Ville de Laval", "Ensemble du Québec")
   ) |> 
   tab_options(
-    table.font.size = 9.5,
-    row_group.font.size = 9.5,
+    table.font.size = 12,
+    row_group.font.size = 12,
     table.width = px(6 * 96)
   )
 
-gtsave(mhh_plot, "output/axe1/income/mhh_plot.png", zoom = 2)
+gtsave(mhh_plot, "output/axe1/income/mhh_plot.png", zoom = 1)
 
 
 # Household median income DA / Sector -------------------------------------
@@ -239,12 +239,12 @@ median_income_table <-
   ) |> 
   # Options générales pour la table
   tab_options(
-    table.font.size = 9.5,
-    row_group.font.size = 9.5,
+    table.font.size = 12,
+    row_group.font.size = 12,
     table.width = px(6 * 96)
   )
 
-gtsave(median_income_table, "output/axe1/income/median_income_table.png", zoom = 2)
+gtsave(median_income_table, "output/axe1/income/median_income_table.png", zoom = 1)
 
 
 # # Répartition des revenus des ménages -------------------------------------
@@ -636,13 +636,13 @@ mii_plot <-
     columns = c("Ville de Laval", "Ensemble du Québec")
   ) |> 
   tab_options(
-    table.font.size = 9.5,
-    row_group.font.size = 9.5,
+    table.font.size = 12,
+    row_group.font.size = 12,
     table.width = px(6 * 96)
   )
 
 
-gtsave(mii_plot, "output/axe1/income/mii_plot.png", zoom = 2)
+gtsave(mii_plot, "output/axe1/income/mii_plot.png", zoom = 1)
 
 
 
@@ -861,12 +861,12 @@ median_income_ind_table <-
   ) |> 
   # Options générales pour la table
   tab_options(
-    table.font.size = 9.5,
-    row_group.font.size = 9.5,
+    table.font.size = 12,
+    row_group.font.size = 12,
     table.width = px(6 * 96)
   )
 
-gtsave(median_income_table, "output/axe1/income/median_income_table.png", zoom = 2)
+gtsave(median_income_table, "output/axe1/income/median_income_table.png", zoom = 1)
 
 
 
@@ -1557,13 +1557,13 @@ frev_wide |>
   ) |> 
   # Options générales pour la table
   tab_options(
-    table.font.size = 9.5,
-    row_group.font.size = 9.5,
+    table.font.size = 12,
+    row_group.font.size = 12,
     table.width = px(6 * 96)
   )
 
 
-gtsave(frev_wide_table, "output/axe1/income/frev_wide_table.png", zoom = 2)
+gtsave(frev_wide_table, "output/axe1/income/frev_wide_table.png", zoom = 1)
 
 frev_total <- convert_pct(frev_wide$`valeur.y_Ville de Laval`[frev_wide$variable == "Total"])
 frev_total_QC <- convert_pct(frev_wide$`valeur.y_Ensemble du Québec`[frev_wide$variable == "Total"])
@@ -1663,12 +1663,12 @@ frev_sector_table <-
   ) |> 
   # Options générales pour la table
   tab_options(
-    table.font.size = 9.5,
-    row_group.font.size = 9.5,
+    table.font.size = 12,
+    row_group.font.size = 12,
     table.width = px(6 * 96)
   )
 
-gtsave(frev_sector_table, "output/axe1/income/frev_sector_table.png", zoom = 2)
+gtsave(frev_sector_table, "output/axe1/income/frev_sector_table.png", zoom = 1)
 
 
 
