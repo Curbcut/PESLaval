@@ -468,7 +468,7 @@ ad_cat_graph <- ggplot(data = admission_cat_combined, aes(x = Type, y = Percent,
         legend.title = element_blank(), text = element_text(family = "KMR Apparat Regular"))
 
 ggplot2::ggsave(filename = here::here("output/axe1/immigration/ad_cat_graph.pdf"), 
-                plot = ad_cat_graph, width = 6.5, height = 5)
+                plot = ad_cat_graph, width = 6.5, height = 4)
 
 #Grabbing specific numbers for markdown
 laval_ad_cat <- admission_cat_combined |> 

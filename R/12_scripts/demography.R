@@ -95,7 +95,7 @@ pop_density_plot <-
 
 # Save the plot so it's in a good quality
 ggplot2::ggsave(filename = here::here("output/0_demography/CT_pop_density.pdf"), 
-                plot = pop_density_plot, width = 7.5, height = 6)
+                plot = pop_density_plot, width = 6.5, height = 5)
 
 
 # Population Distribution by Age and Gender------------------------------------
