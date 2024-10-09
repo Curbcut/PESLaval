@@ -119,7 +119,7 @@ imm_evol_graph <-
   geom_line(linewidth = 1.35) +
   geom_point(size = 2.5) +
   scale_y_continuous(labels = convert_pct) +
-  labs(y = "Proportion de la population") +
+  labs(y = "Proportion de la population immigrante") +
   scale_color_manual(values = c("Laval" = "#73AD80", "Montréal" = "#E08565",
                                 "Québec" = "#A3B0D1")) +
   gg_cc_theme_no_sf +
@@ -170,7 +170,7 @@ imm_prop_map <-
   gg_cc_tiles +
   geom_sf(aes(fill = percentage_category), color = NA) +
   scale_fill_manual(values = curbcut_colors$left_5$fill[2:6], na.value = "#B3B3BB") +
-  labs(fill = "Proportion de la population") +
+  labs(fill = "Proportion de la population immigrante") +
   gg_cc_theme +
   theme(legend.position = "bottom", legend.box = "horizontal",
         legend.title = element_blank(),
@@ -454,7 +454,11 @@ admission_cat_combined <- bind_rows(immigrant_admissioncat_percent, immigrant_ad
 
 ad_cat_graph <- ggplot(data = admission_cat_combined, aes(x = Type, y = Percent, fill = Region)) +
   geom_col(position = "dodge") +
-  geom_text(aes(label = perc), position = position_dodge(width = 0.9),
+  geom_text(data = admission_cat_combined[!admission_cat_combined$Type == "Autres", ],
+            aes(label = perc), position = position_dodge(width = 0.9),
+            vjust = 2.5, color = "black", size = 3) +
+  geom_text(data = admission_cat_combined[admission_cat_combined$Type == "Autres", ],
+            aes(label = perc), position = position_dodge(width = 0.9),
             vjust = -0.5, color = "black", size = 3) +
   scale_y_continuous(labels = convert_pct) +
   scale_fill_manual(values = c("Laval" = color_theme("greenecology"), "Québec" = color_theme("blueexplorer"))) +
@@ -677,10 +681,15 @@ imm_origin <- bind_rows(imm_origin_recent, imm_origin_total) |>
 # plot of Recent vs Total Immigrant Population Origins
 imm_origin_graph <- ggplot(data = imm_origin, aes(x = origin, y = proportion, fill = Type)) +
   geom_bar(stat = "identity", position = position_dodge()) +
-  geom_text(aes(label = perc), position = position_dodge(width = 0.9),
-            vjust = 2, color = "black", size = 3) +
+  geom_text(data = imm_origin[!imm_origin$origin %in% c("États-Unis", "Océanie et autres"), ],
+            aes(label = perc), position = position_dodge(width = 0.9),
+            vjust = 2.5, color = "black", size = 3) +
+  geom_text(data = imm_origin[imm_origin$origin %in% c("États-Unis", "Océanie et autres"), ],
+            aes(label = perc), position = position_dodge(width = 0.9),
+            vjust = -0.5, color = "black", size = 3) +
   scale_y_continuous(labels = convert_pct) +
-  scale_fill_manual(values = c("Total" = "#A3B0D1", "Récent" = "#CD718C")) +
+  scale_fill_manual(values = c("Total" = "#A3B0D1", "Récent" = "#CD718C"),
+                    labels = c("Total" = "Total", "Récent" = "Immigrants récents")) +
   labs(x = "Lieu de naissance",
        y = "Proportion d'immigrants") +
   gg_cc_theme_no_sf +

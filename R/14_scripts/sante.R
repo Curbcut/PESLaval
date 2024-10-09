@@ -56,6 +56,9 @@ stat <- stat[!is.na(stat$`Région sociosanitaire`), ]
 stat <- stat[stat$Genre %in% c("Masculin", "Féminin"), ]
 stat$pretty <- convert_pct(stat$`Proportion brute (%)`)
 
+stat$`Région sociosanitaire` <- factor(stat$`Région sociosanitaire`,
+                                       levels = c("Ville de Laval", "Ensemble du Québec"))
+
 statut_ponderal_graph <-
   ggplot(stat, aes(x = `Statut pondéral`, y = `Proportion brute (%)`, fill = Genre)) +
   geom_bar(stat = "identity", position = "dodge") +
@@ -89,6 +92,8 @@ bucc$Genre[31:45] <- "Total"
 bucc$`Région sociosanitaire` <- rep(c(rep(c("Ville de Laval"), 5), rep(c(NA), 5), rep(c("Ensemble du Québec"), 5)), 3)
 bucc <- bucc[!is.na(bucc$`Région sociosanitaire`), ]
 
+bucc$`Région sociosanitaire` <- factor(bucc$`Région sociosanitaire`,
+                                       levels = c("Ville de Laval", "Ensemble du Québec"))
 
 bucc$`Proportion brute (%)`[
   bucc$Genre == "Total" & 
