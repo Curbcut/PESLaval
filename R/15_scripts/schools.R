@@ -403,13 +403,13 @@ school_table <-
   # Appliquer le style de la police à toute la table
   tab_style(
     style = cell_text(
-      font = "KMR-Apparat-Regular"
+      font = "KMR Apparat Regular"
     ),
     locations = cells_body()
   ) |> 
   tab_style(
     style = cell_text(
-      font = "KMR-Apparat-Regular"
+      font = "KMR Apparat Regular"
     ),
     locations = cells_column_labels()
   ) |> 
@@ -420,7 +420,7 @@ school_table <-
     table.width = px(6 * 96)
   )
 
-gtsave(school_table, "output/axe3/school_table.png", zoom = 1)
+gtsave(school_table, "output/axe3/school_table.png", zoom = 3)
 
 
 

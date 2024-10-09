@@ -104,19 +104,19 @@ mhh_plot <-
   # Apply font style to the whole table
   tab_style(
     style = cell_text(
-      font = "KMR-Apparat-Regular"
+      font = "KMR Apparat Regular"
     ),
     locations = cells_body()
   ) |>
   tab_style(
     style = cell_text(
-      font = "KMR-Apparat-Regular"
+      font = "KMR Apparat Regular"
     ),
     locations = cells_column_labels()
   ) |>
   tab_style(
     style = cell_text(
-      font = "KMR-Apparat-Regular"
+      font = "KMR Apparat Regular"
     ),
     locations = cells_row_groups()
   ) |>
@@ -134,7 +134,7 @@ mhh_plot <-
     table.width = px(6 * 96)
   )
 
-gtsave(mhh_plot, "output/axe1/income/mhh_plot.png", zoom = 1)
+gtsave(mhh_plot, "output/axe1/income/mhh_plot.png", zoom = 3)
 
 
 # Household median income DA / Sector -------------------------------------
@@ -227,13 +227,13 @@ median_income_table <-
   # Appliquer le style de la police à toute la table
   tab_style(
     style = cell_text(
-      font = "KMR-Apparat-Regular"
+      font = "KMR Apparat Regular"
     ),
     locations = cells_body()
   ) |> 
   tab_style(
     style = cell_text(
-      font = "KMR-Apparat-Regular"
+      font = "KMR Apparat Regular"
     ),
     locations = cells_column_labels()
   ) |> 
@@ -244,7 +244,7 @@ median_income_table <-
     table.width = px(6 * 96)
   )
 
-gtsave(median_income_table, "output/axe1/income/median_income_table.png", zoom = 1)
+gtsave(median_income_table, "output/axe1/income/median_income_table.png", zoom = 3)
 
 
 # # Répartition des revenus des ménages -------------------------------------
@@ -611,19 +611,19 @@ mii_plot <-
   # Apply font style to the whole table
   tab_style(
     style = cell_text(
-      font = "KMR-Apparat-Regular"
+      font = "KMR Apparat Regular"
     ),
     locations = cells_body()
   ) |>
   tab_style(
     style = cell_text(
-      font = "KMR-Apparat-Regular"
+      font = "KMR Apparat Regular"
     ),
     locations = cells_column_labels()
   ) |>
   tab_style(
     style = cell_text(
-      font = "KMR-Apparat-Regular"
+      font = "KMR Apparat Regular"
     ),
     locations = cells_row_groups()
   ) |>
@@ -642,7 +642,7 @@ mii_plot <-
   )
 
 
-gtsave(mii_plot, "output/axe1/income/mii_plot.png", zoom = 1)
+gtsave(mii_plot, "output/axe1/income/mii_plot.png", zoom = 3)
 
 
 
@@ -849,13 +849,13 @@ median_income_ind_table <-
   # Appliquer le style de la police à toute la table
   tab_style(
     style = cell_text(
-      font = "KMR-Apparat-Regular"
+      font = "KMR Apparat Regular"
     ),
     locations = cells_body()
   ) |> 
   tab_style(
     style = cell_text(
-      font = "KMR-Apparat-Regular"
+      font = "KMR Apparat Regular"
     ),
     locations = cells_column_labels()
   ) |> 
@@ -866,7 +866,7 @@ median_income_ind_table <-
     table.width = px(6 * 96)
   )
 
-gtsave(median_income_table, "output/axe1/income/median_income_table.png", zoom = 1)
+gtsave(median_income_table, "output/axe1/income/median_income_table.png", zoom = 3)
 
 
 
@@ -1545,13 +1545,13 @@ frev_wide |>
   # Appliquer le style de la police à toute la table
   tab_style(
     style = cell_text(
-      font = "KMR-Apparat-Regular"
+      font = "KMR Apparat Regular"
     ),
     locations = cells_body()
   ) |> 
   tab_style(
     style = cell_text(
-      font = "KMR-Apparat-Regular"
+      font = "KMR Apparat Regular"
     ),
     locations = cells_column_labels()
   ) |> 
@@ -1563,7 +1563,7 @@ frev_wide |>
   )
 
 
-gtsave(frev_wide_table, "output/axe1/income/frev_wide_table.png", zoom = 1)
+gtsave(frev_wide_table, "output/axe1/income/frev_wide_table.png", zoom = 3)
 
 frev_total <- convert_pct(frev_wide$`valeur.y_Ville de Laval`[frev_wide$variable == "Total"])
 frev_total_QC <- convert_pct(frev_wide$`valeur.y_Ensemble du Québec`[frev_wide$variable == "Total"])
@@ -1651,13 +1651,13 @@ frev_sector_table <-
   # Appliquer le style de la police à toute la table
   tab_style(
     style = cell_text(
-      font = "KMR-Apparat-Regular"
+      font = "KMR Apparat Regular"
     ),
     locations = cells_body()
   ) |> 
   tab_style(
     style = cell_text(
-      font = "KMR-Apparat-Regular"
+      font = "KMR Apparat Regular"
     ),
     locations = cells_column_labels()
   ) |> 
@@ -1668,7 +1668,7 @@ frev_sector_table <-
     table.width = px(6 * 96)
   )
 
-gtsave(frev_sector_table, "output/axe1/income/frev_sector_table.png", zoom = 1)
+gtsave(frev_sector_table, "output/axe1/income/frev_sector_table.png", zoom = 3)
 
 
 

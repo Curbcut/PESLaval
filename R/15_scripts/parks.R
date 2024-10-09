@@ -192,13 +192,13 @@ park_table <-
   # Appliquer le style de la police à toute la table
   tab_style(
     style = cell_text(
-      font = "KMR-Apparat-Regular"
+      font = "KMR Apparat Regular"
     ),
     locations = cells_body()
   ) |> 
   tab_style(
     style = cell_text(
-      font = "KMR-Apparat-Regular"
+      font = "KMR Apparat Regular"
     ),
     locations = cells_column_labels()
   ) |> 
@@ -216,8 +216,8 @@ park_table <-
   gt_split(col_slice_at = ceiling(ncol(park_table_data_with_dup_first_col) / 2))
 
 
-gtsave(grp_pull(park_table, 1), "output/axe3/park_table1.png", zoom = 1)
-gtsave(grp_pull(park_table, 2), "output/axe3/park_table2.png", zoom = 1)
+gtsave(grp_pull(park_table, 1), "output/axe3/park_table1.png", zoom = 3)
+gtsave(grp_pull(park_table, 2), "output/axe3/park_table2.png", zoom = 3)
 
 
 #Numbers for markdown

@@ -406,19 +406,19 @@ educ_sectors_table <-
   # Apply font style to the whole table
   tab_style(
     style = cell_text(
-      font = "KMR-Apparat-Regular"
+      font = "KMR Apparat Regular"
     ),
     locations = cells_body()
   ) |>
   tab_style(
     style = cell_text(
-      font = "KMR-Apparat-Regular"
+      font = "KMR Apparat Regular"
     ),
     locations = cells_column_labels()
   ) |>
   tab_style(
     style = cell_text(
-      font = "KMR-Apparat-Regular"
+      font = "KMR Apparat Regular"
     ),
     locations = cells_row_groups()
   ) |>
@@ -433,7 +433,7 @@ educ_sectors_table <-
     
   )
 
-gtsave(educ_sectors_table, "output/axe1/education/educ_sectors_table.png", zoom = 1)
+gtsave(educ_sectors_table, "output/axe1/education/educ_sectors_table.png", zoom = 3)
 
 # Composition 2006-2021 ---------------------------------------------------
 

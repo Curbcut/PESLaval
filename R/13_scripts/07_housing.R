@@ -413,7 +413,7 @@ housing_loyer_2023_QC <- convert_number_noround(housing_loyer_2023_QC)
 #   theme(
 #     legend.position = "bottom", legend.box = "horizontal", axis.title.x = element_blank(),
 #     legend.title = element_blank(), plot.title = element_text(hjust = 0.5),
-#     text=element_text(family="KMR-Apparat-Regular"))
+#     text=element_text(family="KMR Apparat Regular"))
 # 
 # med_yoy_growth_graph <- ggplot(med_rent_yoy, aes(x = Year, y = Growth, fill = Geography)) +
 #   geom_bar(stat = "identity", position = position_dodge()) +
@@ -424,7 +424,7 @@ housing_loyer_2023_QC <- convert_number_noround(housing_loyer_2023_QC)
 #   labs(y = "Variation du loyer médian") +
 #   theme(legend.position = "none", plot.title = element_text(hjust = 0.5),
 #         axis.text.x = element_text(angle = 45, hjust = 1),
-#         text=element_text(family="KMR-Apparat-Regular"), axis.title.x = element_blank())
+#         text=element_text(family="KMR Apparat Regular"), axis.title.x = element_blank())
 # 
 # # Monthly Tenant Cost by Laval Neighborhood -------------------------------
 # nbhd_mtlcma <- cmhc::get_cmhc(survey = "Rms", series = "Median Rent", 
@@ -462,7 +462,7 @@ housing_loyer_2023_QC <- convert_number_noround(housing_loyer_2023_QC)
 #   labs(fill = "Loyer médian ($)") +
 #   theme_void() +
 #   theme(legend.position = "bottom",  legend.justification = "center",
-#         text=element_text(family="KMR-Apparat-Regular"),
+#         text=element_text(family="KMR Apparat Regular"),
 #         legend.box.margin = margin(t = -20)) +
 #   guides(fill = guide_legend(title.position = "top", title.hjust = 0.5,
 #                              barwidth = 1, barheight = 1, nrow = 1))
@@ -717,13 +717,13 @@ housing_loyer_med_table <-
   # Appliquer le style de la police à toute la table
   tab_style(
     style = cell_text(
-      font = "KMR-Apparat-Regular"
+      font = "KMR Apparat Regular"
     ),
     locations = cells_body()
   ) |> 
   tab_style(
     style = cell_text(
-      font = "KMR-Apparat-Regular"
+      font = "KMR Apparat Regular"
     ),
     locations = cells_column_labels()
   ) |> 
@@ -734,7 +734,7 @@ housing_loyer_med_table <-
     table.width = px(6 * 96)
   )
 
-gtsave(housing_loyer_med_table, "output/axe1/housing/housing_loyer_med_table.png", zoom = 1)
+gtsave(housing_loyer_med_table, "output/axe1/housing/housing_loyer_med_table.png", zoom = 3)
 
 
 lavalouest_loyer <- owner_tenant$`Loyer médian mensuel`[owner_tenant$Secteur == "Laval-Ouest, Sainte-Dorothée, Laval-sur-le-Lac"]
@@ -912,19 +912,19 @@ loyer_med_var_table <-
     # Apply font style to the whole table
     tab_style(
       style = cell_text(
-        font = "KMR-Apparat-Regular"
+        font = "KMR Apparat Regular"
       ),
       locations = cells_body()
     ) |>
     tab_style(
       style = cell_text(
-        font = "KMR-Apparat-Regular"
+        font = "KMR Apparat Regular"
       ),
       locations = cells_column_labels()
     ) |>
     tab_style(
       style = cell_text(
-        font = "KMR-Apparat-Regular"
+        font = "KMR Apparat Regular"
       ),
       locations = cells_row_groups()
     ) |>
@@ -939,7 +939,7 @@ loyer_med_var_table <-
     )
   
 
-gtsave(loyer_med_var_table, "output/axe1/housing/loyer_med_var_table.png", zoom = 1)
+gtsave(loyer_med_var_table, "output/axe1/housing/loyer_med_var_table.png", zoom = 3)
 
 losd <- "Laval-Ouest, Sainte-Dorothée, Laval-sur-le-Lac"
 housing_rent_losd <- owner_tenant_sf_var$med_tenant[owner_tenant_sf_var == losd]
@@ -1043,13 +1043,13 @@ housing_cost_med_table <-
   # Appliquer le style de la police à toute la table
   tab_style(
     style = cell_text(
-      font = "KMR-Apparat-Regular"
+      font = "KMR Apparat Regular"
     ),
     locations = cells_body()
   ) |> 
   tab_style(
     style = cell_text(
-      font = "KMR-Apparat-Regular"
+      font = "KMR Apparat Regular"
     ),
     locations = cells_column_labels()
   ) |> 
@@ -1060,7 +1060,7 @@ housing_cost_med_table <-
     table.width = px(6 * 96)
   )
 
-gtsave(housing_cost_med_table, "output/axe1/housing/housing_cost_med_table.png", zoom = 1)
+gtsave(housing_cost_med_table, "output/axe1/housing/housing_cost_med_table.png", zoom = 3)
 
 
 housing_cost_med_table_var <-
@@ -1103,19 +1103,19 @@ housing_cost_med_table_var <-
   # Apply font style to the whole table
   tab_style(
     style = cell_text(
-      font = "KMR-Apparat-Regular"
+      font = "KMR Apparat Regular"
     ),
     locations = cells_body()
   ) |>
   tab_style(
     style = cell_text(
-      font = "KMR-Apparat-Regular"
+      font = "KMR Apparat Regular"
     ),
     locations = cells_column_labels()
   ) |>
   tab_style(
     style = cell_text(
-      font = "KMR-Apparat-Regular"
+      font = "KMR Apparat Regular"
     ),
     locations = cells_row_groups()
   ) |>
@@ -1129,7 +1129,7 @@ housing_cost_med_table_var <-
     table.width = px(6 * 96)
   )
 
-gtsave(housing_cost_med_table_var, "output/axe1/housing/housing_cost_med_table_var.png", zoom = 1)
+gtsave(housing_cost_med_table_var, "output/axe1/housing/housing_cost_med_table_var.png", zoom = 3)
 
 losd <- "Laval-Ouest, Sainte-Dorothée, Laval-sur-le-Lac"
 housing_cost_losd <- owner_tenant_sf_var$med_owner[owner_tenant_sf_var == losd]
@@ -1457,19 +1457,19 @@ gt(taux_efforts) |>
   # Apply font style to the whole table
   tab_style(
     style = cell_text(
-      font = "KMR-Apparat-Regular"
+      font = "KMR Apparat Regular"
     ),
     locations = cells_body()
   ) |>
   tab_style(
     style = cell_text(
-      font = "KMR-Apparat-Regular"
+      font = "KMR Apparat Regular"
     ),
     locations = cells_column_labels()
   ) |>
   tab_style(
     style = cell_text(
-      font = "KMR-Apparat-Regular"
+      font = "KMR Apparat Regular"
     ),
     locations = cells_row_groups()
   ) |>
@@ -1483,7 +1483,7 @@ gt(taux_efforts) |>
     table.width = px(6 * 96)
   )
 
-gtsave(taux_efforts_table, "output/axe1/housing/taux_efforts_table.png", zoom = 1)
+gtsave(taux_efforts_table, "output/axe1/housing/taux_efforts_table.png", zoom = 3)
 
 
 rent_2021 <- avg_rent_annual$Value[avg_rent_annual$Geography == "Laval" & avg_rent_annual$Year == 2021]
@@ -1601,19 +1601,19 @@ gt(acceptable_housing) |>
   # Apply font style to the whole table
   tab_style(
     style = cell_text(
-      font = "KMR-Apparat-Regular"
+      font = "KMR Apparat Regular"
     ),
     locations = cells_body()
   ) |>
   tab_style(
     style = cell_text(
-      font = "KMR-Apparat-Regular"
+      font = "KMR Apparat Regular"
     ),
     locations = cells_column_labels()
   ) |>
   tab_style(
     style = cell_text(
-      font = "KMR-Apparat-Regular"
+      font = "KMR Apparat Regular"
     ),
     locations = cells_row_groups()
   ) |>
@@ -1627,7 +1627,7 @@ gt(acceptable_housing) |>
     table.width = px(6 * 96)
   )
 
-gtsave(acceptable_housing_table, "output/axe1/housing/acceptable_housing_table.png", zoom = 1)
+gtsave(acceptable_housing_table, "output/axe1/housing/acceptable_housing_table.png", zoom = 3)
 
 taille <- "Inférieur au seuil de taille convenable"
 taille_all <- convert_pct(acceptable_housing$`Tous les ménages_Laval`[acceptable_housing$` ` == taille])
@@ -1762,19 +1762,19 @@ core_need_table <-
   # Apply font style to the whole table
   tab_style(
     style = cell_text(
-      font = "KMR-Apparat-Regular"
+      font = "KMR Apparat Regular"
     ),
     locations = cells_body()
   ) |>
   tab_style(
     style = cell_text(
-      font = "KMR-Apparat-Regular"
+      font = "KMR Apparat Regular"
     ),
     locations = cells_column_labels()
   ) |>
   tab_style(
     style = cell_text(
-      font = "KMR-Apparat-Regular"
+      font = "KMR Apparat Regular"
     ),
     locations = cells_row_groups()
   ) |>
@@ -1797,7 +1797,7 @@ core_need_2021 <- core_need_time$`Besoins impérieux (%)`[core_need_time$Région
 
 
 
-gtsave(core_need_table, "output/axe1/housing/core_need_table.png", zoom = 1)
+gtsave(core_need_table, "output/axe1/housing/core_need_table.png", zoom = 3)
 
 qs::qsavem(housing_owner_2016, housing_owner_2001, housing_owner_2021,
            logement_statutoccupation, housing_owner_2016, housing_owner_2021, housing_evol_owner_1621,

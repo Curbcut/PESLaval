@@ -228,13 +228,13 @@ healthcare_table <- sante_age |>
   # Appliquer le style de la police à toute la table
   tab_style(
     style = cell_text(
-      font = "KMR-Apparat-Regular"
+      font = "KMR Apparat Regular"
     ),
     locations = cells_body()
   ) |> 
   tab_style(
     style = cell_text(
-      font = "KMR-Apparat-Regular"
+      font = "KMR Apparat Regular"
     ),
     locations = cells_column_labels()
   ) |> 
@@ -245,7 +245,7 @@ healthcare_table <- sante_age |>
     table.width = px(6 * 96)
   )
 
-gt::gtsave(healthcare_table, "output/axe3/healthcare_table.png", zoom = 1)
+gt::gtsave(healthcare_table, "output/axe3/healthcare_table.png", zoom = 3)
 
 
 # R Markdown --------------------------------------------------------------

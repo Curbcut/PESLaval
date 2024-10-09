@@ -251,13 +251,13 @@ cultural_table <- cultural_demo |>
   ) |>
   tab_style(
     style = cell_text(
-      font = "KMR-Apparat-Regular"
+      font = "KMR Apparat Regular"
     ),
     locations = cells_body()
   ) |> 
   tab_style(
     style = cell_text(
-      font = "KMR-Apparat-Regular"
+      font = "KMR Apparat Regular"
     ),
     locations = cells_column_labels()
   ) |> 
@@ -268,7 +268,7 @@ cultural_table <- cultural_demo |>
     table.width = px(6 * 96)
   )
 
-gtsave(cultural_table, "output/axe3/cultural_table.png", zoom = 1)
+gtsave(cultural_table, "output/axe3/cultural_table.png", zoom = 3)
 
 
 # R Markdown --------------------------------------------------------------

@@ -279,13 +279,13 @@ grocery_table <- supermarkets_demo |>
   ) |>
   tab_style(
     style = cell_text(
-      font = "KMR-Apparat-Regular"
+      font = "KMR Apparat Regular"
     ),
     locations = cells_body()
   ) |> 
   tab_style(
     style = cell_text(
-      font = "KMR-Apparat-Regular"
+      font = "KMR Apparat Regular"
     ),
     locations = cells_column_labels()
   ) |> 
@@ -296,7 +296,7 @@ grocery_table <- supermarkets_demo |>
     table.width = px(6 * 96)
   )
 
-gtsave(grocery_table, "output/axe3/grocery_table.png", zoom = 1)
+gtsave(grocery_table, "output/axe3/grocery_table.png", zoom = 3)
 
 # R Markdown --------------------------------------------------------------
 
