@@ -509,7 +509,7 @@ edu_comp_graph <-
   guides(fill = guide_legend(ncol = 2))
 
 ggplot2::ggsave(filename = here::here("output/axe1/education/edu_comp_graph.pdf"),
-                plot = edu_comp_graph, width = 7.5, height = 3)
+                plot = edu_comp_graph, width = 6.5, height = 3)
 
 
 
@@ -587,7 +587,7 @@ edu_gender_graph <- ggplot(edus, aes(x = education, y = prop, fill = sex)) +
   theme(legend.title = element_blank())
 
 ggplot2::ggsave(filename = here::here("output/axe1/education/edu_gender_graph.pdf"), 
-                plot = edu_gender_graph, width = 7.5, height = 4)
+                plot = edu_gender_graph, width = 6.5, height = 3)
 
 
 # Save --------------------------------------------------------------------

@@ -849,13 +849,13 @@ median_income_ind_table <-
   # Appliquer le style de la police à toute la table
   tab_style(
     style = cell_text(
-      font = "KMR Apparat Regular"
+      font = "KMR-Apparat-Regular"
     ),
     locations = cells_body()
   ) |> 
   tab_style(
     style = cell_text(
-      font = "KMR Apparat Regular"
+      font = "KMR-Apparat-Regular"
     ),
     locations = cells_column_labels()
   ) |> 
@@ -866,7 +866,7 @@ median_income_ind_table <-
     table.width = px(6 * 96)
   )
 
-gtsave(median_income_table, "output/axe1/income/median_income_table.png", zoom = 3)
+gtsave(median_income_ind_table, "output/axe1/income/median_income_ind_table.png", zoom = 3)
 
 
 
@@ -1798,7 +1798,7 @@ defav_plot <-
 
 
 ggplot2::ggsave(filename = here::here("output/axe1/income/defav_plot.pdf"),
-                plot = defav_plot, width = 6.5, height = 4)
+                plot = defav_plot, width = 9, height = 5)
 
 
 qs::qsavem(rev_med, rev_med_2015, rev_med_aug, rev_med_aug_QC, mhh_plot,
