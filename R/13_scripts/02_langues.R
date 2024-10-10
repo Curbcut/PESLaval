@@ -169,6 +169,43 @@ knowledge_official <-
 ggplot2::ggsave(filename = here::here("output/axe1/langues/knowledge_official.pdf"), 
                 plot = knowledge_official, width = 6.5, height = 6.5)
 
+data_2021 <- combinedKnowOffLang[combinedKnowOffLang$Year %in% c("1996", "2021"), ]
+knowledge_official_infographic <-
+ggplot(data_2021, 
+       aes(x = Year, y = Percentage, fill = Language)) +
+  geom_bar(stat = "identity", position = "fill") +
+  scale_y_continuous(labels = convert_pct) +
+  geom_text(data = data_2021[!data_2021$Language %in% c("Anglais", "Aucune"), ],
+            aes(label = convert_pct(Percentage/100)),
+            position = position_fill(vjust = 0.5),
+            size = 3,
+            color = "black") +
+  geom_text(data = data_2021[data_2021$Language == "Aucune", ],
+            aes(label = convert_pct(Percentage/100)),
+            position = position_fill(vjust = 1.03),
+            size = 3,
+            color = "black") +
+  geom_text(data = data_2021[data_2021$Language == "Anglais", ],
+            aes(label = convert_pct(Percentage/100)),
+            position = position_fill(vjust = 0.955),
+            size = 3,
+            color = "black") +
+  ylab(NULL) +
+  xlab(NULL) +
+  scale_fill_manual(values = c("Aucune" = color_theme("yellowclimate"), 
+                               "Anglais" = color_theme("pinkhealth"), 
+                               "Français" = color_theme("blueexplorer"), 
+                               "Les deux" = color_theme("greenecology"))) +
+  guides(fill = guide_legend(reverse = TRUE,
+                             title.position = "top",
+                             label.position = "bottom", nrow = 1,
+                             order = 1)) +
+  gg_cc_theme_no_sf +
+  theme(legend.title = element_blank())
+
+ggplot2::ggsave(filename = here::here("output/infographic/knowledge_official.pdf"), 
+                plot = knowledge_official_infographic, width = 6.5, height = 6.5)
+
 # Values for the text
 bilingual_1996 <- combinedKnowOffLang$Percentage[
   combinedKnowOffLang$Year == 1996 & combinedKnowOffLang$Language == "Les deux"

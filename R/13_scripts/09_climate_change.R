@@ -216,6 +216,29 @@ ggplot2::ggsave(filename = here::here("output/axe1/climaterisk/ndvi_plot.pdf"),
                 plot = ndvi_plot, width = 12, height = 6)
 
 
+ndvi_plot_infographics <- 
+  ggplot() +
+  # ggspatial::layer_spatial(these_tiles, alpha = 0.7) +
+  geom_tile(data = ndvi_df, aes(x = x, y = y, fill = cut(ndvi_2023, breaks = c(0, 0.2, 0.4, 0.6, 0.8, 1)))) +  
+  scale_fill_manual(values = c("#feb24c", "#fff7bc", "#e5f5f9", "#99d8c9", "#a6bddb"),
+                    labels = c("Très bas", "Bas", "Moyen", "Haut", "Très haut"),
+                    na.value = curbcut_colors$left_5$fill[1]) +
+  labs(title = NULL) +
+  geom_sf(data = lvlsec_utm, fill = "transparent", color = "black", size = 0.5) +
+  c(list(
+    coord_sf(xlim = c(sf::st_bbox(lvlsec_utm)["xmin"], sf::st_bbox(lvlsec_utm)["xmax"]), 
+             ylim = c(sf::st_bbox(lvlsec_utm)["ymin"], sf::st_bbox(lvlsec_utm)["ymax"]))),
+    gg_cc_theme_no_sf,
+    list(theme_void()),
+    list(default_theme),
+    list(theme(legend.box.margin = margin(t = 0)))
+  ) +
+  theme(legend.title = element_blank())
+
+ggplot2::ggsave(filename = here::here("output/infographic/ndvi_plot.pdf"),
+                plot = ndvi_plot_infographics, width = 12, height = 6)
+
+
 # Flooding ----------------------------------------------------------------
 #Vectors for the flooding
 curbcut_flooding <- sf::st_read("data/axe1/climaterisk/zone_inondable_RCI_CDU_20240607_PG.shp") |> 

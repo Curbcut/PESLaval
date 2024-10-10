@@ -199,7 +199,7 @@ names(t)[1] <- "binned_variable"
 # Plotting the sf map with custom bins
 mixite_sociale <- 
   ggplot(t) +
-  gg_cc_tiles +
+  # gg_cc_tiles +
   geom_sf(aes(fill = binned_variable), color = "transparent", lwd = 0) +
   scale_fill_manual(values = curbcut_colors$left_5$fill[2:6],
                     name = "Indice de mixité",
@@ -211,6 +211,22 @@ mixite_sociale <-
 
 ggplot2::ggsave(filename = here::here("output/axe2/mixitecomposite.pdf"), 
                 plot = mixite_sociale, width = 6.5, height = 6)
+
+
+mixite_sociale_infographics <- 
+  ggplot(t) +
+  # gg_cc_tiles +
+  geom_sf(aes(fill = binned_variable), color = "transparent", lwd = 0) +
+  scale_fill_manual(values = curbcut_colors$left_5$fill[2:6],
+                    name = "Indice de mixité",
+                    labels = labels,
+                    guide = guide_legend(title.position = "top", label.position = "bottom", nrow = 1)) +
+  gg_cc_theme +
+  theme(legend.spacing.x = unit(2, 'cm'),
+        legend.spacing.y = unit(1, 'cm'))
+
+ggplot2::ggsave(filename = here::here("output/infographic/mixitecomposite.pdf"), 
+                plot = mixite_sociale_infographics, width = 6.5, height = 6)
 
 
 # Facet wrap entropy ------------------------------------------------------

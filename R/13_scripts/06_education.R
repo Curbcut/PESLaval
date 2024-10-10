@@ -511,6 +511,36 @@ edu_comp_graph <-
 ggplot2::ggsave(filename = here::here("output/axe1/education/edu_comp_graph.pdf"),
                 plot = edu_comp_graph, width = 7.5, height = 3)
 
+
+
+# Filter the data for the year 2021
+data_2021 <- comp[comp$Year == 2021, ]
+edu_comp_graph_infographic <-
+  ggplot(data_2021, aes(x = "", y = prop, fill = level)) +
+  geom_bar(width = 1, stat = "identity", color = "white", size = 1) +
+  coord_polar("y", start = 0) +
+  theme_void() +
+  geom_text(aes(label = prop_per),
+            position = position_stack(vjust = 0.5),
+            color = "white", size = 3.5, fontface = "bold") +
+  scale_fill_manual(values = c("none" = "#98A8CB", "sec" = "#6C83B5",
+                               "psec" = "#3d4a66", "uni" = "#252c3d"),
+                    labels = c("none" = str_wrap("Aucun certificat, diplôme ou grade", 16),
+                               "sec" = str_wrap("Diplôme d'études secondaires ou attestation d'équivalence", 16),
+                               "psec" = str_wrap("Certificat ou diplôme d'études postsecondaires inférieur au baccalauréat", 16),
+                               "uni" = str_wrap("Baccalauréat ou grade supérieur", 16))) +
+  theme(
+    legend.title = element_blank(),
+    legend.position = "right",
+    legend.text = element_text(size = 9),
+    legend.key.spacing.y = unit(0.2, 'cm')
+  )
+
+
+ggplot2::ggsave(filename = here::here("output/infographic/edu_comp_graph.pdf"),
+                plot = edu_comp_graph_infographic, width = 5, height = 4)
+
+
 # Par genre ---------------------------------------------------------------
 
 edus_v <- c(m_total = "v_CA21_5866", f_total = "v_CA21_5867",
