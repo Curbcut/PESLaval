@@ -236,7 +236,7 @@ ndvi_plot_infographics <-
   theme(legend.title = element_blank())
 
 ggplot2::ggsave(filename = here::here("output/infographic/ndvi_plot.pdf"),
-                plot = ndvi_plot_infographics, width = 12, height = 6)
+                plot = ndvi_plot_infographics, width = 4.5, height = 4)
 
 
 # Flooding ----------------------------------------------------------------

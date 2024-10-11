@@ -226,7 +226,7 @@ mixite_sociale_infographics <-
         legend.spacing.y = unit(1, 'cm'))
 
 ggplot2::ggsave(filename = here::here("output/infographic/mixitecomposite.pdf"), 
-                plot = mixite_sociale_infographics, width = 6.5, height = 6)
+                plot = mixite_sociale_infographics, width = 4.5, height = 4)
 
 
 # Facet wrap entropy ------------------------------------------------------

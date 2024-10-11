@@ -538,7 +538,7 @@ edu_comp_graph_infographic <-
 
 
 ggplot2::ggsave(filename = here::here("output/infographic/edu_comp_graph.pdf"),
-                plot = edu_comp_graph_infographic, width = 5, height = 4)
+                plot = edu_comp_graph_infographic, width = 4.5, height = 4)
 
 
 # Par genre ---------------------------------------------------------------

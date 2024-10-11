@@ -204,7 +204,7 @@ ggplot(data_2021,
   theme(legend.title = element_blank())
 
 ggplot2::ggsave(filename = here::here("output/infographic/knowledge_official.pdf"), 
-                plot = knowledge_official_infographic, width = 6.5, height = 6.5)
+                plot = knowledge_official_infographic, width = 4, height = 3.5)
 
 # Values for the text
 bilingual_1996 <- combinedKnowOffLang$Percentage[
