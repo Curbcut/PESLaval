@@ -179,17 +179,20 @@ ggplot(data_2021,
             aes(label = convert_pct(Percentage/100)),
             position = position_fill(vjust = 0.5),
             size = 3,
-            color = "black") +
+            color = "black",
+            family = "KMR-Apparat-Regular") +
   geom_text(data = data_2021[data_2021$Language == "Aucune", ],
             aes(label = convert_pct(Percentage/100)),
             position = position_fill(vjust = 1.03),
             size = 3,
-            color = "black") +
+            color = "black",
+            family = "KMR-Apparat-Regular") +
   geom_text(data = data_2021[data_2021$Language == "Anglais", ],
             aes(label = convert_pct(Percentage/100)),
             position = position_fill(vjust = 0.955),
             size = 3,
-            color = "black") +
+            color = "black",
+            family = "KMR-Apparat-Regular") +
   ylab(NULL) +
   xlab(NULL) +
   scale_fill_manual(values = c("Aucune" = color_theme("yellowclimate"), 
