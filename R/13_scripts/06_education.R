@@ -103,7 +103,7 @@ dropout_plot <- ggplot(dropout_data_long,
   labs(title = element_blank(),
        x = "Année scolaire",
        y = "Taux de sortie sans diplôme (%)",
-       color = "Genre", 
+       color = "Sexe", 
        alpha = "Région") +
   gg_cc_theme_no_sf +
   theme(legend.title.position = "top")
