@@ -294,11 +294,11 @@ recimm_prop_map <- ggplot(data = recimm_lvl_21_da) +
   geom_sf(aes(fill = percentage_category), color = NA) +
   geom_sf(data = laval_sectors, fill = "transparent", color = "black") +
   scale_fill_manual(values = curbcut_colors$left_5$fill[2:6], na.value = "#B3B3BB") +
-  labs(fill = "Proportion de la population") +
+  labs(fill = "Proportion de la population immigrante") +
   gg_cc_theme +
   theme(legend.position = "bottom", legend.box = "horizontal",
         legend.title = element_blank(),
-        text=element_text(family="KMR Apparat Regular")) +
+        text=element_text(family="KMR-Apparat-Regular")) +
   guides(fill = guide_legend(title.position = "top", title.hjust = 0.5,
                              nrow = 1))
 
