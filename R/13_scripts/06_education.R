@@ -103,7 +103,7 @@ dropout_plot <- ggplot(dropout_data_long,
   labs(title = element_blank(),
        x = "Année scolaire",
        y = "Taux de sortie sans diplôme (%)",
-       color = "Genre", 
+       color = "Sexe", 
        alpha = "Région") +
   gg_cc_theme_no_sf +
   theme(legend.title.position = "top")
@@ -509,7 +509,7 @@ edu_comp_graph <-
   guides(fill = guide_legend(ncol = 2))
 
 ggplot2::ggsave(filename = here::here("output/axe1/education/edu_comp_graph.pdf"),
-                plot = edu_comp_graph, width = 7.5, height = 3)
+                plot = edu_comp_graph, width = 6.5, height = 3)
 
 
 
@@ -522,7 +522,7 @@ edu_comp_graph_infographic <-
   theme_void() +
   geom_text(aes(label = prop_per),
             position = position_stack(vjust = 0.5),
-            color = "white", size = 3.5, fontface = "bold") +
+            color = "white", size = 3, family = "KMR-Apparat-Regular") +
   scale_fill_manual(values = c("none" = "#98A8CB", "sec" = "#6C83B5",
                                "psec" = "#3d4a66", "uni" = "#252c3d"),
                     labels = c("none" = str_wrap("Aucun certificat, diplôme ou grade", 16),
@@ -538,7 +538,7 @@ edu_comp_graph_infographic <-
 
 
 ggplot2::ggsave(filename = here::here("output/infographic/edu_comp_graph.pdf"),
-                plot = edu_comp_graph_infographic, width = 5, height = 4)
+                plot = edu_comp_graph_infographic, width = 4.25, height = 3)
 
 
 # Par genre ---------------------------------------------------------------
@@ -587,7 +587,7 @@ edu_gender_graph <- ggplot(edus, aes(x = education, y = prop, fill = sex)) +
   theme(legend.title = element_blank())
 
 ggplot2::ggsave(filename = here::here("output/axe1/education/edu_gender_graph.pdf"), 
-                plot = edu_gender_graph, width = 7.5, height = 4)
+                plot = edu_gender_graph, width = 6.5, height = 3)
 
 
 # Save --------------------------------------------------------------------

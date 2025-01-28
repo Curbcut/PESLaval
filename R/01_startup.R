@@ -10,9 +10,9 @@ library(gt)
 
 # font_import()
 # loadfonts(device = "win", quiet = TRUE)
-# windowsFonts(`KMR Apparat Regular`=windowsFont("KMR Apparat Regular"))
-# "KMR Apparat Regular" %in% names(windowsFonts())
-font_add(family = "KMR Apparat Regular", regular = "data/fonts/KMR-Apparat-Regular.ttf")
+# windowsFonts(`KMR-Apparat-Regular`=windowsFont("KMR-Apparat-Regular"))
+# "KMR-Apparat-Regular" %in% names(windowsFonts())
+font_add(family = "KMR-Apparat-Regular", regular = "data/fonts/KMR-Apparat-Regular.ttf")
 showtext_auto()
 
 source("R/utils/tt_fun.R")
@@ -56,12 +56,12 @@ gg_cc_tiles <- list(ggspatial::layer_spatial(tiles, alpha = 0.7))
 default_theme <- theme(legend.position = "bottom",
                        legend.box = "horizontal",
                        legend.title = element_text(size = indesign_title_fontsize, 
-                                                   family="KMR Apparat Regular"),
+                                                   family="KMR-Apparat-Regular"),
                        legend.text = element_text(size = indesign_fontsize, 
-                                                  family="KMR Apparat Regular"),
+                                                  family="KMR-Apparat-Regular"),
                        legend.title.align = 0.5,
                        legend.text.align = 0.5,
-                       text=element_text(size = indesign_fontsize, family="KMR Apparat Regular"), 
+                       text=element_text(size = indesign_fontsize, family="KMR-Apparat-Regular"), 
                        legend.box.margin = margin(t = -10))
 gg_cc_theme_no_sf <- list(
   theme_minimal(),

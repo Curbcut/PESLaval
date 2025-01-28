@@ -294,11 +294,11 @@ recimm_prop_map <- ggplot(data = recimm_lvl_21_da) +
   geom_sf(aes(fill = percentage_category), color = NA) +
   geom_sf(data = laval_sectors, fill = "transparent", color = "black") +
   scale_fill_manual(values = curbcut_colors$left_5$fill[2:6], na.value = "#B3B3BB") +
-  labs(fill = "Proportion de la population") +
+  labs(fill = "Proportion de la population immigrante") +
   gg_cc_theme +
   theme(legend.position = "bottom", legend.box = "horizontal",
         legend.title = element_blank(),
-        text=element_text(family="KMR Apparat Regular")) +
+        text=element_text(family="KMR-Apparat-Regular")) +
   guides(fill = guide_legend(title.position = "top", title.hjust = 0.5,
                              nrow = 1))
 
@@ -584,7 +584,7 @@ imm_age_graph <- ggplot(data = age_21_rev, aes(x = Age, y = count, fill = gender
         axis.title.x = element_blank())
 
 ggplot2::ggsave(filename = here::here("output/axe1/immigration/imm_age_graph.pdf"), 
-                plot = imm_age_graph, width = 6.5, height = 5)
+                plot = imm_age_graph, width = 6.5, height = 4)
 
 imm_stackedage_graph <- ggplot(data = age_21, aes(x = Age, y = count, fill = gender)) +
   geom_bar(stat = "identity") +
@@ -602,7 +602,7 @@ imm_stackedage_graph <- ggplot(data = age_21, aes(x = Age, y = count, fill = gen
         axis.title.x = element_blank())
 
 ggplot2::ggsave(filename = here::here("output/axe1/immigration/imm_stackedage_graph.pdf"), 
-                plot = imm_stackedage_graph, width = 6.5, height = 5)
+                plot = imm_stackedage_graph, width = 5.5, height = 4)
 
 
 # Ethnic Origins ----------------------------------------------------------

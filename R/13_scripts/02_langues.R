@@ -179,17 +179,20 @@ ggplot(data_2021,
             aes(label = convert_pct(Percentage/100)),
             position = position_fill(vjust = 0.5),
             size = 3,
-            color = "black") +
+            color = "black",
+            family = "KMR-Apparat-Regular") +
   geom_text(data = data_2021[data_2021$Language == "Aucune", ],
             aes(label = convert_pct(Percentage/100)),
             position = position_fill(vjust = 1.03),
             size = 3,
-            color = "black") +
+            color = "black",
+            family = "KMR-Apparat-Regular") +
   geom_text(data = data_2021[data_2021$Language == "Anglais", ],
             aes(label = convert_pct(Percentage/100)),
             position = position_fill(vjust = 0.955),
             size = 3,
-            color = "black") +
+            color = "black",
+            family = "KMR-Apparat-Regular") +
   ylab(NULL) +
   xlab(NULL) +
   scale_fill_manual(values = c("Aucune" = color_theme("yellowclimate"), 
@@ -204,7 +207,7 @@ ggplot(data_2021,
   theme(legend.title = element_blank())
 
 ggplot2::ggsave(filename = here::here("output/infographic/knowledge_official.pdf"), 
-                plot = knowledge_official_infographic, width = 6.5, height = 6.5)
+                plot = knowledge_official_infographic, width = 4, height = 3.5)
 
 # Values for the text
 bilingual_1996 <- combinedKnowOffLang$Percentage[
