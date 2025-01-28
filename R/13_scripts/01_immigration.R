@@ -692,6 +692,7 @@ imm_origin_graph <- ggplot(data = imm_origin, aes(x = origin, y = proportion, fi
   scale_y_continuous(labels = convert_pct) +
   scale_fill_manual(values = c("Total" = "#A3B0D1", "Récent" = "#CD718C"),
                     labels = c("Total" = "Total", "Récent" = "Immigrants récents")) +
+  scale_x_discrete(labels = function(x) gsub("L'Europe", "Europe", x)) +
   labs(x = "Lieu de naissance",
        y = "Proportion d'immigrants") +
   gg_cc_theme_no_sf +
@@ -700,7 +701,7 @@ imm_origin_graph <- ggplot(data = imm_origin, aes(x = origin, y = proportion, fi
         axis.text.x = element_text(angle = 45, hjust = 1), axis.title.x = element_text(margin = margin(t = -10)))
 
 ggplot2::ggsave(filename = here::here("output/axe1/immigration/imm_origin_graph.pdf"), 
-                plot = imm_origin_graph, width = 9, height = 7)
+                plot = imm_origin_graph, width = 8, height = 5.5)
 
 #Grabbing specific percentages for the text
 imm_asia <- get_census(dataset = "CA21",
