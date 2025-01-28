@@ -118,6 +118,8 @@ imm_evol_graph <-
   ggplot(data = imm, aes(x = factor(year), y = percentage, color = `Region Name`, group = `Region Name`)) +
   geom_line(linewidth = 1.35) +
   geom_point(size = 2.5) +
+  geom_text(aes(label = paste0(format(round(percentage * 100, 1), nsmall = 1), "%")), 
+            vjust = -1.5, size = 2.5, color = "black") + 
   scale_y_continuous(labels = convert_pct) +
   labs(y = "Proportion de la population immigrante") +
   scale_color_manual(values = c("Laval" = "#73AD80", "Montréal" = "#E08565",
@@ -127,7 +129,7 @@ imm_evol_graph <-
         legend.title = element_blank(), text=element_text(family="KMR Apparat Regular"))
 
 ggplot2::ggsave(filename = here::here("output/axe1/immigration/imm_evol_graph.pdf"), 
-                plot = imm_evol_graph, width = 6.5, height = 4)
+                plot = imm_evol_graph, width = 6.5, height = 4.5)
 
 #Grabbing specific numbers for the text
 imm_21_lvl_prop <- get_census(dataset = "CA21", 
