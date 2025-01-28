@@ -744,7 +744,7 @@ mother_tongue_plot <-
   )
 
 ggplot2::ggsave(filename = here::here("output/axe1/langues/mother_tongue.pdf"), 
-                plot = mother_tongue_plot, width = 10, height = 6.5)
+                plot = mother_tongue_plot, width = 6.5, height = 4)
 
 
 
@@ -859,7 +859,7 @@ french_over_time <-
   ) 
 
 ggplot2::ggsave(filename = here::here("output/axe1/langues/french_over_time.pdf"), 
-                plot = french_over_time, width = 10, height = 6.5)
+                plot = french_over_time, width = 6.5, height = 6)
 
 
 table_long$Valeur[table_long$Année == 2021 & table_long$Type == "Français et autre(s)"] /
