@@ -273,8 +273,8 @@ unemployment_rate_nb_2016_qc <- convert_pct(unemployment_rate$Value[unemployment
 # ISQ
 chomage <- readxl::read_xlsx("data/axe1/Fichier_telechargement_complet_916.xlsx", 
                   sheet = "Taux de chômage", skip = 4)
-chomage <- chomage[2:nrow(chomage), c("...1", "..Laval")]
-names(chomage) <- c("date", "tauxchomage")
+chomage <- chomage[2:nrow(chomage), c("...1", "Québec", "..Laval")]
+names(chomage) <- c("date", "tauxchomage_qc", "tauxchomage_laval")
 
 chomage <- chomage[c(1:221), ]
 chomage$date <- gsub("20243", "2024", chomage$date)
@@ -283,9 +283,13 @@ chomage$date <- gsub("20223", "2022", chomage$date)
 chomage$date <- gsub("20213", "2021", chomage$date)
 chomage$date <- gsub("20203", "2020", chomage$date)
 chomage$date <- gsub(" 4$", "", chomage$date)
-chomage$tauxchomage <- gsub("\\*$", "", chomage$tauxchomage)
-chomage$tauxchomage <- gsub(",", ".", chomage$tauxchomage)
-chomage$tauxchomage <- as.numeric(chomage$tauxchomage)
+chomage$tauxchomage_laval <- gsub("\\*$", "", chomage$tauxchomage_laval)
+chomage$tauxchomage_laval <- gsub(",", ".", chomage$tauxchomage_laval)
+chomage$tauxchomage_laval <- as.numeric(chomage$tauxchomage_laval)
+chomage$tauxchomage_qc <- as.numeric(chomage$tauxchomage_qc)
+
+chomage$tauxchomage_laval <- chomage$tauxchomage_laval / 100
+chomage$tauxchomage_qc <- chomage$tauxchomage_qc / 100
 
 convert_date <- function(date_str) {
   date_str <- gsub("Juillet", "07", date_str)
@@ -304,13 +308,39 @@ convert_date <- function(date_str) {
 }
 
 chomage <- mutate(chomage, date = convert_date(date))
+chomage <- mutate(chomage, date = as.Date(date))
 
-unemployment_rate_graph_isq <- 
-  ggplot(chomage, aes(x = date, y = as.numeric(tauxchomage))) +
-  geom_line(color = "grey70") +
-  geom_smooth(se = FALSE, color = color_theme("blueexplorer")) +
+# unemployment_rate_graph_isq <-
+#   ggplot(chomage, aes(x = date, y = as.numeric(tauxchomage_qc))) +
+#   geom_line(color = "grey70") +
+#   geom_smooth(se = FALSE, color = color_theme("blueexplorer")) +
+#   labs(x = NULL, y = "Taux de chômage (%)") +
+#   gg_cc_theme_no_sf
+
+unemployment_rate_graph_isq <-
+ggplot(chomage) +
+  # Quebec unemployment rate
+  geom_line(aes(x = date, y = tauxchomage_qc, color = "Québec"), size = 0.5, alpha = 0.4) +
+  geom_smooth(aes(x = date, y = tauxchomage_qc, color = "Québec"), se = FALSE) +
+  # Laval unemployment rate
+  geom_line(aes(x = date, y = tauxchomage_laval, color = "Laval"), size = 0.5, alpha = 0.4) +
+  geom_smooth(aes(x = date, y = tauxchomage_laval, color = "Laval"), se = FALSE) +
+  # Set colors for the lines
+  scale_color_manual(
+    values = c("Québec" = "#73AD80", "Laval" = color_theme("blueexplorer")),
+    name = NULL
+  ) +
+  scale_y_continuous(labels = convert_pct) +
   labs(x = NULL, y = "Taux de chômage (%)") +
-  gg_cc_theme_no_sf
+  gg_cc_theme_no_sf +
+  scale_x_date(
+    breaks = seq(as.Date("2006-01-01"), as.Date("2024-12-31"), by = "3 years"),
+    date_labels = "%Y",
+    limits = as.Date(c("2006-01-01", "2024-12-31"))
+  )
+
+
+
 
 ggplot2::ggsave(filename = here::here("output/axe1/employment/unemployment_rate_graph_isq.pdf"), 
                 plot = unemployment_rate_graph_isq, width = 6.5, height = 3)

@@ -666,6 +666,229 @@ language_work_en_laval <- convert_pct(worklanglav_21$english / worklanglav_21$to
 language_work_en_qc <- convert_pct(worklangqc_21$english / worklangqc_21$total)
 
 
+# Mother tongue -----------------------------------------------------------
+
+vecs <- cancensus::list_census_vectors("CA21")
+vecs <- vecs[!is.na(vecs$parent_vector), ]
+
+single_multiple <- vecs$vector[vecs$parent_vector == "v_CA21_1174"]
+
+langs <- vecs[vecs$parent_vector %in% single_multiple, ]
+
+single <- c(english_only = "v_CA21_1183", french_only = "v_CA21_1186", other = "v_CA21_1189")
+
+multiple <- c(english_french = "v_CA21_2152", english_other = "v_CA21_2155",
+              french_other = "v_CA21_2158", english_french_other = "v_CA21_2161",
+              many_other = "v_CA21_2164")
+
+langs <- get_census(dataset = "CA21",
+                    regions = list(CSD = 2465005),
+                    level = "CSD",
+                    vectors = c(single, multiple))
+
+agg_data <- data.frame(
+  Language = rep(c("Anglais", "Français", "Autre"), each = 2),
+  Type = rep(c("Seulement", "Avec autre(s) language(s)"), times = 3),
+  Value = c(
+    sum(langs$english_only),
+    sum(langs$english_french + langs$english_other + langs$english_french_other),
+    sum(langs$french_only),
+    sum(langs$english_french + langs$french_other + langs$english_french_other),
+    sum(langs$other),
+    sum(langs$english_other + langs$french_other + 
+          langs$english_french_other + langs$many_other)
+  )
+)
+agg_data$Language <- factor(agg_data$Language, levels = c("Français", "Anglais", "Autre"))
+
+
+mother_tongue_plot <-
+  agg_data |> 
+  ggplot(aes(x = Language, y = Value, fill = Language, alpha = Type)) +
+  geom_bar(stat = "identity", position = "stack") +
+  labs(
+    title = NULL,
+    x = NULL,
+    y = "Individus",
+    alpha = "Type"
+  ) +
+  # Define colors for "Language" but remove the legend
+  scale_fill_manual(values = c(
+    "Français" = color_theme("blueexplorer"),
+    "Anglais" = color_theme("pinkhealth"),
+    "Autre" = color_theme("yellowclimate")
+  ), guide = "none") +  # Remove the color legend
+  # Define alpha levels for "Type"
+  scale_alpha_manual(values = c(
+    "Seulement" = 1,                       # Fully opaque
+    "Avec autre(s) language(s)" = 0.4      # Semi-transparent
+  )) +
+  # Add color to the "Type" legend for reference
+  guides(alpha = guide_legend(override.aes = list(
+    fill = color_theme("blueexplorer")  # Use the French color as a reference
+  ))) +
+  scale_y_continuous(labels = convert_number) +
+  geom_text(aes(label = convert_number(Value)),
+            position = position_stack(vjust = 0.5), # Center text on blocks
+            size = 3,                              # Adjust text size for better visibility
+            color = "black") +                   # Make labels bold for readability
+  gg_cc_theme_no_sf +
+  theme(
+    legend.spacing.x = unit(0.2, 'cm'),
+    legend.spacing.y = unit(0.2, 'cm'),
+    legend.key.width = unit(1, 'cm'),
+    legend.title = element_blank()
+  )
+
+ggplot2::ggsave(filename = here::here("output/axe1/langues/mother_tongue.pdf"), 
+                plot = mother_tongue_plot, width = 10, height = 6.5)
+
+
+
+
+
+french_16 <- 
+get_census(dataset = "CA16",
+           regions = list(CSD = 2465005),
+           level = "CSD",
+           vectors = c(french = "v_CA16_560", with_other = c("v_CA16_1343", "v_CA16_1349", "v_CA16_1352")))
+
+french_11 <- 
+get_census(dataset = "CA11",
+           regions = list(CSD = 2465005),
+           level = "CSD",
+           vectors = c(french = "v_CA11F_227", with_other = c("v_CA11F_539", "v_CA11F_545", "v_CA11F_548")))
+
+french_06 <- 
+get_census(dataset = "CA06",
+           regions = list(CSD = 2465005),
+           level = "CSD",
+           vectors = c(french = "v_CA06_143", with_other = c("v_CA06_239", "v_CA06_241", "v_CA06_242")))
+
+french_01 <- 
+get_census(dataset = "CA01",
+           regions = list(CSD = 2465005),
+           level = "CSD",
+           vectors = c(french = "v_CA01_136", with_other = c("v_CA01_209", "v_CA01_211", "v_CA01_212")))
+
+french_1996 <- 
+get_census(dataset = "CA1996",
+           regions = list(CSD = 2465005),
+           level = "CSD",
+           vectors = c(french = "v_CA1996_236", with_other = c("v_CA1996_306", "v_CA1996_308", "v_CA1996_309")))
+
+french_1996_only <- french_1996$french
+french_1996_with_other <- french_1996$french + 
+  french_1996$with_other1 + 
+  french_1996$with_other2 + 
+  french_1996$with_other3
+
+french_01_only <- french_01$french
+french_01_with_other <- french_01$french + 
+  french_01$with_other1 + 
+  french_01$with_other2 + 
+  french_01$with_other3
+
+french_06_only <- french_06$french
+french_06_with_other <- french_06$french + 
+  french_06$with_other1 + 
+  french_06$with_other2 + 
+  french_06$with_other3
+
+french_11_only <- french_11$french
+french_11_with_other <- french_11$french + 
+  french_11$with_other1 + 
+  french_11$with_other2 + 
+  french_11$with_other3
+
+french_16_only <- french_16$french
+french_16_with_other <- french_16$french + 
+  french_16$with_other1 + 
+  french_16$with_other2 + 
+  french_16$with_other3
+
+# Combine into a data frame
+table <- tibble::tibble(
+  "Année" = c(1996, 2001, 2006, 2011, 2016, 2021),
+  "Population" = rev(c(langs$Population, french_16$Population, french_11$Population, french_06$Population,
+                   french_01$Population, french_1996$Population)),
+  "Français seulement" = c(french_1996_only, french_01_only, french_06_only, 
+                           french_11_only, french_16_only,
+                           agg_data$Value[agg_data$Language == "Français" & agg_data$Type == "Seulement"]),
+  "Français et autre(s)" = c(french_1996_with_other, french_01_with_other, french_06_with_other, 
+                             french_11_with_other, french_16_with_other,
+                             sum(agg_data$Value[agg_data$Language == "Français"]))
+)
+
+
+# Pivot longer for ggplot-friendly format
+table_long <- table %>%
+  tidyr::pivot_longer(cols = c("Population", "Français seulement", "Français et autre(s)"),
+                      names_to = "Type",
+                      values_to = "Valeur")
+
+# Define colors: black for population, blue for French data
+line_colors <- c(
+  "Population" = "black",
+  "Français seulement" = scales::alpha(color_theme("blueexplorer"), 1),
+  "Français et autre(s)" = scales::alpha(color_theme("blueexplorer"), 0.4)
+)
+
+french_over_time <-
+  ggplot(data = table_long, aes(x = Année, y = Valeur, color = Type, group = Type)) +
+  geom_line(size = 1.2) +  # Line thickness
+  geom_point(size = 2) +   # Add points for emphasis
+  scale_color_manual(values = line_colors) +  # Apply custom colors
+  scale_x_continuous(
+    breaks = seq(1996, 2021, by = 5),
+    limits = c(1996, 2021)
+  )  +
+  labs(
+    title = NULL,
+    x = NULL,
+    y = "Individus",
+    color = "Type"
+  ) +
+  scale_y_continuous(labels = convert_number, limits = c(0,450000)) +
+  gg_cc_theme_no_sf +
+  theme(
+    legend.title = element_blank()
+  ) 
+
+ggplot2::ggsave(filename = here::here("output/axe1/langues/french_over_time.pdf"), 
+                plot = french_over_time, width = 10, height = 6.5)
+
+
+table_long$Valeur[table_long$Année == 2021 & table_long$Type == "Français et autre(s)"] /
+  table_long$Valeur[table_long$Année == 2021 & table_long$Type == "Population"]
+
+table_long$Valeur[table_long$Année == 1996 & table_long$Type == "Français et autre(s)"] /
+  table_long$Valeur[table_long$Année == 1996 & table_long$Type == "Population"]
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 qs::qsavem(knowledge_official, bilingual_1996, bilingual_2021,
            no_official_1996, no_official_2021, know_official_laval_qc_diff,
            know_fr_qc, know_fr_laval, know_bilingual_laval, know_bilingual_qc,

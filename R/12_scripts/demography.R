@@ -321,6 +321,83 @@ pop_et_proj <-
   gg_cc_theme_no_sf +
   xlab(NULL)
 
+
+
+
+# NEW DATA
+library(dplyr)
+pop_projections <- 
+readxl::read_excel("data/demography/PopGrAS_RA_base_2024.xlsx", skip = 5) |> 
+  filter(`...3` == "Laval",
+         `...1` == "Référence A2024",
+         `...5` == 3) |> 
+  rename(`Année` = `...4`,) |> 
+  mutate_all(as.numeric)
+
+
+# laval21 <- cancensus::get_census(dataset = "CA21", 
+#                                  regions = list(CSD = 2465005), 
+#                                  level = "CSD")
+# laval16 <- cancensus::get_census(dataset = "CA16", 
+#                                  regions = list(CSD = 2465005), 
+#                                  level = "CSD")
+# laval11 <- cancensus::get_census(dataset = "CA11", 
+#                                  regions = list(CSD = 2465005), 
+#                                  level = "CSD")
+# laval06 <- cancensus::get_census(dataset = "CA06", 
+#                                  regions = list(CSD = 2465005), 
+#                                  level = "CSD")
+# laval01 <- cancensus::get_census(dataset = "CA01", 
+#                                  regions = list(CSD = 2465005), 
+#                                  level = "CSD")
+# laval1996 <- cancensus::get_census(dataset = "CA1996", 
+#                                  regions = list(CSD = 2465005), 
+#                                  level = "CSD")
+# 
+# pop_evol_recensement <- 
+# tibble::tibble(Année = c(1996, 2001, 2006, 2011, 2016, 2021),
+#                Population = c(laval1996$Population, laval01$Population, laval06$Population, laval11$Population, laval16$Population, laval21$Population),
+#                PointType = "Valeur du recensement canadien")
+
+pop_evolution <- pop_evolution[pop_evolution$Year %in% c(1966:2021), c("Year", "Population")] |> 
+  mutate(PointType = "Valeur du recensement canadien")
+
+pop_evolution_tidy <- 
+  rbind(pop_evolution, 
+        pop_projections |> 
+          transmute(Year = `Année`, Population = TOTAL, PointType = "Projection (ISQ)")
+  )
+pop_evolution_tidy$Year <- as.numeric(pop_evolution_tidy$Year)
+# allows for the end of the line to be dotted based on projection points
+solid_data <- pop_evolution_tidy %>% filter(PointType == "Valeur du recensement canadien")
+dotted_data <- pop_evolution_tidy %>% filter(PointType == "Projection (ISQ)" | row_number() == n() - 4)
+
+
+pop_et_proj <-
+ggplot(data = pop_evolution_tidy, aes(x = Year, y = Population, linetype = PointType, color = PointType)) +
+  geom_point(data = pop_evolution_tidy[pop_evolution_tidy$PointType == "Valeur du recensement canadien",], 
+             size = 5) +
+  geom_line(linewidth = 1.5) +
+  ylim(0, max(pop_evolution_tidy$Population)) +
+  scale_linetype_manual(values = c("Projection (ISQ)" = "dotted", 
+                                   "Valeur du recensement canadien" = "solid")) +
+  scale_color_manual(values = c("Projection (ISQ)" = color_theme("pinkhealth"), 
+                                "Valeur du recensement canadien" = "black")) +
+  labs(color = NULL, linetype = NULL, title = NULL) + 
+  scale_y_continuous(labels = convert_number, limits = c(0, 500000)) +
+  gg_cc_theme_no_sf +
+  xlab(NULL) +
+  theme(legend.title = element_blank())
+
+
+
+
+
+
+
+
+
+
 ggplot2::ggsave(filename = here::here("output/0_demography/pop_et_proj.pdf"), 
                 plot = pop_et_proj, width = 8, height = 5)
 

@@ -266,31 +266,37 @@ CPI_rent <-
   mutate(value = value / value[year == years[length(years)]])
 
 # Pulling average rent data
-avg_rent_cmhc <- function(geoid, years, geoname) {
+avg_rent_cmhc <- function(geoid, years, breakdown = "Census Subdivision") {
   map_dfr(years, function(cyear) {
-    get_cmhc(survey = "Rms", series = "Median Rent", dimension = "Bedroom Type",
-             breakdown = "Census Subdivision", geo_uid = geoid, year = cyear) |> 
-      mutate(Geography = geoname) |> 
-      filter(str_detect(`Bedroom Type`, "Total")) |> 
-      select(Geography, Year, Value)
+    cmhc::get_cmhc(survey = "Rms", series = "Median Rent", dimension = "Bedroom Type",
+             breakdown = breakdown, geo_uid = geoid, year = cyear,
+             frequency = "Annual") |> 
+      filter(`Bedroom Type` == "2 Bedroom")
   })
 }
 
 #Grabbing annual average rent data from 2010 to 2023
-avg_rent_lvl <- avg_rent_cmhc(2465005, years, "Laval")
+avg_rent_lvl <- avg_rent_cmhc(2465005, years) |> 
+  mutate(Geography = "Laval") |> 
+  select(Geography, Value, Year)
+avg_rent_qc <- avg_rent_cmhc("01", years, "Provinces") |> 
+  filter(Provinces == "Quebec") |> 
+  mutate(Geography = "Québec") |> 
+  select(Geography, Value, Year)
 
 # Bring dollar values to 2023 $
 avg_rent_lvl_inf <- avg_rent_lvl
 avg_rent_lvl_inf$Value <- avg_rent_lvl_inf$Value / CPI_rent$value
 
-# Manually inputting the province of Quebec's data as it's unavailable using the CMHC package
-# src = https://www.cmhc-schl.gc.ca/professionals/housing-markets-data-and-research/housing-data/data-tables/rental-market/rental-market-report-data-tables
-avg_rent_qc <- data.frame(
-  Geography = "Québec",
-  Year = c(2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018, 2019,
-           2020, 2021, 2022, 2023),
-  Value = c(648, 666, 693, 679, 691, 712, 727, 736, 761, 800, 845, 874, 952, 1022)
-)
+# # Manually inputting the province of Quebec's data as it's unavailable using the CMHC package
+# # src = https://www.cmhc-schl.gc.ca/professionals/housing-markets-data-and-research/housing-data/data-tables/rental-market/rental-market-report-data-tables
+# avg_rent_qc <- data.frame(
+#   Geography = "Québec",
+#   Year = c(2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018, 2019,
+#            2020, 2021, 2022, 2023),
+#   Value = c(648, 666, 693, 679, 691, 712, 727, 736, 761, 800, 845, 874, 952, 1022)
+# )
+
 avg_rent_qc_inf <- avg_rent_qc
 avg_rent_qc_inf$Value <- avg_rent_qc_inf$Value / CPI_rent$value
 
@@ -1214,7 +1220,8 @@ ggplot2::ggsave(filename = here::here("output/axe1/housing/housing_starts.pdf"),
 
 # Completions
 completions_lvl <- get_cmhc(survey = "Scss", series = "Completions", dimension = "Intended Market",
-                            breakdown = "Historical Time Periods", geo_uid = 2465005, year = 2009) |> 
+                            breakdown = "Historical Time Periods", geo_uid = 2465005, year = 2009,
+                            frequency = "Annual") |> 
   mutate(Date = dmy(paste0("01 ", DateString)), Year = as.factor(year(Date)),
          `Marché visé` = `Intended Market`) |> 
   select(Year, `Marché visé`, Value) |> 
@@ -1799,7 +1806,7 @@ core_need_2021 <- core_need_time$`Besoins impérieux (%)`[core_need_time$Région
 
 gtsave(core_need_table, "output/axe1/housing/core_need_table.png", zoom = 3)
 
-qs::qsavem(housing_owner_2016, housing_owner_2001, housing_owner_2021,
+qs::qsavem(housing_owner_2016, housing_owner_2021,
            logement_statutoccupation, housing_owner_2016, housing_owner_2021, housing_evol_owner_1621,
            housing_tenant_2016, housing_tenant_2021, housing_evol_tenant_1621,
            housing_prop_tenant_2021_CA, housing_prop_tenant_2016_CA, housing_prop_tenant_2001_CA,
