@@ -161,9 +161,15 @@ knowledge_official <-
   scale_fill_manual(values = c("Aucune" = color_theme("yellowclimate"), 
                                "Anglais" = color_theme("pinkhealth"), 
                                "Français" = color_theme("blueexplorer"), 
-                               "Les deux" = color_theme("greenecology"))) +
+                               "Les deux" = color_theme("greenecology")),
+                    labels = c("Aucune" = "Aucune", 
+                               "Anglais" = "Anglais seulement", 
+                               "Français" = "Français seulement", 
+                               "Les deux" = "Les deux")) +  # Adjust legend labels
   guides(fill = guide_legend(reverse = TRUE)) +
   gg_cc_theme_no_sf +
+  labs(x = "Langue(s) parlée(s)",  # x-axis label
+       y = "Proportion de la population") +  # y-axis label
   theme(legend.title = element_blank())
 
 ggplot2::ggsave(filename = here::here("output/axe1/langues/knowledge_official.pdf"), 
