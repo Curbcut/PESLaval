@@ -312,19 +312,23 @@ avg_rent_annual_inf <- bind_rows(avg_rent_lvl_inf, avg_rent_qc_inf) |>
 
 # Line graph
 housing_loyermed_plot <-
-ggplot(avg_rent_annual, aes(x = Year, y = `Value`, group = Geography, color = Geography)) +
+  ggplot(avg_rent_annual, aes(x = Year, y = `Value`, group = Geography, color = Geography)) +
   geom_line(linewidth = 1.5) +
   labs(title = element_blank(),
        x = NULL,
        y = "Loyer mensuel médian ($)") +
   scale_color_manual(values = c("Laval" = color_theme("greenecology"), "Québec" = color_theme("blueexplorer"))) +
   scale_y_continuous(labels = convert_number) +
+  scale_x_continuous(
+    breaks = seq(2010, 2023, by = 1),
+    limits = c(2010, 2023)
+  ) +
   gg_cc_theme_no_sf +
   theme(legend.title = element_blank())# +
-  # facet_wrap(~indexed)
+# facet_wrap(~indexed)
 
 ggplot2::ggsave(filename = here::here("output/axe1/housing/housing_loyermed_plot.pdf"),
-                plot = housing_loyermed_plot, width = 3, height = 3)
+                plot = housing_loyermed_plot, width = 6.5, height = 4)
 
 housing_loyer_2023 <- avg_rent_annual$Value[
   avg_rent_annual$Year == 2023 & avg_rent_annual$Geography == "Laval"]
