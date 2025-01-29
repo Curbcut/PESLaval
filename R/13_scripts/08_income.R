@@ -726,7 +726,7 @@ ggplot(ind_total_bar[ind_total_bar$Geography != "Laval", ],
        aes(x = Bracket, y = Value, fill = Geography)) +
   geom_bar(stat = "identity", position = "dodge", width = 0.7) +
   labs(title = element_blank(),
-       x = "", y = "Individus") +
+       x = "Tranche de revenu annuel", y = "Individus") +
   scale_fill_manual(values = c(#"Laval" = "royalblue2", 
     "Men" = "#A3B0D1", 
     "Women" = "#CD718C"),
@@ -740,7 +740,8 @@ ggplot(ind_total_bar[ind_total_bar$Geography != "Laval", ],
   theme(legend.position = "bottom",
         legend.title = element_blank(),
         axis.text.x = element_text(angle = 45, hjust = 1),
-        legend.box.margin = margin(t = -20))
+        legend.spacing = unit(1, "cm"),
+        legend.box.margin = margin(t = 2))
 
 ggplot2::ggsave(filename = here::here("output/axe1/income/revenue_annuel_plot.pdf"),
                 plot = revenue_annuel_plot, width = 6.5, height = 3.5)

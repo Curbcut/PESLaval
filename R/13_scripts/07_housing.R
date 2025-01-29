@@ -128,11 +128,11 @@ pto_graph <- bind_rows(pto_21, pto_16, pto_11, pto_06, pto_01) |>
 # Graphique pour le nombre de ménages
 g1 <- ggplot(pto_graph, aes(x = Year, y = Households, fill = Type)) +
   geom_bar(stat = "identity", position = position_dodge(width = 0.9)) +
-  labs(y = "Nombre de ménages (n)") +
+  labs(y = "Nombre de ménages (n)",
+       x = "Année") +
   scale_fill_manual(values = c("owner" = color_theme("redhousing"), "tenant" = color_theme("greenecology")),
                     labels = c("Propriétaire", "Locataire")) +
   scale_y_continuous(labels = convert_number) +
-  xlab(NULL) +
   gg_cc_theme_no_sf +
   theme(legend.title = element_blank())
 
@@ -141,11 +141,11 @@ g2 <- ggplot(pto_graph, aes(x = Year, y = Proportion, fill = Type)) +
   geom_bar(stat = "identity", position = "fill") +
   geom_text(aes(label = ProportionLabel, group = Type),
             vjust = 2, color = "black", size = 2.75) +
-  labs(y = "Proportion des ménages (%)") +
+  labs(y = "Proportion des ménages (%)",
+       x = "Année") +
   scale_fill_manual(values = c("owner" = color_theme("redhousing"), "tenant" = color_theme("greenecology")),
                     labels = c("Propriétaire", "Locataire")) +
   scale_y_continuous(labels = convert_pct) +
-  xlab(NULL) +
   gg_cc_theme_no_sf +
   theme(legend.title = element_blank())
 
@@ -315,7 +315,7 @@ housing_loyermed_plot <-
   ggplot(avg_rent_annual, aes(x = Year, y = `Value`, group = Geography, color = Geography)) +
   geom_line(linewidth = 1.5) +
   labs(title = element_blank(),
-       x = NULL,
+       x = "Année",
        y = "Loyer mensuel médian ($)") +
   scale_color_manual(values = c("Laval" = color_theme("greenecology"), "Québec" = color_theme("blueexplorer"))) +
   scale_y_continuous(labels = convert_number) +

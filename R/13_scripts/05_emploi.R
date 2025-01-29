@@ -531,7 +531,7 @@ emploi_catpro <-
                                                    "Métiers, transport, machinerie et domaines apparentés",
                                                    "Ressources naturelles, agriculture et production connexe",
                                                    "Fabrication et services d'utilité publique"), width = 16)) +
-  labs(title = NULL, x = NULL, y = "Individus") +
+  labs(title = NULL, x = "Catégories des professions", y = "Individus") +
   scale_fill_manual(values = c("Total" = "#73AD80", 
                                "Men" = color_theme("blueexplorer"), 
                                "Women" = color_theme("pinkhealth")),

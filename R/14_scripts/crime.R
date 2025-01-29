@@ -15,8 +15,8 @@ ggplot(df, aes(x = factor(years), y = values)) +
             vjust = 2, size = 3) +
   scale_y_continuous(labels = convert_number) +
   gg_cc_theme_no_sf +
-  xlab(NULL) +
-  ylab(NULL)
+  xlab("Année") +
+  ylab("Nombre d'affaires criminelles")
 
 ggplot2::ggsave(filename = here::here("output/axe2/crime_plot.pdf"), 
                 plot = crime_plot, width = 6, height = 3, bg = "transparent")
