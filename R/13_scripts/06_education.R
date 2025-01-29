@@ -406,19 +406,19 @@ educ_sectors_table <-
   # Apply font style to the whole table
   tab_style(
     style = cell_text(
-      font = "KMR Apparat Regular"
+      font = "KMR-Apparat-Regular"
     ),
     locations = cells_body()
   ) |>
   tab_style(
     style = cell_text(
-      font = "KMR Apparat Regular"
+      font = "KMR-Apparat-Regular"
     ),
     locations = cells_column_labels()
   ) |>
   tab_style(
     style = cell_text(
-      font = "KMR Apparat Regular"
+      font = "KMR-Apparat-Regular"
     ),
     locations = cells_row_groups()
   ) |>
@@ -497,7 +497,7 @@ edu_comp_graph <-
   geom_text(aes(label = prop_per, y = cumulative), color = "white",
             size = ggplot_fontsize) +
   scale_y_continuous(labels = convert_pct) +
-  labs(x = element_blank(), y = "Proportion de la population \nâgée de 25 à 64 ans (%)") +
+  labs(x = "Année", y = "Proportion de la population \nâgée de 25 à 64 ans (%)") +
   scale_fill_manual(values = c("none" = "#98A8CB", "sec" = "#6C83B5",
                                "psec" = "#3d4a66", "uni" = "#252c3d"),
                     labels = c("none" = "Aucun certificat, diplôme ou grade",
@@ -583,7 +583,7 @@ edu_gender_graph <- ggplot(edus, aes(x = education, y = prop, fill = sex)) +
                               "Baccalauréat ou grade supérieur")) +
   gg_cc_theme_no_sf +
   ylab("Proportion, par genre, de \nla population de 25 à 64 ans (%)")+
-  xlab(NULL) +
+  xlab("Niveau de scolarité") +
   theme(legend.title = element_blank())
 
 ggplot2::ggsave(filename = here::here("output/axe1/education/edu_gender_graph.pdf"), 

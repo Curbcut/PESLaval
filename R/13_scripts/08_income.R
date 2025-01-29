@@ -100,23 +100,30 @@ names(mhh_graph) <- c("Année", "Ville de Laval", "Ensemble du Québec")
 
 mhh_plot <-
   gt(mhh_graph) |> 
+  data_color(
+    columns = 2:3,
+    fn = scales::col_numeric(
+      palette = c("white", color_theme("purpletransport")), 
+      domain = NULL
+    )
+  ) |> 
   fmt(columns = 2:3, fns = \(x) paste(convert_number(x), "$")) |> 
   # Apply font style to the whole table
   tab_style(
     style = cell_text(
-      font = "KMR Apparat Regular"
+      font = "KMR-Apparat-Regular"
     ),
     locations = cells_body()
   ) |>
   tab_style(
     style = cell_text(
-      font = "KMR Apparat Regular"
+      font = "KMR-Apparat-Regular"
     ),
     locations = cells_column_labels()
   ) |>
   tab_style(
     style = cell_text(
-      font = "KMR Apparat Regular"
+      font = "KMR-Apparat-Regular"
     ),
     locations = cells_row_groups()
   ) |>
@@ -607,23 +614,30 @@ names(mii_graph) <- c("Année", "Ville de Laval", "Ensemble du Québec")
 
 mii_plot <-
   gt(mii_graph) |> 
+  data_color(
+    columns = 2:3,
+    fn = scales::col_numeric(
+      palette = c("white", color_theme("purpletransport")),
+      domain = NULL
+    )
+  ) |> 
   fmt(columns = 2:3, fns = \(x) paste(convert_number(x), "$")) |> 
   # Apply font style to the whole table
   tab_style(
     style = cell_text(
-      font = "KMR Apparat Regular"
+      font = "KMR-Apparat-Regular"
     ),
     locations = cells_body()
   ) |>
   tab_style(
     style = cell_text(
-      font = "KMR Apparat Regular"
+      font = "KMR-Apparat-Regular"
     ),
     locations = cells_column_labels()
   ) |>
   tab_style(
     style = cell_text(
-      font = "KMR Apparat Regular"
+      font = "KMR-Apparat-Regular"
     ),
     locations = cells_row_groups()
   ) |>
@@ -632,7 +646,7 @@ mii_plot <-
     locations = cells_row_groups()
   ) |> 
   tab_spanner(
-    label = "Revenu médian des ménages",
+    label = "Revenu médian des individus",
     columns = c("Ville de Laval", "Ensemble du Québec")
   ) |> 
   tab_options(

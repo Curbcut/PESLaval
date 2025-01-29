@@ -1578,6 +1578,13 @@ acceptable_housing <- pivot_wider(acceptable_housing, names_from = location,
                                                   `Tous les ménages`))
 acceptable_housing_table <-
 gt(acceptable_housing) |> 
+  data_color(
+    columns = 2:ncol(acceptable_housing),
+    fn = scales::col_numeric(
+      palette = c("white", color_theme("purpletransport")),
+      domain = NULL
+    )
+  ) |> 
   fmt(columns = 2:ncol(acceptable_housing), fns = convert_pct) |> 
   tab_spanner(
     label = "Laval",
@@ -1612,19 +1619,19 @@ gt(acceptable_housing) |>
   # Apply font style to the whole table
   tab_style(
     style = cell_text(
-      font = "KMR Apparat Regular"
+      font = "KMR-Apparat-Regular"
     ),
     locations = cells_body()
   ) |>
   tab_style(
     style = cell_text(
-      font = "KMR Apparat Regular"
+      font = "KMR-Apparat-Regular"
     ),
     locations = cells_column_labels()
   ) |>
   tab_style(
     style = cell_text(
-      font = "KMR Apparat Regular"
+      font = "KMR-Apparat-Regular"
     ),
     locations = cells_row_groups()
   ) |>

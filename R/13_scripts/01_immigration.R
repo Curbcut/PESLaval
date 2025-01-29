@@ -566,7 +566,7 @@ imm_age_sex_prop_graph <- ggplot(data = age_21, aes(x = gender, y = prop, fill =
        fill = "Age Group") +
   gg_cc_theme_no_sf +
   theme(legend.position = "bottom", plot.title = element_blank(),
-        legend.title = element_blank(), text = element_text(family = "KMR Apparat Regular"),
+        legend.title = element_blank(), text = element_text(family = "KMR-Apparat-Regular"),
         axis.title.x = element_blank()) +
   guides(fill = guide_legend(reverse = TRUE))
 
@@ -577,13 +577,12 @@ imm_age_graph <- ggplot(data = age_21_rev, aes(x = Age, y = count, fill = gender
             vjust = 2.5, color = "black", size = 3) +
   scale_fill_manual(values = c("Homme" = "#A3B0D1", "Femme" = "#CD718C")) +
   scale_y_continuous(labels = scales::label_number(big.mark = " ")) +
-  labs(x = "Gender",
-       y = "Count",
+  labs(x = "Groupe d'âge",
+       y = "Nombre d'individus",
        fill = "Age Group") +
   gg_cc_theme_no_sf +
   theme(legend.position = "bottom", plot.title = element_blank(),
-        legend.title = element_blank(), text = element_text(family = "KMR Apparat Regular"),
-        axis.title.x = element_blank())
+        legend.title = element_blank(), text = element_text(family = "KMR-Apparat-Regular"))
 
 ggplot2::ggsave(filename = here::here("output/axe1/immigration/imm_age_graph.pdf"), 
                 plot = imm_age_graph, width = 6.5, height = 4)

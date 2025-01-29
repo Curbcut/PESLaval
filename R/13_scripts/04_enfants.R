@@ -374,10 +374,24 @@ children_vulnerability_qc <- children_vulnerability_qc |>
 combined_child_vulnerability <- bind_rows(children_vulnerability, children_vulnerability_qc)
 combined_child_vulnerability$name <- gsub("\\.", " ", combined_child_vulnerability$name)
 
+combined_child_vulnerability$name <- recode(combined_child_vulnerability$name, 
+                                            "Santé physique et bien être" = "Santé physique et bien-être")
+
+# Define the order of the bars (modify as needed)
+ordered_levels <- c("Santé physique et bien-être",
+                    "Maturité affective",
+                    "Développement cognitif et langagier",
+                    "Habiletés de communication et connaissances générales",
+                    "Compétences sociales",
+                    "Au moins un domaine")
+
+# Apply the ordering
+combined_child_vulnerability$name <- factor(combined_child_vulnerability$name, levels = ordered_levels)
+
 children_vulnerability_plot <- 
 ggplot(data = combined_child_vulnerability, aes(x = name, y = value, fill = Region))+
   geom_bar(stat = "identity", position = "dodge") +
-  labs(title = NULL, x = NULL, y = "Enfants (%)") + 
+  labs(title = NULL, x = "Domaine de vulnérabilité", y = "Enfants (%)") + 
   gg_cc_theme_no_sf +
   geom_text(aes(label = convert_pct(value / 100)),
             position = position_dodge(width = 0.9),
