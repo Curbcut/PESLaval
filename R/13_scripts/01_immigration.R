@@ -828,15 +828,15 @@ vis_min_graph <- ggplot(data = vis_min, aes(x = type, y = count, fill = type)) +
   geom_text(aes(label = perc), position = position_dodge(width = 0.9),
             vjust = -0.5, color = "black", size = 3) +
   scale_y_continuous(labels = convert_number) +
-  labs(x = "Lieu de naissance",
+  labs(x = "Catégories de minorités visibles",
        y = "Individus") +
   gg_cc_theme_no_sf +
   theme(legend.position = "none", plot.title = element_blank(),
         legend.title = element_blank(), text = element_text(family = "KMR Apparat Regular"),
-        axis.text.x = element_text(angle = 45, hjust = 1), axis.title.x = element_blank())
+        axis.text.x = element_text(angle = 45, hjust = 1))
 
 ggplot2::ggsave(filename = here::here("output/axe1/immigration/vis_min_graph.pdf"), 
-                plot = vis_min_graph, width = 6.5, height = 4)
+                plot = vis_min_graph, width = 6.5, height = 5)
 
 #Grabbing numbers for the text
 vis_min_laval <- get_census(dataset = "CA21",
