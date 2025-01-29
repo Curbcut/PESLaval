@@ -418,8 +418,8 @@ most_spoken_at_home <-
             position = position_fill(vjust = 0.5),
             size = 3,
             color = "black") +
-  ylab(NULL) +
-  xlab(NULL) +
+  ylab("Proportion de la population") +
+  xlab("Année") +
   scale_fill_manual(values = c("Autres" = color_theme("yellowclimate"), 
                                "Anglais" = color_theme("pinkhealth"), 
                                "Français" = color_theme("blueexplorer"))) +
