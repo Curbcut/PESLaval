@@ -100,23 +100,30 @@ names(mhh_graph) <- c("Année", "Ville de Laval", "Ensemble du Québec")
 
 mhh_plot <-
   gt(mhh_graph) |> 
+  data_color(
+    columns = 2:3,
+    fn = scales::col_numeric(
+      palette = c("white", color_theme("purpletransport")), 
+      domain = NULL
+    )
+  ) |> 
   fmt(columns = 2:3, fns = \(x) paste(convert_number(x), "$")) |> 
   # Apply font style to the whole table
   tab_style(
     style = cell_text(
-      font = "KMR Apparat Regular"
+      font = "KMR-Apparat-Regular"
     ),
     locations = cells_body()
   ) |>
   tab_style(
     style = cell_text(
-      font = "KMR Apparat Regular"
+      font = "KMR-Apparat-Regular"
     ),
     locations = cells_column_labels()
   ) |>
   tab_style(
     style = cell_text(
-      font = "KMR Apparat Regular"
+      font = "KMR-Apparat-Regular"
     ),
     locations = cells_row_groups()
   ) |>
@@ -607,23 +614,30 @@ names(mii_graph) <- c("Année", "Ville de Laval", "Ensemble du Québec")
 
 mii_plot <-
   gt(mii_graph) |> 
+  data_color(
+    columns = 2:3,
+    fn = scales::col_numeric(
+      palette = c("white", color_theme("purpletransport")),
+      domain = NULL
+    )
+  ) |> 
   fmt(columns = 2:3, fns = \(x) paste(convert_number(x), "$")) |> 
   # Apply font style to the whole table
   tab_style(
     style = cell_text(
-      font = "KMR Apparat Regular"
+      font = "KMR-Apparat-Regular"
     ),
     locations = cells_body()
   ) |>
   tab_style(
     style = cell_text(
-      font = "KMR Apparat Regular"
+      font = "KMR-Apparat-Regular"
     ),
     locations = cells_column_labels()
   ) |>
   tab_style(
     style = cell_text(
-      font = "KMR Apparat Regular"
+      font = "KMR-Apparat-Regular"
     ),
     locations = cells_row_groups()
   ) |>
@@ -632,7 +646,7 @@ mii_plot <-
     locations = cells_row_groups()
   ) |> 
   tab_spanner(
-    label = "Revenu médian des ménages",
+    label = "Revenu médian des individus",
     columns = c("Ville de Laval", "Ensemble du Québec")
   ) |> 
   tab_options(
@@ -726,7 +740,7 @@ ggplot(ind_total_bar[ind_total_bar$Geography != "Laval", ],
        aes(x = Bracket, y = Value, fill = Geography)) +
   geom_bar(stat = "identity", position = "dodge", width = 0.7) +
   labs(title = element_blank(),
-       x = "", y = "Individus") +
+       x = "Tranche de revenu annuel", y = "Individus") +
   scale_fill_manual(values = c(#"Laval" = "royalblue2", 
     "Men" = "#A3B0D1", 
     "Women" = "#CD718C"),
@@ -740,7 +754,8 @@ ggplot(ind_total_bar[ind_total_bar$Geography != "Laval", ],
   theme(legend.position = "bottom",
         legend.title = element_blank(),
         axis.text.x = element_text(angle = 45, hjust = 1),
-        legend.box.margin = margin(t = -20))
+        legend.spacing = unit(1, "cm"),
+        legend.box.margin = margin(t = 2))
 
 ggplot2::ggsave(filename = here::here("output/axe1/income/revenue_annuel_plot.pdf"),
                 plot = revenue_annuel_plot, width = 6.5, height = 3.5)

@@ -168,8 +168,10 @@ employment_rate <- lf_combined |>
 employment_rate_graph <- 
   ggplot(employment_rate, aes(x = as.factor(Year), y = Value, color = Geography, group = Geography)) +
   geom_line(linewidth = 1.5) +
-  labs(title = NULL, x = NULL,
-       y = "Taux d'emploi (%)", color = "Geography") +
+  labs(title = NULL,
+       y = "Taux d'emploi (%)",
+       x = "Année",
+       color = "Geography") +
   scale_color_manual(values = c(
     "Laval" = "#A3B0D1",
     "Québec" = "#73AD80")) +
@@ -331,7 +333,7 @@ ggplot(chomage) +
     name = NULL
   ) +
   scale_y_continuous(labels = convert_pct) +
-  labs(x = NULL, y = "Taux de chômage (%)") +
+  labs(x = "Année", y = "Taux de chômage (%)") +
   gg_cc_theme_no_sf +
   scale_x_date(
     breaks = seq(as.Date("2006-01-01"), as.Date("2024-12-31"), by = "3 years"),
@@ -529,7 +531,7 @@ emploi_catpro <-
                                                    "Métiers, transport, machinerie et domaines apparentés",
                                                    "Ressources naturelles, agriculture et production connexe",
                                                    "Fabrication et services d'utilité publique"), width = 16)) +
-  labs(title = NULL, x = NULL, y = "Individus") +
+  labs(title = NULL, x = "Catégories des professions", y = "Individus") +
   scale_fill_manual(values = c("Total" = "#73AD80", 
                                "Men" = color_theme("blueexplorer"), 
                                "Women" = color_theme("pinkhealth")),

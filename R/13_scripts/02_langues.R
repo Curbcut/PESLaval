@@ -161,9 +161,15 @@ knowledge_official <-
   scale_fill_manual(values = c("Aucune" = color_theme("yellowclimate"), 
                                "Anglais" = color_theme("pinkhealth"), 
                                "Français" = color_theme("blueexplorer"), 
-                               "Les deux" = color_theme("greenecology"))) +
+                               "Les deux" = color_theme("greenecology")),
+                    labels = c("Aucune" = "Aucune", 
+                               "Anglais" = "Anglais seulement", 
+                               "Français" = "Français seulement", 
+                               "Les deux" = "Les deux")) +  # Adjust legend labels
   guides(fill = guide_legend(reverse = TRUE)) +
   gg_cc_theme_no_sf +
+  labs(x = "Langue(s) parlée(s)",  # x-axis label
+       y = "Proportion de la population") +  # y-axis label
   theme(legend.title = element_blank())
 
 ggplot2::ggsave(filename = here::here("output/axe1/langues/knowledge_official.pdf"), 
@@ -412,8 +418,8 @@ most_spoken_at_home <-
             position = position_fill(vjust = 0.5),
             size = 3,
             color = "black") +
-  ylab(NULL) +
-  xlab(NULL) +
+  ylab("Proportion de la population") +
+  xlab("Année") +
   scale_fill_manual(values = c("Autres" = color_theme("yellowclimate"), 
                                "Anglais" = color_theme("pinkhealth"), 
                                "Français" = color_theme("blueexplorer"))) +
@@ -744,7 +750,7 @@ mother_tongue_plot <-
   )
 
 ggplot2::ggsave(filename = here::here("output/axe1/langues/mother_tongue.pdf"), 
-                plot = mother_tongue_plot, width = 10, height = 6.5)
+                plot = mother_tongue_plot, width = 6.5, height = 4)
 
 
 
@@ -859,7 +865,7 @@ french_over_time <-
   ) 
 
 ggplot2::ggsave(filename = here::here("output/axe1/langues/french_over_time.pdf"), 
-                plot = french_over_time, width = 10, height = 6.5)
+                plot = french_over_time, width = 6.5, height = 6)
 
 
 table_long$Valeur[table_long$Année == 2021 & table_long$Type == "Français et autre(s)"] /

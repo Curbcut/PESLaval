@@ -128,11 +128,11 @@ pto_graph <- bind_rows(pto_21, pto_16, pto_11, pto_06, pto_01) |>
 # Graphique pour le nombre de ménages
 g1 <- ggplot(pto_graph, aes(x = Year, y = Households, fill = Type)) +
   geom_bar(stat = "identity", position = position_dodge(width = 0.9)) +
-  labs(y = "Nombre de ménages (n)") +
+  labs(y = "Nombre de ménages (n)",
+       x = "Année") +
   scale_fill_manual(values = c("owner" = color_theme("redhousing"), "tenant" = color_theme("greenecology")),
                     labels = c("Propriétaire", "Locataire")) +
   scale_y_continuous(labels = convert_number) +
-  xlab(NULL) +
   gg_cc_theme_no_sf +
   theme(legend.title = element_blank())
 
@@ -141,11 +141,11 @@ g2 <- ggplot(pto_graph, aes(x = Year, y = Proportion, fill = Type)) +
   geom_bar(stat = "identity", position = "fill") +
   geom_text(aes(label = ProportionLabel, group = Type),
             vjust = 2, color = "black", size = 2.75) +
-  labs(y = "Proportion des ménages (%)") +
+  labs(y = "Proportion des ménages (%)",
+       x = "Année") +
   scale_fill_manual(values = c("owner" = color_theme("redhousing"), "tenant" = color_theme("greenecology")),
                     labels = c("Propriétaire", "Locataire")) +
   scale_y_continuous(labels = convert_pct) +
-  xlab(NULL) +
   gg_cc_theme_no_sf +
   theme(legend.title = element_blank())
 
@@ -312,19 +312,23 @@ avg_rent_annual_inf <- bind_rows(avg_rent_lvl_inf, avg_rent_qc_inf) |>
 
 # Line graph
 housing_loyermed_plot <-
-ggplot(avg_rent_annual, aes(x = Year, y = `Value`, group = Geography, color = Geography)) +
+  ggplot(avg_rent_annual, aes(x = Year, y = `Value`, group = Geography, color = Geography)) +
   geom_line(linewidth = 1.5) +
   labs(title = element_blank(),
-       x = NULL,
+       x = "Année",
        y = "Loyer mensuel médian ($)") +
   scale_color_manual(values = c("Laval" = color_theme("greenecology"), "Québec" = color_theme("blueexplorer"))) +
   scale_y_continuous(labels = convert_number) +
+  scale_x_continuous(
+    breaks = seq(2010, 2023, by = 1),
+    limits = c(2010, 2023)
+  ) +
   gg_cc_theme_no_sf +
   theme(legend.title = element_blank())# +
-  # facet_wrap(~indexed)
+# facet_wrap(~indexed)
 
 ggplot2::ggsave(filename = here::here("output/axe1/housing/housing_loyermed_plot.pdf"),
-                plot = housing_loyermed_plot, width = 3, height = 3)
+                plot = housing_loyermed_plot, width = 6.5, height = 4)
 
 housing_loyer_2023 <- avg_rent_annual$Value[
   avg_rent_annual$Year == 2023 & avg_rent_annual$Geography == "Laval"]
@@ -1574,6 +1578,13 @@ acceptable_housing <- pivot_wider(acceptable_housing, names_from = location,
                                                   `Tous les ménages`))
 acceptable_housing_table <-
 gt(acceptable_housing) |> 
+  data_color(
+    columns = 2:ncol(acceptable_housing),
+    fn = scales::col_numeric(
+      palette = c("white", color_theme("purpletransport")),
+      domain = NULL
+    )
+  ) |> 
   fmt(columns = 2:ncol(acceptable_housing), fns = convert_pct) |> 
   tab_spanner(
     label = "Laval",
@@ -1608,19 +1619,19 @@ gt(acceptable_housing) |>
   # Apply font style to the whole table
   tab_style(
     style = cell_text(
-      font = "KMR Apparat Regular"
+      font = "KMR-Apparat-Regular"
     ),
     locations = cells_body()
   ) |>
   tab_style(
     style = cell_text(
-      font = "KMR Apparat Regular"
+      font = "KMR-Apparat-Regular"
     ),
     locations = cells_column_labels()
   ) |>
   tab_style(
     style = cell_text(
-      font = "KMR Apparat Regular"
+      font = "KMR-Apparat-Regular"
     ),
     locations = cells_row_groups()
   ) |>

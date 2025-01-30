@@ -118,6 +118,8 @@ imm_evol_graph <-
   ggplot(data = imm, aes(x = factor(year), y = percentage, color = `Region Name`, group = `Region Name`)) +
   geom_line(linewidth = 1.35) +
   geom_point(size = 2.5) +
+  geom_text(aes(label = paste0(format(round(percentage * 100, 1), nsmall = 1), "%")), 
+            vjust = -1.5, size = 3, color = "black") + 
   scale_y_continuous(labels = convert_pct) +
   labs(y = "Proportion de la population immigrante") +
   scale_color_manual(values = c("Laval" = "#73AD80", "Montréal" = "#E08565",
@@ -127,7 +129,7 @@ imm_evol_graph <-
         legend.title = element_blank(), text=element_text(family="KMR Apparat Regular"))
 
 ggplot2::ggsave(filename = here::here("output/axe1/immigration/imm_evol_graph.pdf"), 
-                plot = imm_evol_graph, width = 6.5, height = 4)
+                plot = imm_evol_graph, width = 6.5, height = 5.5)
 
 imm_fun <- function(region, year) {
   imm$percentage[imm$`Region Name` == region & imm$year == year]
@@ -574,7 +576,7 @@ imm_age_sex_prop_graph <- ggplot(data = age_21, aes(x = gender, y = prop, fill =
        fill = "Age Group") +
   gg_cc_theme_no_sf +
   theme(legend.position = "bottom", plot.title = element_blank(),
-        legend.title = element_blank(), text = element_text(family = "KMR Apparat Regular"),
+        legend.title = element_blank(), text = element_text(family = "KMR-Apparat-Regular"),
         axis.title.x = element_blank()) +
   guides(fill = guide_legend(reverse = TRUE))
 
@@ -584,14 +586,19 @@ imm_age_graph <- ggplot(data = age_21_rev, aes(x = Age, y = prop, fill = gender)
   geom_text(aes(label = percentage), position = position_dodge(width = 0.9),
             vjust = 2.5, color = "black", size = 3) +
   scale_fill_manual(values = c("Homme" = "#A3B0D1", "Femme" = "#CD718C")) +
+<<<<<<< HEAD
   scale_y_continuous(labels = convert_pct) +
   labs(x = "Gender",
        y = "Proportion d'immigrants",
+=======
+  scale_y_continuous(labels = scales::label_number(big.mark = " ")) +
+  labs(x = "Groupe d'âge",
+       y = "Nombre d'individus",
+>>>>>>> b371aef835316393e8a9d54b34cadd2cf7cde2f1
        fill = "Age Group") +
   gg_cc_theme_no_sf +
   theme(legend.position = "bottom", plot.title = element_blank(),
-        legend.title = element_blank(), text = element_text(family = "KMR Apparat Regular"),
-        axis.title.x = element_blank())
+        legend.title = element_blank(), text = element_text(family = "KMR-Apparat-Regular"))
 
 ggplot2::ggsave(filename = here::here("output/axe1/immigration/imm_age_graph.pdf"), 
                 plot = imm_age_graph, width = 6.5, height = 4)
@@ -700,6 +707,7 @@ imm_origin_graph <- ggplot(data = imm_origin, aes(x = origin, y = proportion, fi
   scale_y_continuous(labels = convert_pct) +
   scale_fill_manual(values = c("Total" = "#A3B0D1", "Récent" = "#CD718C"),
                     labels = c("Total" = "Total", "Récent" = "Immigrants récents")) +
+  scale_x_discrete(labels = function(x) gsub("L'Europe", "Europe", x)) +
   labs(x = "Lieu de naissance",
        y = "Proportion d'immigrants") +
   gg_cc_theme_no_sf +
@@ -708,7 +716,7 @@ imm_origin_graph <- ggplot(data = imm_origin, aes(x = origin, y = proportion, fi
         axis.text.x = element_text(angle = 45, hjust = 1), axis.title.x = element_text(margin = margin(t = -10)))
 
 ggplot2::ggsave(filename = here::here("output/axe1/immigration/imm_origin_graph.pdf"), 
-                plot = imm_origin_graph, width = 9, height = 7)
+                plot = imm_origin_graph, width = 8, height = 5.5)
 
 #Grabbing specific percentages for the text
 imm_asia <- get_census(dataset = "CA21",
@@ -835,15 +843,15 @@ vis_min_graph <- ggplot(data = vis_min, aes(x = type, y = count, fill = type)) +
   geom_text(aes(label = perc), position = position_dodge(width = 0.9),
             vjust = -0.5, color = "black", size = 3) +
   scale_y_continuous(labels = convert_number) +
-  labs(x = "Lieu de naissance",
+  labs(x = "Catégories de minorités visibles",
        y = "Individus") +
   gg_cc_theme_no_sf +
   theme(legend.position = "none", plot.title = element_blank(),
         legend.title = element_blank(), text = element_text(family = "KMR Apparat Regular"),
-        axis.text.x = element_text(angle = 45, hjust = 1), axis.title.x = element_blank())
+        axis.text.x = element_text(angle = 45, hjust = 1))
 
 ggplot2::ggsave(filename = here::here("output/axe1/immigration/vis_min_graph.pdf"), 
-                plot = vis_min_graph, width = 6.5, height = 4)
+                plot = vis_min_graph, width = 6.5, height = 5)
 
 #Grabbing numbers for the text
 vis_min_laval <- get_census(dataset = "CA21",

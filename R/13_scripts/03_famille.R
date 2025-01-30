@@ -481,7 +481,7 @@ famille_structure_plot <-
             size = 3, 
             color = "black") +
   labs(y = "Proportion de familles",
-       x = element_blank(),
+       x = "",
        fill = element_blank()) +
   scale_fill_manual(labels = c("avec_enfants" = "Avec enfants", 
                                "sans_enfants" = "Sans enfants"),
@@ -616,7 +616,8 @@ household_size_combined <-
 household_comp_graph <- 
   ggplot(data = household_size_combined, aes(x = household_size, y = percentage, fill = region)) +
   geom_bar(stat = "identity", position = "dodge") +
-  labs(y = "Proportion de ménages") +
+  labs(y = "Proportion de ménages",
+       x = "Nombre de personne") +
   geom_text(aes(label = perc), 
             position = position_dodge(width = 0.9),
             vjust = 2.5,
@@ -628,7 +629,6 @@ household_comp_graph <-
   scale_fill_manual(values = c("Laval" = color_theme("greenecology"), "Québec" = color_theme("blueexplorer"))) +
   gg_cc_theme_no_sf +
   theme(plot.title = element_blank(), 
-        axis.title.x = element_blank(),
         legend.title = element_blank())
 
 ggplot2::ggsave(filename = here::here("output/axe1/family/household_comp_graph.pdf"), 
@@ -779,11 +779,12 @@ household_evol_graph <-
                                 "3" = "#E08565",
                                 "4+" = "#CD718C"),
                      name = "Personnes") +
-  labs(y = "Proportion de ménages") +
+  labs(y = "Proportion de ménages",
+       x = "Année") +
   scale_y_continuous(labels = convert_pct) +
   scale_x_continuous(breaks = unique(long_data$year)) +
   gg_cc_theme_no_sf +
-  theme(axis.title.x = element_blank())
+  theme()
 
 
 ggplot2::ggsave(filename = here::here("output/axe1/family/household_evol_graph.pdf"), 
