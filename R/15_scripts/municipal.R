@@ -92,25 +92,93 @@ ggplot2::ggsave(filename = here::here("output/axe3/municipal_map.pdf"),
 
 # Tables ------------------------------------------------------------------
 
+# table_sf <- get_census(dataset = "CA21", 
+#                        regions = list(CSD = 2465005), 
+#                        level = "DA",
+#                        vectors = c("low" ="v_CA21_1025", "immigrant" = "v_CA21_4410"),
+#                        geo_format = "sf")
+# names(table_sf)[names(table_sf) == "Population"] <- "Pop_DA"
+# table_sf <- left_join(DBs[c("GeoUID", "DA_UID", "Population")], 
+#                     sf::st_drop_geometry(table_sf), by = c("DA_UID" = "GeoUID"))
+# table_sf <- sf::st_drop_geometry(table_sf)
+# table_sf$pop_ratio <- table_sf$Population / table_sf$Pop_DA
+# table_sf$low <- as.numeric(table_sf$low) * table_sf$pop_ratio
+# table_sf$immigrant <- as.numeric(table_sf$immigrant) * table_sf$pop_ratio
+# 
+# DA_demo <- table_sf[c("GeoUID", "Population", "low", "immigrant")]
+# 
+# equipment_demo_j <- left_join(DA_demo, sf::st_drop_geometry(equipment_count), by = c("GeoUID" = "to")) 
+# 
+# equipment_demo <- 
+#   equipment_demo_j|> 
+#   mutate(`Lieux et édifices municipaux accessibles (n)` = 
+#            case_when(n == 0 ~ "0",
+#                      n >= 1 & n <= 2 ~ "1-2",
+#                      n > 2 & n <= 6 ~ "3-6",
+#                      n > 6 & n <= 10 ~ "7-10",
+#                      n > 10 ~ "> 10")) |> 
+#   group_by(`Lieux et édifices municipaux accessibles (n)`) |> 
+#   summarize(`Population (n)` = sum(Population, na.rm = TRUE),
+#             `Population (%)` = `Population (n)` / sum(DA_demo$Population, na.rm = TRUE),
+#             `Immigrants (n)` = sum(immigrant, na.rm = TRUE),
+#             `Immigrants (%)` = `Immigrants (n)` / sum(DA_demo$immigrant, na.rm = TRUE),
+#             `Faible revenu (n)` = sum(low, na.rm = TRUE),
+#             `Faible revenu (%)` = `Faible revenu (n)` / sum(DA_demo$low, na.rm = TRUE))
+# 
+# 
+# municipal_table <- equipment_demo |> 
+#   gt() |> 
+#   fmt(columns = c(2,4,6), fns = convert_number_tens) |> 
+#   fmt(columns = c(3,5,7), fns = convert_pct) |> 
+#   data_color(
+#     columns = c(3,5,7),
+#     colors = scales::col_numeric(
+#       palette = c("white", color_theme("purpletransport")),
+#       domain = NULL
+#     )
+#   ) |> 
+#   # Appliquer le style de la police à toute la table
+#   tab_style(
+#     style = cell_text(
+#       font = "KMR-Apparat-Regular"
+#     ),
+#     locations = cells_body()
+#   ) |> 
+#   tab_style(
+#     style = cell_text(
+#       font = "KMR-Apparat-Regular"
+#     ),
+#     locations = cells_column_labels()
+#   ) |> 
+#   # Options générales pour la table
+#   tab_options(
+#     table.font.size = 12,
+#     row_group.font.size = 12,
+#     table.width = px(6 * 96)
+#   )
+
 table_sf <- get_census(dataset = "CA21", 
                        regions = list(CSD = 2465005), 
                        level = "DA",
-                       vectors = c("low" ="v_CA21_1025", "immigrant" = "v_CA21_4410"),
+                       vectors = c("low" = "v_CA21_1025"),  # Removed immigrant vector
                        geo_format = "sf")
+
 names(table_sf)[names(table_sf) == "Population"] <- "Pop_DA"
 table_sf <- left_join(DBs[c("GeoUID", "DA_UID", "Population")], 
-                    sf::st_drop_geometry(table_sf), by = c("DA_UID" = "GeoUID"))
+                      sf::st_drop_geometry(table_sf), by = c("DA_UID" = "GeoUID"))
 table_sf <- sf::st_drop_geometry(table_sf)
 table_sf$pop_ratio <- table_sf$Population / table_sf$Pop_DA
 table_sf$low <- as.numeric(table_sf$low) * table_sf$pop_ratio
-table_sf$immigrant <- as.numeric(table_sf$immigrant) * table_sf$pop_ratio
 
-DA_demo <- table_sf[c("GeoUID", "Population", "low", "immigrant")]
+# Keep only Population and Low Income
+DA_demo <- table_sf[c("GeoUID", "Population", "low")]
 
-equipment_demo_j <- left_join(DA_demo, sf::st_drop_geometry(equipment_count), by = c("GeoUID" = "to")) 
+# Join with equipment data
+equipment_demo_j <- left_join(DA_demo, sf::st_drop_geometry(equipment_count), by = c("GeoUID" = "to"))
 
+# Remove immigrant calculations
 equipment_demo <- 
-  equipment_demo_j|> 
+  equipment_demo_j |> 
   mutate(`Lieux et édifices municipaux accessibles (n)` = 
            case_when(n == 0 ~ "0",
                      n >= 1 & n <= 2 ~ "1-2",
@@ -120,42 +188,41 @@ equipment_demo <-
   group_by(`Lieux et édifices municipaux accessibles (n)`) |> 
   summarize(`Population (n)` = sum(Population, na.rm = TRUE),
             `Population (%)` = `Population (n)` / sum(DA_demo$Population, na.rm = TRUE),
-            `Immigrants (n)` = sum(immigrant, na.rm = TRUE),
-            `Immigrants (%)` = `Immigrants (n)` / sum(DA_demo$immigrant, na.rm = TRUE),
             `Faible revenu (n)` = sum(low, na.rm = TRUE),
             `Faible revenu (%)` = `Faible revenu (n)` / sum(DA_demo$low, na.rm = TRUE))
 
-
+# Generate the final table without immigrant columns
 municipal_table <- equipment_demo |> 
   gt() |> 
-  fmt(columns = c(2,4,6), fns = convert_number_tens) |> 
-  fmt(columns = c(3,5,7), fns = convert_pct) |> 
+  fmt(columns = c(2,4), fns = convert_number_tens) |>  # Removed immigrant columns (was 3,5,7)
+  fmt(columns = c(3,5), fns = convert_pct) |> 
   data_color(
-    columns = c(3,5,7),
+    columns = c(3,5),
     colors = scales::col_numeric(
       palette = c("white", color_theme("purpletransport")),
       domain = NULL
     )
   ) |> 
-  # Appliquer le style de la police à toute la table
+  # Apply font style
   tab_style(
     style = cell_text(
-      font = "KMR Apparat Regular"
+      font = "KMR-Apparat-Regular"
     ),
     locations = cells_body()
   ) |> 
   tab_style(
     style = cell_text(
-      font = "KMR Apparat Regular"
+      font = "KMR-Apparat-Regular"
     ),
     locations = cells_column_labels()
   ) |> 
-  # Options générales pour la table
+  # General table settings
   tab_options(
     table.font.size = 12,
     row_group.font.size = 12,
     table.width = px(6 * 96)
   )
+
 
 gtsave(municipal_table, "output/axe3/municipal_table.png", zoom = 3)
 
