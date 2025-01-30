@@ -36,11 +36,11 @@ school_public <- read_sf("data/axe3/schools/PPS_Public_Ecole.shp") |>
   filter(ADULTE != 1, FORM_PRO != 1, ORDRE_ENS != "Préscolaire") |> 
   sf::st_filter(laval_sectors) |> 
   select(OBJECTID, PRIM, SEC, TYPE_CS)
-school_private <- read_sf("data/axe3/schools/PPS_Prive_Installation.shp") |> 
-  filter(ADULTE != 1, FORM_PRO != 1, ORDRE_ENS != "Préscolaire") |> 
-  sf::st_filter(laval_sectors) |> 
-  transmute(OBJECTID, PRIM, SEC, TYPE_CS = "Franco")
-school <- rbind(school_public, school_private)
+# school_private <- read_sf("data/axe3/schools/PPS_Prive_Installation.shp") |>
+#   filter(ADULTE != 1, FORM_PRO != 1, ORDRE_ENS != "Préscolaire") |>
+#   sf::st_filter(laval_sectors) |>
+#   transmute(OBJECTID, PRIM, SEC, TYPE_CS = "Franco")
+school <- rbind(school_public)#, school_private)
 
 ## Primary school
 primaire_sf <- school[school$PRIM == 1, ]

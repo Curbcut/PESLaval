@@ -174,16 +174,16 @@ park_table_data <- park_table_data[c(1,6:7,2:5)]
 # Duplicate the first column manually
 park_table_data_with_dup_first_col <- park_table_data |> 
   mutate(` Parcs accessibles (n)` = park_table_data[[1]])
-park_table_data_with_dup_first_col <- park_table_data_with_dup_first_col[c(1,2,3,4,8,5,6,7)]
+park_table_data_with_dup_first_col <- park_table_data_with_dup_first_col[c(1,2,3,4,5,8,6,7)]
 
 # Then apply your gt logic with the split
 park_table <- 
   park_table_data_with_dup_first_col |> 
   gt() |> 
   fmt(columns = c(2,4,7), fns = convert_number_tens) |> 
-  fmt(columns = c(3,6,8), fns = convert_pct) |> 
+  fmt(columns = c(3,5,8), fns = convert_pct) |> 
   data_color(
-    columns = c(3,6,8),
+    columns = c(3,5,8),
     colors = scales::col_numeric(
       palette = c("white", color_theme("purpletransport")),
       domain = NULL
@@ -213,7 +213,7 @@ park_table <-
     5 ~ px(1 * 96)
   ) |> 
   # Split the table at the specified point, including the duplicated first column
-  gt_split(col_slice_at = ceiling(ncol(park_table_data_with_dup_first_col) / 2))
+  gt_split(col_slice_at = 5)
 
 
 gtsave(grp_pull(park_table, 1), "output/axe3/park_table1.png", zoom = 3)

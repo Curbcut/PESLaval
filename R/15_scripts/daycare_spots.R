@@ -88,103 +88,103 @@ kinder_ratio <- round(places_garderie_avec_milieu_familial / inage, 2)
 kinder_ratio <- gsub("\\.", ",", as.character(kinder_ratio))
 
 
-# # Rework a travel time matrix which is really from X daycare to Y  --------
-# 
-# # cc.data::tt_local_osrm("foot")
-# 
-# travel_time <- function(FROMs, TOs, routing_server = "http://localhost:5001/",
-#                         max_dist = 3000) {
-#   if (sf::st_crs(FROMs)$input != "EPSG:4326") {
-#     FROMs <- suppressWarnings(sf::st_transform(FROMs, 4326))
-#   }
-#   if (sf::st_crs(TOs)$input != "EPSG:4326") {
-#     TOs <- suppressWarnings(sf::st_transform(TOs, 4326))
-#   }
-# 
-#   # Split the FROM for each entry
-#   splitted_froms <- split(FROMs, seq_along(FROMs[[1]]))
-# 
-#   # Split the TOs in smaller dataframes for faster paralleled calculations
-#   list_centroids <- split(TOs, seq_len(nrow(TOs) / min(nrow(TOs), 100))) |>
-#     suppressWarnings()
-# 
-#   progressr::with_progress({
-#     pb <- progressr::progressor(steps = length(splitted_froms))
-#     out <- future.apply::future_lapply(splitted_froms, \(dc) {
-# 
-#       first_coords <- sf::st_coordinates(dc) |>
-#         tibble::as_tibble()
-#       first_coords <- paste0(first_coords$X, ",", first_coords$Y)
-# 
-#       it <- lapply(list_centroids, \(df) {
-# 
-#         dist <- nngeo::st_nn(dc,
-#                              df,
-#                              k = nrow(df),
-#                              maxdist = max_dist,
-#                              progress = FALSE) |>
-#           suppressMessages()
-#         near_df <- df[unlist(dist), ]
-# 
-#         # if (nrow(near_df) == 0) return(NULL)
-#         # near_df <- near_df[near_df$ID != id, ]
-#         if (nrow(near_df) == 0) return(NULL)
-# 
-#         samp <- sf::st_coordinates(near_df) |>
-#           tibble::as_tibble()
-# 
-#         coords <- paste0(mapply(paste0, samp$X, ",", samp$Y), collapse = ";")
-#         coords <- paste0(first_coords, ";", coords)
-# 
-#         time <- httr::GET(paste0(routing_server, "table/v1/mode/",
-#                                  coords, "?sources=0")) |>
-#           httr::content()
-#         time <- unlist(time$durations)
-# 
-#         tryCatch({
-#           out <- tibble::tibble(DB_ID = near_df$GeoUID)
-#           out$time_seconds <- time[2:length(time)]
-#           out}, error = function(e) NULL)
-# 
-#       })
-# 
-#       pb()
-# 
-#       it[!sapply(it, is.null)] |>
-#         data.table::rbindlist(fill = TRUE) |>
-#         tibble::as_tibble()
-# 
-#     })
-#   })
-# 
-#   # Return
-#   out <- out[!sapply(out, \(x) nrow(x) == 0)]
-#   return(out)
-# 
-# }
-# 
-# 
-# 
-# daycares_to_DBs <- travel_time(daycares, sf::st_centroid(DBs))
-# names(daycares_to_DBs) <- daycares$ID
-# 
-# 
-# daycares_to_DBs <- mapply(\(n, df) {
-#   df$ID <- n
-#   df
-# }, names(daycares_to_DBs), daycares_to_DBs, SIMPLIFY = FALSE)
-# 
-# daycares_to_DBs <- Reduce(rbind, daycares_to_DBs)
-# 
-# # Accessible in 15 minutes
-# daycares_to_DBs <- daycares_to_DBs[daycares_to_DBs$time_seconds <= 15*60, ]
-# daycares_to_DBs <- merge(daycares_to_DBs, sf::st_drop_geometry(daycares[c("ID", "PLACE_TOTAL")]),
-#       by = "ID")
-# 
-# places_garderie_avec_milieu_familial <- convert_number_noround(places_garderie_avec_milieu_familial)
-# qs::qsavem(daycares, daycares_to_DBs, places_garderie, inage, kinder_children,
-#            places_garderie_avec_milieu_familial,
-#            kinder_ratio, file = "data/axe3/daycares_rawish.qsm")
+# Rework a travel time matrix which is really from X daycare to Y  --------
+
+# cc.data::tt_local_osrm("foot")
+
+travel_time <- function(FROMs, TOs, routing_server = "http://localhost:5001/",
+                        max_dist = 3000) {
+  if (sf::st_crs(FROMs)$input != "EPSG:4326") {
+    FROMs <- suppressWarnings(sf::st_transform(FROMs, 4326))
+  }
+  if (sf::st_crs(TOs)$input != "EPSG:4326") {
+    TOs <- suppressWarnings(sf::st_transform(TOs, 4326))
+  }
+
+  # Split the FROM for each entry
+  splitted_froms <- split(FROMs, seq_along(FROMs[[1]]))
+
+  # Split the TOs in smaller dataframes for faster paralleled calculations
+  list_centroids <- split(TOs, seq_len(nrow(TOs) / min(nrow(TOs), 100))) |>
+    suppressWarnings()
+
+  progressr::with_progress({
+    pb <- progressr::progressor(steps = length(splitted_froms))
+    out <- future.apply::future_lapply(splitted_froms, \(dc) {
+
+      first_coords <- sf::st_coordinates(dc) |>
+        tibble::as_tibble()
+      first_coords <- paste0(first_coords$X, ",", first_coords$Y)
+
+      it <- lapply(list_centroids, \(df) {
+
+        dist <- nngeo::st_nn(dc,
+                             df,
+                             k = nrow(df),
+                             maxdist = max_dist,
+                             progress = FALSE) |>
+          suppressMessages()
+        near_df <- df[unlist(dist), ]
+
+        # if (nrow(near_df) == 0) return(NULL)
+        # near_df <- near_df[near_df$ID != id, ]
+        if (nrow(near_df) == 0) return(NULL)
+
+        samp <- sf::st_coordinates(near_df) |>
+          tibble::as_tibble()
+
+        coords <- paste0(mapply(paste0, samp$X, ",", samp$Y), collapse = ";")
+        coords <- paste0(first_coords, ";", coords)
+
+        time <- httr::GET(paste0(routing_server, "table/v1/mode/",
+                                 coords, "?sources=0")) |>
+          httr::content()
+        time <- unlist(time$durations)
+
+        tryCatch({
+          out <- tibble::tibble(DB_ID = near_df$GeoUID)
+          out$time_seconds <- time[2:length(time)]
+          out}, error = function(e) NULL)
+
+      })
+
+      pb()
+
+      it[!sapply(it, is.null)] |>
+        data.table::rbindlist(fill = TRUE) |>
+        tibble::as_tibble()
+
+    })
+  })
+
+  # Return
+  out <- out[!sapply(out, \(x) nrow(x) == 0)]
+  return(out)
+
+}
+
+
+# daycares <- daycares[daycares$TYPE == "CPE", ]
+daycares_to_DBs <- travel_time(daycares, sf::st_centroid(DBs))
+names(daycares_to_DBs) <- daycares$ID
+
+
+daycares_to_DBs <- mapply(\(n, df) {
+  df$ID <- n
+  df
+}, names(daycares_to_DBs), daycares_to_DBs, SIMPLIFY = FALSE)
+
+daycares_to_DBs <- Reduce(rbind, daycares_to_DBs)
+
+# Accessible in 15 minutes
+daycares_to_DBs <- daycares_to_DBs[daycares_to_DBs$time_seconds <= 15*60, ]
+daycares_to_DBs <- merge(daycares_to_DBs, sf::st_drop_geometry(daycares[c("ID", "PLACE_TOTAL")]),
+      by = "ID")
+
+places_garderie_avec_milieu_familial <- convert_number_noround(places_garderie_avec_milieu_familial)
+qs::qsavem(daycares, daycares_to_DBs, places_garderie, inage, kinder_children,
+           places_garderie_avec_milieu_familial,
+           kinder_ratio, file = "data/axe3/daycares_rawish.qsm")
 qs::qload("data/axe3/daycares_rawish.qsm")
 
 
