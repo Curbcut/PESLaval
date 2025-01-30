@@ -18,9 +18,10 @@ source("R/01_startup.R")
 #                   stringr::str_remove_all(ADRESSE,
 #                                           ", (bureau| bureau|rez-de-chaussée|AG-10|local|suite|appartement|porte) .*$") |>
 #                   stringr::str_remove_all("      \\de étage|, \\de étage") |>
-#                   stringr::str_remove_all("(?<=\\d)-\\d*|[A-Z](?=,)")) |> 
+#                   stringr::str_remove_all("(?<=\\d)-\\d*|[A-Z](?=,)")) |>
 #   dplyr::mutate(ADRESSE = paste0(ADRESSE, ", ",NOM_MUN_COMPO, ", QC"))
-# daycares <- daycares[c("ADRESSE", "PLACE_TOTAL")]
+# daycares <- daycares[c("ADRESSE", "PLACE_TOTAL", "TYPE", "SUBV")]
+# daycares <- daycares[daycares$SUBV == "CR", ]
 # # Geolocate with addresses
 # daycares$geometry <- future.apply::future_sapply(
 #   daycares$ADRESSE, cc.data::geocode_localhost,
@@ -64,21 +65,28 @@ names(DAs) <- c("DA_UID", "DA_pop", "children", "geometry")
 
 
 # # Relevant digits ---------------------------------------------------------
-# 
-# # # Number of places
-# places_garderie <- sum(daycares$PLACE_TOTAL)
-# 
-# # Number of children in age of kindergarden (projections ISQ)
-# inage <- 26221#17650
-# 
-# kinder_children <- convert_number_noround(inage)
-# 
-# # Ajout en milieu familial
-# places_garderie_avec_milieu_familial <- places_garderie + 3951
-# 
-# kinder_ratio <- round(places_garderie_avec_milieu_familial / inage, 2)
-# kinder_ratio <- gsub("\\.", ",", as.character(kinder_ratio))
-# 
+
+# # Number of places
+places_garderie <- sum(daycares$PLACE_TOTAL)
+places_CPE <- sum(daycares$PLACE_TOTAL[daycares$TYPE == "CPE"])
+places_sgsn <- sum(daycares$PLACE_TOTAL[daycares$TYPE == "GARD"])
+
+places_CPE + places_sgsn
+
+daycares[daycares$TYPE == "CPE", ] |> nrow()
+daycares[daycares$TYPE == "GARD", ] |> nrow()
+
+# Number of children in age of kindergarden (projections ISQ)
+inage <- 20495
+
+kinder_children <- convert_number_noround(inage)
+
+# Ajout en milieu familial
+places_garderie_avec_milieu_familial <- places_garderie + 3951
+
+kinder_ratio <- round(places_garderie_avec_milieu_familial / inage, 2)
+kinder_ratio <- gsub("\\.", ",", as.character(kinder_ratio))
+
 
 # # Rework a travel time matrix which is really from X daycare to Y  --------
 # 
@@ -173,7 +181,7 @@ names(DAs) <- c("DA_UID", "DA_pop", "children", "geometry")
 # daycares_to_DBs <- merge(daycares_to_DBs, sf::st_drop_geometry(daycares[c("ID", "PLACE_TOTAL")]),
 #       by = "ID")
 # 
-places_garderie_avec_milieu_familial <- convert_number_noround(places_garderie_avec_milieu_familial)
+# places_garderie_avec_milieu_familial <- convert_number_noround(places_garderie_avec_milieu_familial)
 # qs::qsavem(daycares, daycares_to_DBs, places_garderie, inage, kinder_children,
 #            places_garderie_avec_milieu_familial,
 #            kinder_ratio, file = "data/axe3/daycares_rawish.qsm")

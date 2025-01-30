@@ -187,6 +187,8 @@ pop_dist_qc  <- get_census(dataset = "CA21",
                            level = "PR",
                            vectors = pop_dist_vector)
 
+library(ggpattern)
+
 # Merge the two datasets
 pop_dist <-
   bind_rows(pop_dist_laval, pop_dist_qc) |> 
@@ -222,6 +224,56 @@ age_pyramid <- pop_dist |>
         axis.text.y = element_text(size = 9)) +
   geom_text(aes(label = ifelse(abs(pct) > 0.06, "*", "")), 
             size = 6)
+
+
+
+# Adjust dataset
+pop_dist <-
+  bind_rows(pop_dist_laval, pop_dist_qc) |> 
+  mutate(name = c("Laval", "Ensemble du Québec"), .before = GeoUID) |> 
+  select(-c(GeoUID:CMA_UID, C_UID)) |> 
+  pivot_longer(-name, names_to = "category") |> 
+  mutate(gender = str_extract(category, "(Homme|Femme)"),
+         category = str_remove(category, "(Homme |Femme )")) |> 
+  group_by(name, gender) |> 
+  mutate(pct = value / sum(value)) |> 
+  ungroup() |> 
+  mutate(pct = if_else(gender == "Femme", pct * -1, pct)) |> 
+  mutate(category = factor(category, levels = sort_vec))
+
+# Age pyramid with tightly packed bars
+age_pyramid <- 
+pop_dist |> 
+  ggplot(aes(x = pct, y = category, fill = name)) +
+  geom_col(
+    position = position_dodge(width = 1),  # Laval & Québec side by side for each gender
+    width = 1                                # Max width to fully occupy the space
+  ) +
+  scale_fill_manual(
+    name = "Population",
+    values = c("Laval" = color_theme("greenecology"), "Ensemble du Québec" = color_theme("blueexplorer"))
+  ) +
+  scale_x_continuous(
+    breaks = -2:2 * 0.04,
+    labels = c("8 %", "4 %", "0", "4 %", "8 %")
+  ) +
+  geom_vline(xintercept = 0, color = "black", linewidth = 1) +  # Add central black line
+  annotate("text", x = -0.05, y = "85+", label = "Femmes", size = 4, 
+           family="KMR-Apparat-Regular") +  # Label for Femmes
+  annotate("text", x = 0.05, y = "85+", label = "Hommes", size = 4, 
+           family="KMR-Apparat-Regular") +  # Label for Hommes
+  gg_cc_theme_no_sf +
+  xlab("Proportion de la population (%)") +
+  ylab("Groupe d'âge") +
+  theme(
+    legend.position = "bottom",
+    legend.text = element_text(size = 9),
+    strip.text = element_text(size = 11),
+    axis.text.x = element_text(size = 9),
+    axis.text.y = element_text(size = 9),
+    legend.title = element_blank()
+  )
+
 
 ggplot2::ggsave(filename = here::here("output/0_demography/age_pyramid.pdf"), 
                 plot = age_pyramid, width = 9, height = 4.5)

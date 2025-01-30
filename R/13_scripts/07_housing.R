@@ -1806,6 +1806,29 @@ core_need_2021 <- core_need_time$`Besoins impérieux (%)`[core_need_time$Région
 
 gtsave(core_need_table, "output/axe1/housing/core_need_table.png", zoom = 3)
 
+get_census("CA21", regions = list(CSD = 2465005),
+           level = "CSD",
+           vectors = c(tenant = "v_CA21_4316", owner = "v_CA21_4308")
+) |> View()
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 qs::qsavem(housing_owner_2016, housing_owner_2021,
            logement_statutoccupation, housing_owner_2016, housing_owner_2021, housing_evol_owner_1621,
            housing_tenant_2016, housing_tenant_2021, housing_evol_tenant_1621,

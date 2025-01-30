@@ -129,6 +129,16 @@ imm_evol_graph <-
 ggplot2::ggsave(filename = here::here("output/axe1/immigration/imm_evol_graph.pdf"), 
                 plot = imm_evol_graph, width = 6.5, height = 4)
 
+imm_fun <- function(region, year) {
+  imm$percentage[imm$`Region Name` == region & imm$year == year]
+}
+
+imm |> 
+  group_by(`Region Name`) |> 
+  summarize(imm = (imm_fun(`Region Name`, 2021) - imm_fun(`Region Name`, 2001)) / imm_fun(`Region Name`, 2001)  * 100)
+
+
+
 #Grabbing specific numbers for the text
 imm_21_lvl_prop <- get_census(dataset = "CA21", 
                               regions = list(CSD = c(2465005)), 
@@ -350,7 +360,7 @@ CanadianCitizensMtl <- Citizenship_mtl[1, "PercentCanadian"] |>
 immigrant_decade <- cancensus::get_census(dataset = "CA21", 
                                           regions = list(CSD = 2465005), 
                                           level = "CSD",
-                                          vectors = c("Total" = "v_CA21_4404",
+                                          vectors = c("Total" = "v_CA21_4410",
                                                       "Avant 1980" = "v_CA21_4413",
                                                       "1980 à 1990" = "v_CA21_4416",
                                                       "1991 à 2000" = "v_CA21_4419",
@@ -374,7 +384,7 @@ ggplot(data = immigrant_decade_percent, aes(x = name, y = value)) +
 immigrant_decade_queb <- cancensus::get_census(dataset = "CA21", 
                                                regions = list(PR = 24), 
                                                level = "PR",
-                                               vectors = c("Total" = "v_CA21_4404",
+                                               vectors = c("Total" = "v_CA21_4410",
                                                            "Avant 1980" = "v_CA21_4413",
                                                            "1980 à 1990" = "v_CA21_4416",
                                                            "1991 à 2000" = "v_CA21_4419",
@@ -398,7 +408,7 @@ period_imm_graph <- ggplot(data = combined_decade_data, aes(x = name, y = value,
   geom_bar(stat = "identity", position = position_dodge()) +
   geom_text(aes(label = percentage), position = position_dodge(width = 0.9),
             vjust = 2.5, color = "black", size = 3) +
-  labs(x = "Decade", y = "Proportion de la population", title = "Period of Immigration: Laval vs. Quebec") +
+  labs(x = "Decade", y = "Proportion de la population immigrante", title = "Period of Immigration: Laval vs. Quebec") +
   scale_fill_manual(values = c("Laval" = color_theme("greenecology"), "Québec" = color_theme("blueexplorer"))) +
   scale_y_continuous(labels = convert_pct) +
   gg_cc_theme_no_sf +
@@ -569,14 +579,14 @@ imm_age_sex_prop_graph <- ggplot(data = age_21, aes(x = gender, y = prop, fill =
   guides(fill = guide_legend(reverse = TRUE))
 
 #Graphing numbers by age group
-imm_age_graph <- ggplot(data = age_21_rev, aes(x = Age, y = count, fill = gender)) +
+imm_age_graph <- ggplot(data = age_21_rev, aes(x = Age, y = prop, fill = gender)) +
   geom_bar(stat = "identity", position = "dodge") +
   geom_text(aes(label = percentage), position = position_dodge(width = 0.9),
             vjust = 2.5, color = "black", size = 3) +
   scale_fill_manual(values = c("Homme" = "#A3B0D1", "Femme" = "#CD718C")) +
-  scale_y_continuous(labels = scales::label_number(big.mark = " ")) +
+  scale_y_continuous(labels = convert_pct) +
   labs(x = "Gender",
-       y = "Count",
+       y = "Proportion d'immigrants",
        fill = "Age Group") +
   gg_cc_theme_no_sf +
   theme(legend.position = "bottom", plot.title = element_blank(),
@@ -588,9 +598,9 @@ ggplot2::ggsave(filename = here::here("output/axe1/immigration/imm_age_graph.pdf
 
 imm_stackedage_graph <- ggplot(data = age_21, aes(x = Age, y = count, fill = gender)) +
   geom_bar(stat = "identity") +
-  geom_text(aes(label = percentage), 
-            position = position_stack(vjust = 0.5), 
-            color = "black", size = 3) +
+  # geom_text(aes(label = percentage), 
+  #           position = position_stack(vjust = 0.5), 
+  #           color = "black", size = 3) +
   scale_fill_manual(values = c("Homme" = "#A3B0D1", "Femme" = "#CD718C")) +
   scale_y_continuous(labels = scales::label_number(big.mark = " ")) +
   labs(x = "Gender",
