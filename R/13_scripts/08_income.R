@@ -234,13 +234,13 @@ median_income_table <-
   # Appliquer le style de la police à toute la table
   tab_style(
     style = cell_text(
-      font = "KMR Apparat Regular"
+      font = "KMR-Regular-Apparat"
     ),
     locations = cells_body()
   ) |> 
   tab_style(
     style = cell_text(
-      font = "KMR Apparat Regular"
+      font = "KMR-Regular-Apparat"
     ),
     locations = cells_column_labels()
   ) |> 
@@ -1560,13 +1560,13 @@ frev_wide |>
   # Appliquer le style de la police à toute la table
   tab_style(
     style = cell_text(
-      font = "KMR Apparat Regular"
+      font = "KMR-Regular-Apparat"
     ),
     locations = cells_body()
   ) |> 
   tab_style(
     style = cell_text(
-      font = "KMR Apparat Regular"
+      font = "KMR-Regular-Apparat"
     ),
     locations = cells_column_labels()
   ) |> 
@@ -1666,13 +1666,13 @@ frev_sector_table <-
   # Appliquer le style de la police à toute la table
   tab_style(
     style = cell_text(
-      font = "KMR Apparat Regular"
+      font = "KMR-Regular-Apparat"
     ),
     locations = cells_body()
   ) |> 
   tab_style(
     style = cell_text(
-      font = "KMR Apparat Regular"
+      font = "KMR-Regular-Apparat"
     ),
     locations = cells_column_labels()
   ) |> 

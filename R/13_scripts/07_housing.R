@@ -423,7 +423,7 @@ housing_loyer_2023_QC <- convert_number_noround(housing_loyer_2023_QC)
 #   theme(
 #     legend.position = "bottom", legend.box = "horizontal", axis.title.x = element_blank(),
 #     legend.title = element_blank(), plot.title = element_text(hjust = 0.5),
-#     text=element_text(family="KMR Apparat Regular"))
+#     text=element_text(family="KMR-Apparat-Regular"))
 # 
 # med_yoy_growth_graph <- ggplot(med_rent_yoy, aes(x = Year, y = Growth, fill = Geography)) +
 #   geom_bar(stat = "identity", position = position_dodge()) +
@@ -434,7 +434,7 @@ housing_loyer_2023_QC <- convert_number_noround(housing_loyer_2023_QC)
 #   labs(y = "Variation du loyer médian") +
 #   theme(legend.position = "none", plot.title = element_text(hjust = 0.5),
 #         axis.text.x = element_text(angle = 45, hjust = 1),
-#         text=element_text(family="KMR Apparat Regular"), axis.title.x = element_blank())
+#         text=element_text(family="KMR-Apparat-Regular"), axis.title.x = element_blank())
 # 
 # # Monthly Tenant Cost by Laval Neighborhood -------------------------------
 # nbhd_mtlcma <- cmhc::get_cmhc(survey = "Rms", series = "Median Rent", 
@@ -472,7 +472,7 @@ housing_loyer_2023_QC <- convert_number_noround(housing_loyer_2023_QC)
 #   labs(fill = "Loyer médian ($)") +
 #   theme_void() +
 #   theme(legend.position = "bottom",  legend.justification = "center",
-#         text=element_text(family="KMR Apparat Regular"),
+#         text=element_text(family="KMR-Apparat-Regular"),
 #         legend.box.margin = margin(t = -20)) +
 #   guides(fill = guide_legend(title.position = "top", title.hjust = 0.5,
 #                              barwidth = 1, barheight = 1, nrow = 1))
@@ -727,13 +727,13 @@ housing_loyer_med_table <-
   # Appliquer le style de la police à toute la table
   tab_style(
     style = cell_text(
-      font = "KMR Apparat Regular"
+      font = "KMR-Apparat-Regular"
     ),
     locations = cells_body()
   ) |> 
   tab_style(
     style = cell_text(
-      font = "KMR Apparat Regular"
+      font = "KMR-Apparat-Regular"
     ),
     locations = cells_column_labels()
   ) |> 
@@ -922,19 +922,19 @@ loyer_med_var_table <-
     # Apply font style to the whole table
     tab_style(
       style = cell_text(
-        font = "KMR Apparat Regular"
+        font = "KMR-Apparat-Regular"
       ),
       locations = cells_body()
     ) |>
     tab_style(
       style = cell_text(
-        font = "KMR Apparat Regular"
+        font = "KMR-Apparat-Regular"
       ),
       locations = cells_column_labels()
     ) |>
     tab_style(
       style = cell_text(
-        font = "KMR Apparat Regular"
+        font = "KMR-Apparat-Regular"
       ),
       locations = cells_row_groups()
     ) |>
@@ -1053,13 +1053,13 @@ housing_cost_med_table <-
   # Appliquer le style de la police à toute la table
   tab_style(
     style = cell_text(
-      font = "KMR Apparat Regular"
+      font = "KMR-Apparat-Regular"
     ),
     locations = cells_body()
   ) |> 
   tab_style(
     style = cell_text(
-      font = "KMR Apparat Regular"
+      font = "KMR-Apparat-Regular"
     ),
     locations = cells_column_labels()
   ) |> 
@@ -1113,19 +1113,19 @@ housing_cost_med_table_var <-
   # Apply font style to the whole table
   tab_style(
     style = cell_text(
-      font = "KMR Apparat Regular"
+      font = "KMR-Apparat-Regular"
     ),
     locations = cells_body()
   ) |>
   tab_style(
     style = cell_text(
-      font = "KMR Apparat Regular"
+      font = "KMR-Apparat-Regular"
     ),
     locations = cells_column_labels()
   ) |>
   tab_style(
     style = cell_text(
-      font = "KMR Apparat Regular"
+      font = "KMR-Apparat-Regular"
     ),
     locations = cells_row_groups()
   ) |>
@@ -1468,19 +1468,19 @@ gt(taux_efforts) |>
   # Apply font style to the whole table
   tab_style(
     style = cell_text(
-      font = "KMR Apparat Regular"
+      font = "KMR-Apparat-Regular"
     ),
     locations = cells_body()
   ) |>
   tab_style(
     style = cell_text(
-      font = "KMR Apparat Regular"
+      font = "KMR-Apparat-Regular"
     ),
     locations = cells_column_labels()
   ) |>
   tab_style(
     style = cell_text(
-      font = "KMR Apparat Regular"
+      font = "KMR-Apparat-Regular"
     ),
     locations = cells_row_groups()
   ) |>
@@ -1780,19 +1780,19 @@ core_need_table <-
   # Apply font style to the whole table
   tab_style(
     style = cell_text(
-      font = "KMR Apparat Regular"
+      font = "KMR-Apparat-Regular"
     ),
     locations = cells_body()
   ) |>
   tab_style(
     style = cell_text(
-      font = "KMR Apparat Regular"
+      font = "KMR-Apparat-Regular"
     ),
     locations = cells_column_labels()
   ) |>
   tab_style(
     style = cell_text(
-      font = "KMR Apparat Regular"
+      font = "KMR-Apparat-Regular"
     ),
     locations = cells_row_groups()
   ) |>
