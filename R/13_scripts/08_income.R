@@ -231,16 +231,15 @@ median_income_table <-
     ),
     locations = cells_row_groups()
   ) |> 
-  # Appliquer le style de la police à toute la table
   tab_style(
     style = cell_text(
-      font = "KMR-Regular-Apparat"
+      font = "KMR Apparat Regular"
     ),
     locations = cells_body()
   ) |> 
   tab_style(
     style = cell_text(
-      font = "KMR-Regular-Apparat"
+      font = "KMR Apparat Regular"
     ),
     locations = cells_column_labels()
   ) |> 
@@ -649,6 +648,19 @@ mii_plot <-
     label = "Revenu médian des individus",
     columns = c("Ville de Laval", "Ensemble du Québec")
   ) |> 
+  tab_style(
+    style = cell_text(
+      font = "KMR Apparat Regular"
+    ),
+    locations = cells_body()
+  ) |> 
+  tab_style(
+    style = cell_text(
+      font = "KMR Apparat Regular"
+    ),
+    locations = cells_column_labels()
+  ) |> 
+  # Options générales pour la table
   tab_options(
     table.font.size = 12,
     row_group.font.size = 12,
@@ -1663,16 +1675,15 @@ frev_sector_table <-
     ),
     locations = cells_row_groups()
   ) |> 
-  # Appliquer le style de la police à toute la table
   tab_style(
     style = cell_text(
-      font = "KMR-Regular-Apparat"
+      font = "KMR Apparat Regular"
     ),
     locations = cells_body()
   ) |> 
   tab_style(
     style = cell_text(
-      font = "KMR-Regular-Apparat"
+      font = "KMR Apparat Regular"
     ),
     locations = cells_column_labels()
   ) |> 
