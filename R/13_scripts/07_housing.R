@@ -1007,11 +1007,11 @@ t <- add_bins(df = owner_tenant_sf,
 #                 sf::st_as_sf(out, crs = 4326)[1, ]
 #               })
 # ) |> sf::st_as_sf()
-names(t)[1] <- "binned_variable"
+# names(t)[1] <- "binned_variable"
 
 housing_median_cost_plot <-
   ggplot(data = t) +
-  gg_cc_tiles +
+  # gg_cc_tiles +
   geom_sf(aes(fill = binned_variable), color = "transparent", lwd = 0) +
   scale_fill_manual(
     values = curbcut_colors$left_5$fill[2:5],
