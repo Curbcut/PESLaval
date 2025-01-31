@@ -149,50 +149,50 @@ convert_pct <- function(x) {
 
 # 
 # Secteurs ----------------------------------------------------------------
-
-library(ggplot2)
-library(ggrepel)
-library(sf)
-
-# Use st_point_on_surface for label placement inside the geometry
-laval_sectors_points <- st_point_on_surface(laval_sectors)
-
-# Extract coordinates for centroids
-laval_sectors_points_coords <- st_coordinates(laval_sectors_points)
-
-# Convert to data frame and ensure unique column names
-laval_sectors_points_df <- data.frame(
-  name = laval_sectors$name,  # Keep only the necessary attributes
-  X = laval_sectors_points_coords[, 1],
-  Y = laval_sectors_points_coords[, 2]
-)
-
-# Create the ggplot
-district_names <-
-  ggplot(data = laval_sectors) +
-  gg_cc_tiles +
-  geom_sf(aes(fill = name), color = "white") +  # District polygons
-  geom_label_repel(
-    data = laval_sectors_points_df,  # Use clean data frame
-    aes(x = X, y = Y, label = name),
-    size = ggplot_fontsize,
-    box.padding = 0.8,
-    min.segment.length = 1,
-    family = "KMR-Apparat-Regular"
-  ) +
-  scale_fill_manual(values = c(
-    "Secteur 1 : Duvernay, Saint-François et Saint-Vincent-de-Paul" = color_theme("pinkhealth"),
-    "Secteur 6 : Vimont et Auteuil" = color_theme("blueexplorer"),
-    "Secteur 4 : Sainte-Dorothée, Laval-Ouest, Les Îles-Laval, Fabreville-Ouest et Laval-sur-le-Lac" = color_theme("greenecology"),
-    "Secteur 3 : Chomedey" = color_theme("redhousing"),
-    "Secteur 5 : Fabreville-Est et Sainte-Rose" = color_theme("yellowclimate"),
-    "Secteur 2 : Pont-Viau, Renaud-Coursol et Laval-des-Rapides" = color_theme("purpletransport")
-  )) +
-  gg_cc_theme_nosecteurs +
-  guides(fill = "none")
-
-# Save the plot
-ggsave(plot = district_names, filename = "output/secteurs.pdf", width = 8, height = 5.5)
+# 
+# library(ggplot2)
+# library(ggrepel)
+# library(sf)
+# 
+# # Use st_point_on_surface for label placement inside the geometry
+# laval_sectors_points <- st_point_on_surface(laval_sectors)
+# 
+# # Extract coordinates for centroids
+# laval_sectors_points_coords <- st_coordinates(laval_sectors_points)
+# 
+# # Convert to data frame and ensure unique column names
+# laval_sectors_points_df <- data.frame(
+#   name = laval_sectors$name,  # Keep only the necessary attributes
+#   X = laval_sectors_points_coords[, 1],
+#   Y = laval_sectors_points_coords[, 2]
+# )
+# 
+# # Create the ggplot
+# district_names <-
+#   ggplot(data = laval_sectors) +
+#   gg_cc_tiles +
+#   geom_sf(aes(fill = name), color = "white") +  # District polygons
+#   geom_label_repel(
+#     data = laval_sectors_points_df,  # Use clean data frame
+#     aes(x = X, y = Y, label = name),
+#     size = ggplot_fontsize,
+#     box.padding = 0.8,
+#     min.segment.length = 1,
+#     family = "KMR-Apparat-Regular"
+#   ) +
+#   scale_fill_manual(values = c(
+#     "Secteur 1 : Duvernay, Saint-François et Saint-Vincent-de-Paul" = color_theme("pinkhealth"),
+#     "Secteur 6 : Vimont et Auteuil" = color_theme("blueexplorer"),
+#     "Secteur 4 : Sainte-Dorothée, Laval-Ouest, Les Îles-Laval, Fabreville-Ouest et Laval-sur-le-Lac" = color_theme("greenecology"),
+#     "Secteur 3 : Chomedey" = color_theme("redhousing"),
+#     "Secteur 5 : Fabreville-Est et Sainte-Rose" = color_theme("yellowclimate"),
+#     "Secteur 2 : Pont-Viau, Renaud-Coursol et Laval-des-Rapides" = color_theme("purpletransport")
+#   )) +
+#   gg_cc_theme_nosecteurs +
+#   guides(fill = "none")
+# 
+# # Save the plot
+# ggsave(plot = district_names, filename = "output/secteurs.pdf", width = 8, height = 5.5)
 
 
 
