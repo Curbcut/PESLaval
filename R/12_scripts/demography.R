@@ -9,9 +9,7 @@ en_2270_100 <- read.csv("data/new/2270_100_en.csv", fileEncoding = "latin1")
 #importing data from estimates and projections  (use the library readxl)
 pop <- read_excel("data/new/estimate.xlsx", sheet = "Groupe d'âge") |> 
   slice(-1:-3) |> 
-  row_to_names(row_number = 1) |> 
-  filter(`Code du territoire` == "13") |> 
-  filter(`Sexe` == "Total")
+  row_to_names(row_number = 1)
 
 # Population count --------------------------------------------------------
 
@@ -34,12 +32,16 @@ laval_population_census_pretty <- convert_number(x = laval_population_census)
 #laval_population_ISQ_pretty <- convert_number(x = laval_population_ISQ)
 
 laval_population_2024 <- pop |> 
+  filter(`Code du territoire` == "13") |> 
+  filter(`Sexe` == "Total") |> 
   filter(Année == 2024) |> 
   pull(`Tous les âges`) |> 
   as.integer()
 laval_population_2024_pretty <- convert_number(x = laval_population_2024)
 
 laval_population_2025 <- pop |> 
+  filter(`Code du territoire` == "13") |> 
+  filter(`Sexe` == "Total") |> 
   filter(Année == 2025) |> 
   pull(`Tous les âges`) |> 
   as.integer()
@@ -200,70 +202,106 @@ sort_vec <- c("0-4", "5-9", "10-14", "15-19", "20-24", "25-29", "30-34",
               "70-74", "75-79", "80-84", "85+")
 
 # Get these variables for Laval
-pop_dist_laval  <- get_census(dataset = "CA21", 
-                              regions = list(CSD = 2465005), 
-                              level = "CSD",
-                              vectors = pop_dist_vector)
+# pop_dist_laval  <- get_census(dataset = "CA21", 
+#                               regions = list(CSD = 2465005), 
+#                               level = "CSD",
+#                               vectors = pop_dist_vector)
+# 
+# # Get the variables for the province
+# pop_dist_qc  <- get_census(dataset = "CA21", 
+#                            regions = list(PR = 24), 
+#                            level = "PR",
+#                            vectors = pop_dist_vector)
 
-# Get the variables for the province
-pop_dist_qc  <- get_census(dataset = "CA21", 
-                           regions = list(PR = 24), 
-                           level = "PR",
-                           vectors = pop_dist_vector)
+pop_dist_one <- pop |> 
+  filter(`Code du territoire` %in% c("13", "99") & `Année` == 2025 & Sexe != "Total") |> 
+  select(-Statut, -`Niveau géographique`, -`Type de données`, -`Tous les âges`, -Territoire, -Année, -`90 ans ou plus`,
+         -`75 ans ou plus`, -`0-17 ans`, -`85-89 ans`, -`18-64 ans`, -`20-64 ans`, -`6-11 ans`, -`12-17 ans`,
+         -`65 ans ou plus`, -`0-19 ans`, -`18-44 ans`, -`45-64 ans`, -`65-74 ans`, -`75-84 ans`, -`0-5 ans`) |> 
+  mutate(across(-Sexe, ~ as.integer(gsub("[^0-9]", "", .)))) |> 
+  mutate("0-4" = `1-4 ans` + `Moins un an`,
+         Sexe = recode(Sexe, "Masculin" = "Hommes", "Féminin" = "Femmes")) |> 
+  rename("5-9" = `5-9 ans`, "10-14" = `10-14 ans`, "15-19" = `15-19 ans`, "20-24" = `20-24 ans`,
+         "25-29" = `25-29 ans`, `30-34` = `30-34 ans`, `35-39` = `35-39 ans`, `40-44` = `40-44 ans`,
+         `45-49` = `45-49 ans`, `50-54` = `50-54 ans`, `55-59` = `55-59 ans`, `60-64` = `60-64 ans`,
+         `65-69` = `65-69 ans`, `70-74` = `70-74 ans`, `75-79` = `75-79 ans`, `80-84` = `80-84 ans`, 
+         `85+` = `85 ans ou plus`) |> 
+  select(`Code du territoire`, Sexe, `0-4`, `5-9`, `10-14`, `15-19`, `20-24`, `25-29`, `30-34`, `35-39`,
+         `40-44`, `45-49`, `50-54`, `55-59`, `60-64`, `65-69`, `70-74`, `75-79`,
+         `80-84`, `85+`)
+
+pop_dist_laval <- pop_dist_one |> 
+  filter(`Code du territoire` == 13) |> 
+  select(-`Code du territoire`) |> 
+  pivot_longer(-Sexe, names_to = "age_group", values_to = "value") |> 
+  mutate(new_col = paste(Sexe, age_group)) |> 
+  select(new_col, value) |> 
+  pivot_wider(names_from = new_col, values_from = value) |> 
+  mutate(name = "Laval")
+
+pop_dist_qc <- pop_dist_one |> 
+  filter(`Code du territoire` == 99) |> 
+  select(-`Code du territoire`) |> 
+  pivot_longer(-Sexe, names_to = "age_group", values_to = "value") |> 
+  mutate(new_col = paste(Sexe, age_group)) |> 
+  select(new_col, value) |> 
+  pivot_wider(names_from = new_col, values_from = value) |> 
+  mutate(name = "Ensemble du Québec")
 
 library(ggpattern)
 
 # Merge the two datasets
-pop_dist <-
-  bind_rows(pop_dist_laval, pop_dist_qc) |> 
-  mutate(name = c("Laval", "Ensemble du Québec"), .before = GeoUID) |> 
-  select(-c(GeoUID:CMA_UID, C_UID)) |> 
-  pivot_longer(-name, names_to = "category") |> 
-  # Split gender off into its own variable
-  mutate(gender = str_extract(category, "(Homme|Femme)"),
-         category = str_remove(category, "(Homme |Femme )")) |> 
-  group_by(name, gender) |> 
-  mutate(pct = value / sum(value)) |> 
-  ungroup() |> 
-  # Make Femme values negative to facilitate easier population pyramids
-  mutate(pct = if_else(gender == "Femme", pct * -1, pct)) |> 
-  mutate(category = factor(category, levels = sort_vec))
-
-# Reorder the facet levels as needed
-pop_dist$name <- factor(pop_dist$name, levels = c("Laval", "Ensemble du Québec"))
-
-age_pyramid <- pop_dist |> 
-  ggplot(aes(x = pct, y = category, fill = gender)) +
-  geom_col() +
-  facet_wrap(~name, nrow = 1) +
-  scale_fill_manual(name = element_blank(), values = c("Femme" = color_theme("pinkhealth"), "Homme" = color_theme("blueexplorer"))) +
-  scale_x_continuous(breaks = -2:2 * 0.04,
-                     labels = c("8 %", "4 %", "0", "4 %", "8 %")) +
-  gg_cc_theme_no_sf +
-  xlab(element_blank())+
-  ylab(element_blank()) +
-  theme(strip.text = element_text(size = 11),
-        legend.text = element_text(size = 9),
-        axis.text.x = element_text(size = 9),
-        axis.text.y = element_text(size = 9)) +
-  geom_text(aes(label = ifelse(abs(pct) > 0.06, "*", "")), 
-            size = 6)
+# pop_dist <-
+#   bind_rows(pop_dist_laval, pop_dist_qc) |> 
+#   #mutate(name = c("Laval", "Ensemble du Québec"), .before = GeoUID) |> 
+#   #select(-c(GeoUID:CMA_UID, C_UID)) |> 
+#   pivot_longer(-name, names_to = "category") |> 
+#   # Split gender off into its own variable
+#   mutate(gender = str_extract(category, "(Homme|Femme)"),
+#          category = str_remove(category, "(Homme |Femme )")) |> 
+#   group_by(name, gender) |> 
+#   mutate(pct = value / sum(value)) |> 
+#   ungroup() |> 
+#   # Make Femme values negative to facilitate easier population pyramids
+#   mutate(pct = if_else(gender == "Femme", pct * -1, pct)) |> 
+#   mutate(category = factor(category, levels = sort_vec))
+# 
+# # Reorder the facet levels as needed
+# pop_dist$name <- factor(pop_dist$name, levels = c("Laval", "Ensemble du Québec"))
+# 
+# age_pyramid <- pop_dist |> 
+#   ggplot(aes(x = pct, y = category, fill = gender)) +
+#   geom_col() +
+#   facet_wrap(~name, nrow = 1) +
+#   scale_fill_manual(name = element_blank(), values = c("Femme" = color_theme("pinkhealth"), "Homme" = color_theme("blueexplorer"))) +
+#   scale_x_continuous(breaks = -2:2 * 0.04,
+#                      labels = c("8 %", "4 %", "0", "4 %", "8 %")) +
+#   gg_cc_theme_no_sf +
+#   xlab(element_blank())+
+#   ylab(element_blank()) +
+#   theme(strip.text = element_text(size = 11),
+#         legend.text = element_text(size = 9),
+#         axis.text.x = element_text(size = 9),
+#         axis.text.y = element_text(size = 9)) +
+#   geom_text(aes(label = ifelse(abs(pct) > 0.06, "*", "")), 
+#             size = 6)
 
 
 
 # Adjust dataset
 pop_dist <-
   bind_rows(pop_dist_laval, pop_dist_qc) |> 
-  mutate(name = c("Laval", "Ensemble du Québec"), .before = GeoUID) |> 
-  select(-c(GeoUID:CMA_UID, C_UID)) |> 
+  #mutate(name = c("Laval", "Ensemble du Québec"), .before = GeoUID) |> 
+  #select(-c(GeoUID:CMA_UID, C_UID)) |> 
   pivot_longer(-name, names_to = "category") |> 
   mutate(gender = str_extract(category, "(Homme|Femme)"),
-         category = str_remove(category, "(Homme |Femme )")) |> 
+         category = str_remove(category, "(Hommes|Femmes)")) |> 
   group_by(name, gender) |> 
   mutate(pct = value / sum(value)) |> 
   ungroup() |> 
   mutate(pct = if_else(gender == "Femme", pct * -1, pct)) |> 
-  mutate(category = factor(category, levels = sort_vec))
+  mutate(category = str_trim(category),
+         category = factor(category, levels = sort_vec))
 
 # Age pyramid with tightly packed bars
 age_pyramid <- 
