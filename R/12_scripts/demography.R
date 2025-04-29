@@ -2,6 +2,17 @@
 
 source("R/01_startup.R")
 
+#Importing data from Laval and Beyond2020
+en_2270_25 <- read.csv("data/new/2270_25_en.csv", fileEncoding = "latin1")
+en_2270_100 <- read.csv("data/new/2270_100_en.csv", fileEncoding = "latin1")
+
+#importing data from estimates and projections  (use the library readxl)
+pop <- read_excel("data/new/estimate.xlsx", sheet = "Groupe d'âge") |> 
+  slice(-1:-3) |> 
+  row_to_names(row_number = 1) |> 
+  filter(`Code du territoire` == "13") |> 
+  filter(`Sexe` == "Total")
+
 # Population count --------------------------------------------------------
 
 # To get raw census data, we use the cancensus package. At this link, there is 
@@ -19,13 +30,26 @@ laval_census <- cancensus::get_census(dataset = "CA21",
 laval_population_census <- laval_census$Population
 laval_population_census_pretty <- convert_number(x = laval_population_census)
 
-laval_population_ISQ <- 454990
-laval_population_ISQ_pretty <- convert_number(x = laval_population_ISQ)
+#laval_population_ISQ <- 454990
+#laval_population_ISQ_pretty <- convert_number(x = laval_population_ISQ)
+
+laval_population_2024 <- pop |> 
+  filter(Année == 2024) |> 
+  pull(`Tous les âges`) |> 
+  as.integer()
+laval_population_2024_pretty <- convert_number(x = laval_population_2024)
+
+laval_population_2025 <- pop |> 
+  filter(Année == 2025) |> 
+  pull(`Tous les âges`) |> 
+  as.integer()
+laval_population_2025_pretty <- convert_number(x = laval_population_2025)
+
 
 laval_size <- (cc.buildr::get_area(laval_census) / 1e6)
 laval_size_pretty <- convert_number(x = laval_size)
 
-density <- laval_population_ISQ / laval_size
+density <- laval_population_2025 / laval_size
 density_pretty <- convert_number(x = density)
 
 
@@ -491,7 +515,8 @@ laval_births_graph <-
 ggplot2::ggsave(filename = here::here("output/0_demography/laval_births_graph.pdf"), 
                 plot = laval_births_graph, width = 6.5, height = 4)
 
-qs::qsavem(laval_population_ISQ_pretty, laval_size_pretty, density_pretty,
+qs::qsavem(laval_population_ISQ_pretty, laval_population_2024_pretty,
+           laval_population_2025_pretty, laval_size_pretty, density_pretty,
            pop_density_plot, age_pyramid, age_moyen_pretty,
            age_moyen_prov_pretty, age_moyen_cma_pretty, moins_18_pretty, 
            moins_18_prov_pretty, sixtyfive_pretty, sixtyfive_prov_pretty, 
