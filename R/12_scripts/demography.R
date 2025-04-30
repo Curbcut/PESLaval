@@ -6,10 +6,23 @@ source("R/01_startup.R")
 en_2270_25 <- read.csv("data/new/2270_25_en.csv", fileEncoding = "latin1")
 en_2270_100 <- read.csv("data/new/2270_100_en.csv", fileEncoding = "latin1")
 
-#importing data from estimates and projections  (use the library readxl)
+#importing data from estimates and projections(use the library readxl) https://publications.msss.gouv.qc.ca/msss/document-001617/
 pop <- read_excel("data/new/estimate.xlsx", sheet = "Groupe d'âge") |> 
   slice(-1:-3) |> 
   row_to_names(row_number = 1)
+
+#importing data from the isq rmr https://statistique.quebec.ca/fr/document/projections-de-population-regions-administratives-et-regions-metropolitaines-rmr
+rmr_laval <- read_excel("data/new/PopAS_28P_base_2024.xlsx", sheet = 1, skip = 3) |> 
+  row_to_names(row_number = 1) |> 
+  clean_names() |> 
+  filter(na_3 == "Laval (dans RMRM)" & na == "Référence A2024") |> 
+  select(-1:-3)
+
+cma_mtl <- read_excel("data/new/PopAS_RMR_base_2024.xlsx", sheet = 1, skip = 3) |> 
+  row_to_names(row_number = 1) |> 
+  clean_names() |> 
+  filter(na_3 == "RMR de Montréal" & na == "Référence A2024") |> 
+  select(-1:-3)
 
 # Population count --------------------------------------------------------
 
@@ -127,53 +140,138 @@ ggplot2::ggsave(filename = here::here("output/0_demography/CT_pop_density.pdf"),
 # Population Distribution by Age and Gender------------------------------------
 
 ### Age values for text
-laval_age_moyen <- get_census(dataset = "CA21", 
-                              regions = list(CSD = 2465005), 
-                              level = "CSD",
-                              vectors = c("age_moyen" = "v_CA21_386"))$age_moyen
-prov_age_moyen <- get_census(dataset = "CA21", 
-                             regions =  list(PR = 24), 
-                             level = "PR",
-                             vectors = c("age_moyen" = "v_CA21_386"))$age_moyen
-CMA_age_moyen <- get_census(dataset = "CA21", 
-                            regions = list(CMA = 24462), 
-                            level = "CMA",
-                            vectors = c("age_moyen" = "v_CA21_386"))$age_moyen
+# laval_age_moyen <- get_census(dataset = "CA21", 
+#                               regions = list(CSD = 2465005), 
+#                               level = "CSD",
+#                               vectors = c("age_moyen" = "v_CA21_386"))$age_moyen
+# prov_age_moyen <- get_census(dataset = "CA21", 
+#                              regions =  list(PR = 24), 
+#                              level = "PR",
+#                              vectors = c("age_moyen" = "v_CA21_386"))$age_moyen
+# CMA_age_moyen <- get_census(dataset = "CA21", 
+#                             regions = list(CMA = 24462), 
+#                             level = "CMA",
+#                             vectors = c("age_moyen" = "v_CA21_386"))$age_moyen
+# age_moyen_pretty <- convert_number(laval_age_moyen)
+# age_moyen_prov_pretty <- convert_number(prov_age_moyen)
+# age_moyen_cma_pretty <- convert_number(CMA_age_moyen)
+# 
+# 
+# laval_moins_18 <- get_census(dataset = "CA21", 
+#                              regions = list(CSD = 2465005), 
+#                              level = "CSD",
+#                              vectors = c("v_CA21_11", 
+#                                          "v_CA21_74", "v_CA21_77", "v_CA21_80", 
+#                                          "v_CA21_83"))
+# laval_moins_18 <- {laval_moins_18[11:15] |> unlist() |> sum()} / laval_moins_18$Population
+# prov_moins_18 <- get_census(dataset = "CA21", 
+#                             regions =  list(PR = 24), 
+#                             level = "PR",
+#                              vectors = c("v_CA21_11", 
+#                                          "v_CA21_74", "v_CA21_77", "v_CA21_80", 
+#                                          "v_CA21_83"))
+# prov_moins_18 <- {prov_moins_18[9:13] |> unlist() |> sum()} / prov_moins_18$Population
+# 
+# moins_18_pretty <- convert_pct(laval_moins_18)
+# moins_18_prov_pretty <- convert_pct(prov_moins_18)
+# 
+# laval_sixtyfive <- get_census(dataset = "CA21", 
+#                               regions = list(CSD = 2465005), 
+#                               level = "CSD",
+#                               vectors = c("sixtyfive+" = "v_CA21_251"))
+# prov_sixtyfive <- get_census(dataset = "CA21", 
+#                              regions =  list(PR = 24), 
+#                              level = "PR",
+#                              vectors = c("sixtyfive+" = "v_CA21_251"))
+# 
+# sixtyfive_pretty <- convert_pct(laval_sixtyfive$`sixtyfive+` / laval_sixtyfive$Population)
+# sixtyfive_prov_pretty <- convert_pct(prov_sixtyfive$`sixtyfive+` / prov_sixtyfive$Population)
+
+#Average age
+laval_age_moyen <- rmr_laval |> 
+  filter(na_4 == 2025 & na_5 == 3) |> 
+  pull(age_moyen) |> 
+  as.double()
 age_moyen_pretty <- convert_number(laval_age_moyen)
-age_moyen_prov_pretty <- convert_number(prov_age_moyen)
+  
+
+CMA_age_moyen <- cma_mtl |> 
+  filter(na_4 == 2025 & na_5 == 3) |> 
+  pull(age_moyen) |> 
+  as.double()
 age_moyen_cma_pretty <- convert_number(CMA_age_moyen)
 
+prov_age_moyen <- 42.8
+age_moyen_prov_pretty <- convert_number(prov_age_moyen)
 
-laval_moins_18 <- get_census(dataset = "CA21", 
-                             regions = list(CSD = 2465005), 
-                             level = "CSD",
-                             vectors = c("v_CA21_11", 
-                                         "v_CA21_74", "v_CA21_77", "v_CA21_80", 
-                                         "v_CA21_83"))
-laval_moins_18 <- {laval_moins_18[11:15] |> unlist() |> sum()} / laval_moins_18$Population
-prov_moins_18 <- get_census(dataset = "CA21", 
-                            regions =  list(PR = 24), 
-                            level = "PR",
-                             vectors = c("v_CA21_11", 
-                                         "v_CA21_74", "v_CA21_77", "v_CA21_80", 
-                                         "v_CA21_83"))
-prov_moins_18 <- {prov_moins_18[9:13] |> unlist() |> sum()} / prov_moins_18$Population
+#Under 18
+laval_moins_18 <- pop |> 
+  filter(`Code du territoire` == "13") |> 
+  filter(`Sexe` == "Total") |> 
+  filter(Année == 2025) |> 
+  mutate(moin_18 = as.integer(`0-17 ans`) / as.integer(`Tous les âges`)) |> 
+  pull(moin_18)
 
-moins_18_pretty <- convert_pct(laval_moins_18)
-moins_18_prov_pretty <- convert_pct(prov_moins_18)
+moins_18_pretty <- laval_moins_18 |> 
+  convert_pct()
 
-laval_sixtyfive <- get_census(dataset = "CA21", 
-                              regions = list(CSD = 2465005), 
-                              level = "CSD",
-                              vectors = c("sixtyfive+" = "v_CA21_251"))
-prov_sixtyfive <- get_census(dataset = "CA21", 
-                             regions =  list(PR = 24), 
-                             level = "PR",
-                             vectors = c("sixtyfive+" = "v_CA21_251"))
+moins_18_prov <- pop |> 
+  filter(`Code du territoire` == "99") |> 
+  filter(`Sexe` == "Total") |> 
+  filter(Année == 2025) |> 
+  mutate(moin_18 = as.integer(`0-17 ans`) / as.integer(`Tous les âges`)) |> 
+  pull(moin_18)
 
-sixtyfive_pretty <- convert_pct(laval_sixtyfive$`sixtyfive+` / laval_sixtyfive$Population)
-sixtyfive_prov_pretty <- convert_pct(prov_sixtyfive$`sixtyfive+` / prov_sixtyfive$Population)
+moins_18_prov_pretty <- convert_pct(moins_18_prov)
 
+#over 65
+laval_sixtyfive <- pop |> 
+  filter(`Code du territoire` == "13") |> 
+  filter(`Sexe` == "Total") |> 
+  filter(Année == 2025) |> 
+  mutate(plus_65 = as.integer(`65 ans ou plus`) / as.integer(`Tous les âges`)) |> 
+  pull(plus_65)
+
+sixtyfive_pretty <- convert_pct(laval_sixtyfive)
+
+prov_sixtyfive <- pop |> 
+  filter(`Code du territoire` == "99") |> 
+  filter(`Sexe` == "Total") |> 
+  filter(Année == 2025) |> 
+  mutate(plus_65 = as.integer(`65 ans ou plus`) / as.integer(`Tous les âges`)) |> 
+  pull(plus_65)
+sixtyfive_prov_pretty <- convert_pct(prov_sixtyfive)
+
+#Adult distribution
+laval_adult <- pop |> 
+  filter(`Code du territoire` == "13") |> 
+  filter(`Sexe` == "Total") |> 
+  filter(Année == 2025) |> 
+  mutate(young = as.integer(`18-44 ans`) / as.integer(`Tous les âges`),
+         old = as.integer(`45-64 ans`) / as.integer(`Tous les âges`))
+
+laval_young_pretty <- laval_adult |> 
+  pull(young) |> 
+  convert_pct()
+
+laval_old_pretty <- laval_adult |> 
+  pull(old) |> 
+  convert_pct()
+
+qc_adult <- pop |> 
+  filter(`Code du territoire` == "99") |> 
+  filter(`Sexe` == "Total") |> 
+  filter(Année == 2025) |> 
+  mutate(young = as.integer(`18-44 ans`) / as.integer(`Tous les âges`),
+         old = as.integer(`45-64 ans`) / as.integer(`Tous les âges`))
+
+qc_young_pretty <- qc_adult |> 
+  pull(young) |> 
+  convert_pct()
+
+qc_old_pretty <- qc_adult |> 
+  pull(old) |> 
+  convert_pct()
 
 # Get all the age/gender variables for the 2021 census
 pop_dist_vector <- c(
@@ -343,14 +441,24 @@ ggplot2::ggsave(filename = here::here("output/0_demography/age_pyramid.pdf"),
 
 # Répartition par genre ---------------------------------------------------
 
-h_f  <- get_census(dataset = "CA21", 
-                   regions = list(CSD = 2465005), 
-                   level = "CSD",
-                   vectors = c(homme = "v_CA21_9", femme = "v_CA21_10"))
+# h_f  <- get_census(dataset = "CA21", 
+#                    regions = list(CSD = 2465005), 
+#                    level = "CSD",
+#                    vectors = c(homme = "v_CA21_9", femme = "v_CA21_10"))
+# 
+# homme_pct_pretty <- convert_pct(h_f$homme / (h_f$homme + h_f$femme))
+# femme_pct_pretty <- convert_pct(h_f$femme / (h_f$femme + h_f$homme))
 
-homme_pct_pretty <- convert_pct(h_f$homme / (h_f$homme + h_f$femme))
-femme_pct_pretty <- convert_pct(h_f$femme / (h_f$femme + h_f$homme))
+h_f <- pop |> 
+  filter(`Code du territoire` == "13") |> 
+  filter(Année == 2025) |> 
+  select(Sexe, `Tous les âges`) |> 
+  pivot_wider(names_from = Sexe, values_from = `Tous les âges`) |> 
+  mutate(across(everything(), ~ as.integer(gsub("[^0-9]", "", .))))
 
+homme_pct_pretty <- convert_pct(h_f$Masculin / (h_f$Total))
+femme_pct_pretty <- convert_pct(h_f$Féminin / (h_f$Total))
+  
 
 #ethnic origin for the population ----------------------------------------------
 
@@ -407,34 +515,56 @@ quebec_pop_change <- convert_pct(quebec_pop_change / 100)
 # Population evolution ----------------------------------------------------
 
 #insert data set from folder sourced from different census' years
-pop_evolution <- read.csv("data/demography/Population Evolution.csv", skip = 3) |> 
-  tibble::as_tibble()
-pop_evolution_tidy <- pop_evolution[1:16, ]
-names(pop_evolution_tidy)[1] <- "Année"
+# pop_evolution <- read.csv("data/demography/Population Evolution.csv", skip = 3) |> 
+#   tibble::as_tibble()
+# pop_evolution_tidy <- pop_evolution[1:16, ]
+# names(pop_evolution_tidy)[1] <- "Année"
+
+pop_evolution <- pop |> 
+  filter(`Code du territoire` == 13 & Sexe == "Total") |> 
+  select(Année, `Type de données`, `Tous les âges`) |> 
+  mutate(Année = as.integer(Année),
+         `Population` = as.integer(`Tous les âges`))
 
 # the last four points need to be distinct because those are the future projections
 pop_evolution_tidy <- pop_evolution_tidy %>%
   mutate(PointType = ifelse(row_number() > n() - 4, "Projection (ISQ)", "Valeur du recensement canadien"))
 
 # allows for the end of the line to be dotted based on projection points
-solid_data <- pop_evolution_tidy %>% filter(PointType == "Valeur du recensement canadien" | row_number() == n() - 4)
-dotted_data <- pop_evolution_tidy %>% filter(PointType == "Projection (ISQ)" | row_number() == n() - 4)
+# solid_data <- pop_evolution_tidy %>% filter(PointType == "Valeur du recensement canadien" | row_number() == n() - 4)
+# dotted_data <- pop_evolution_tidy %>% filter(PointType == "Projection (ISQ)" | row_number() == n() - 4)
+
+solid_data <- pop_evolution %>% filter(`Type de données` == "Estimation")
+dotted_data <- pop_evolution %>% filter(`Type de données` == "Projection")
 
 # create the visual 
+# pop_et_proj <-
+#   ggplot(data = pop_evolution_tidy, aes(x = Année, y = Population)) +
+#   geom_point(aes(color = PointType), size = 5) +
+#   geom_line(data = solid_data, aes(x = Année, y = Population, group = 1), linetype = "solid",
+#             linewidth = 1.5) +
+#   geom_line(data = dotted_data, aes(x = Année, y = Population, group = 1), linetype = "dotted",
+#             linewidth = 1.5) +
+#   ylim(0, max(pop_evolution_tidy$Population)) +
+#   scale_color_manual(values = c("Projection (ISQ)" = color_theme("pinkhealth"), "Valeur du recensement canadien" = "black")) +
+#   labs(color = element_blank(), title = element_blank()) + 
+#   scale_y_continuous(labels = convert_number, limits = c(0,500000)) +
+#   gg_cc_theme_no_sf +
+#   xlab(NULL)
+
 pop_et_proj <-
-  ggplot(data = pop_evolution_tidy, aes(x = Année, y = Population)) +
-  geom_point(aes(color = PointType), size = 5) +
-  geom_line(data = solid_data, aes(x = Année, y = Population, group = 1), linetype = "solid",
-            linewidth = 1.5) +
-  geom_line(data = dotted_data, aes(x = Année, y = Population, group = 1), linetype = "dotted",
-            linewidth = 1.5) +
-  ylim(0, max(pop_evolution_tidy$Population)) +
-  scale_color_manual(values = c("Projection (ISQ)" = color_theme("pinkhealth"), "Valeur du recensement canadien" = "black")) +
+  ggplot(data = pop_evolution, aes(x = Année, y = `Population`)) +
+  #geom_point(aes(color = `Type de données`), size = 5) +
+  geom_line(data = solid_data, aes(x = Année, y = `Population`, group = 1, color = `Type de données`), linetype = "solid",
+            linewidth = 2) +
+  geom_line(data = dotted_data, aes(x = Année, y = `Population`, group = 1, color = `Type de données`), linetype = "dotted",
+            linewidth = 2) +
+  #ylim(0, max(pop_evolution$`Tous les âges`)) +
+  scale_color_manual(values = c("Projection" = color_theme("pinkhealth"), "Estimation" = "black")) +
   labs(color = element_blank(), title = element_blank()) + 
-  scale_y_continuous(labels = convert_number, limits = c(0,500000)) +
+  scale_y_continuous(labels = convert_number, limits = c(200000,500000)) +
   gg_cc_theme_no_sf +
   xlab(NULL)
-
 
 
 
