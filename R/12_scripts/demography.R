@@ -520,11 +520,21 @@ quebec_pop_change <- convert_pct(quebec_pop_change / 100)
 # pop_evolution_tidy <- pop_evolution[1:16, ]
 # names(pop_evolution_tidy)[1] <- "Année"
 
-pop_evolution <- pop |> 
+#Manually inputting data from https://web.archive.org/web/20131006173408/http://www.stat.gouv.qc.ca/donstat/societe/demographie/dons_regnl/regional/Tableau_top_10.htm
+pre_2001 <- tibble::tibble(
+  Année = c(1966, 1971, 1976, 1981, 1986, 1991, 1996),
+  `Type de données` = c("Estimation", "Estimation", "Estimation", "Estimation", "Estimation", "Estimation", "Estimation"),
+  `Tous les âges` = c("196088", "228010", "246243", "268335", "284164", "314398", "330393"),
+  Population = c(196088, 228010, 246243, 268335, 284164, 314398, 330393))
+
+pop_evolution_1 <- pop |> 
   filter(`Code du territoire` == 13 & Sexe == "Total") |> 
   select(Année, `Type de données`, `Tous les âges`) |> 
   mutate(Année = as.integer(Année),
          `Population` = as.integer(`Tous les âges`))
+
+pop_evolution <- pre_2001 |> 
+  bind_rows(pop_evolution_1)
 
 # the last four points need to be distinct because those are the future projections
 pop_evolution_tidy <- pop_evolution_tidy %>%
@@ -552,12 +562,29 @@ dotted_data <- pop_evolution %>% filter(`Type de données` == "Projection")
 #   gg_cc_theme_no_sf +
 #   xlab(NULL)
 
+laval_pop_2025 <- pop_evolution |> 
+  filter(Année == 2025) |> 
+  pull(Population) |> 
+  convert_number()
+
+laval_pop_2051 <- pop_evolution |> 
+  filter(Année == 2051) |> 
+  pull(Population) |> 
+  convert_number()
+
+laval_pop_growth <- pop_evolution |> 
+  filter(Année %in% c(2025, 2051)) |> 
+  arrange(Année) |> 
+  pull(Population) |> 
+  {\(x) x[2] / x[1] - 1}() |> 
+  convert_pct()
+
 pop_et_proj <-
   ggplot(data = pop_evolution, aes(x = Année, y = `Population`)) +
   #geom_point(aes(color = `Type de données`), size = 5) +
   geom_line(data = solid_data, aes(x = Année, y = `Population`, group = 1, color = `Type de données`), linetype = "solid",
             linewidth = 2) +
-  geom_line(data = dotted_data, aes(x = Année, y = `Population`, group = 1, color = `Type de données`), linetype = "dotted",
+  geom_line(data = dotted_data, aes(x = Année, y = `Population`, group = 1, color = `Type de données`), linetype = "dashed",
             linewidth = 2) +
   #ylim(0, max(pop_evolution$`Tous les âges`)) +
   scale_color_manual(values = c("Projection" = color_theme("pinkhealth"), "Estimation" = "black")) +
@@ -569,14 +596,14 @@ pop_et_proj <-
 
 
 # NEW DATA
-library(dplyr)
-pop_projections <- 
-readxl::read_excel("data/demography/PopGrAS_RA_base_2024.xlsx", skip = 5) |> 
-  filter(`...3` == "Laval",
-         `...1` == "Référence A2024",
-         `...5` == 3) |> 
-  rename(`Année` = `...4`,) |> 
-  mutate_all(as.numeric)
+# library(dplyr)
+# pop_projections <- 
+# readxl::read_excel("data/demography/PopGrAS_RA_base_2024.xlsx", skip = 5) |> 
+#   filter(`...3` == "Laval",
+#          `...1` == "Référence A2024",
+#          `...5` == 3) |> 
+#   rename(`Année` = `...4`,) |> 
+#   mutate_all(as.numeric)
 
 
 # laval21 <- cancensus::get_census(dataset = "CA21", 
@@ -603,49 +630,38 @@ readxl::read_excel("data/demography/PopGrAS_RA_base_2024.xlsx", skip = 5) |>
 #                Population = c(laval1996$Population, laval01$Population, laval06$Population, laval11$Population, laval16$Population, laval21$Population),
 #                PointType = "Valeur du recensement canadien")
 
-pop_evolution <- pop_evolution[pop_evolution$Year %in% c(1966:2021), c("Year", "Population")] |> 
-  mutate(PointType = "Valeur du recensement canadien")
-
-pop_evolution_tidy <- 
-  rbind(pop_evolution, 
-        pop_projections |> 
-          transmute(Year = `Année`, Population = TOTAL, PointType = "Projection (ISQ)")
-  )
-pop_evolution_tidy$Year <- as.numeric(pop_evolution_tidy$Year)
-# allows for the end of the line to be dotted based on projection points
-solid_data <- pop_evolution_tidy %>% filter(PointType == "Valeur du recensement canadien")
-dotted_data <- pop_evolution_tidy %>% filter(PointType == "Projection (ISQ)" | row_number() == n() - 4)
-
-
-pop_et_proj <-
-ggplot(data = pop_evolution_tidy, aes(x = Year, y = Population, linetype = PointType, color = PointType)) +
-  geom_point(data = pop_evolution_tidy[pop_evolution_tidy$PointType == "Valeur du recensement canadien",], 
-             size = 5) +
-  geom_line(linewidth = 1.5) +
-  ylim(0, max(pop_evolution_tidy$Population)) +
-  scale_linetype_manual(values = c("Projection (ISQ)" = "dotted", 
-                                   "Valeur du recensement canadien" = "solid")) +
-  scale_color_manual(values = c("Projection (ISQ)" = color_theme("pinkhealth"), 
-                                "Valeur du recensement canadien" = "black")) +
-  labs(color = NULL, linetype = NULL, title = NULL) + 
-  scale_y_continuous(labels = convert_number, limits = c(0, 500000)) +
-  gg_cc_theme_no_sf +
-  xlab(NULL) +
-  theme(legend.title = element_blank())
-
-
-
-
-
-
-
-
-
+# pop_evolution <- pop_evolution[pop_evolution$Year %in% c(1966:2021), c("Year", "Population")] |> 
+#   mutate(PointType = "Valeur du recensement canadien")
+# 
+# pop_evolution_tidy <- 
+#   rbind(pop_evolution, 
+#         pop_projections |> 
+#           transmute(Year = `Année`, Population = TOTAL, PointType = "Projection (ISQ)")
+#   )
+# pop_evolution_tidy$Year <- as.numeric(pop_evolution_tidy$Year)
+# # allows for the end of the line to be dotted based on projection points
+# solid_data <- pop_evolution_tidy %>% filter(PointType == "Valeur du recensement canadien")
+# dotted_data <- pop_evolution_tidy %>% filter(PointType == "Projection (ISQ)" | row_number() == n() - 4)
+# 
+# 
+# pop_et_proj <-
+# ggplot(data = pop_evolution_tidy, aes(x = Year, y = Population, linetype = PointType, color = PointType)) +
+#   geom_point(data = pop_evolution_tidy[pop_evolution_tidy$PointType == "Valeur du recensement canadien",], 
+#              size = 5) +
+#   geom_line(linewidth = 1.5) +
+#   ylim(0, max(pop_evolution_tidy$Population)) +
+#   scale_linetype_manual(values = c("Projection (ISQ)" = "dotted", 
+#                                    "Valeur du recensement canadien" = "solid")) +
+#   scale_color_manual(values = c("Projection (ISQ)" = color_theme("pinkhealth"), 
+#                                 "Valeur du recensement canadien" = "black")) +
+#   labs(color = NULL, linetype = NULL, title = NULL) + 
+#   scale_y_continuous(labels = convert_number, limits = c(0, 500000)) +
+#   gg_cc_theme_no_sf +
+#   xlab(NULL) +
+#  theme(legend.title = element_blank())
 
 ggplot2::ggsave(filename = here::here("output/0_demography/pop_et_proj.pdf"), 
                 plot = pop_et_proj, width = 8, height = 5)
-
-
 
 # Naissances --------------------------------------------------------------
 
@@ -655,30 +671,109 @@ ggplot2::ggsave(filename = here::here("output/0_demography/pop_et_proj.pdf"),
 
 #insert downloaded data set from linked source
 
-Laval_Births <- read.csv("data/demography/Laval_Births.csv", skip = 5) |> 
-  tibble::as_tibble()
-Laval_Births <- pivot_longer(Laval_Births[3, ], cols = names(Laval_Births)[4:41], )[4:5]
-names(Laval_Births) <- c("year", "naissances")
-Laval_Births$year <- as.numeric(gsub("^X|ᵖ", "", Laval_Births$year))
-Laval_Births$naissances <- as.numeric(Laval_Births$naissances)
+# Laval_Births <- read.csv("data/demography/Laval_Births.csv", skip = 5) |> 
+#   tibble::as_tibble()
+# Laval_Births <- pivot_longer(Laval_Births[3, ], cols = names(Laval_Births)[4:41], )[4:5]
+# names(Laval_Births) <- c("year", "naissances")
+# Laval_Births$year <- as.numeric(gsub("^X|ᵖ", "", Laval_Births$year))
+# Laval_Births$naissances <- as.numeric(Laval_Births$naissances)
+# 
+# 
+# # Get numbner of births 2023
+# naissances_laval <- Laval_Births$naissances[Laval_Births$year == 2023]
+# naissances_laval <- convert_number(naissances_laval)
+# 
+# # Inspect the specific rows 35 to 39
+# naissances_laval_moyenne_5 <- 
+#   convert_number(Laval_Births$naissances[Laval_Births$year %in% 2019:2023] |> mean())
 
+#https://statistique.quebec.ca/fr/document/naissances-regions-administratives/tableau/naissances-deces-accroissement-naturel-mariages-par-region-administrative-quebec#tri_phe=10&tri_ra=13
+birth_rate <- read_xlsx("data/new/Fichier_complet_704_205.xlsx", skip = 2) |> 
+  slice(1:19) |> 
+  row_to_names(row_number = 1) |> 
+  clean_names() |> 
+  filter(`natalite2` == "Laval") |> 
+  select(-1, -2) |> 
+  setNames(as.integer(1986:2023)) |> 
+  mutate(across(everything(), ~ as.numeric(as.character(.)))) |> 
+  pivot_longer(cols = everything(), names_to = "Year", values_to = "Naissances pour 1 000") |> 
+  mutate(Year = as.integer(Year))
 
-# Get numbner of births 2023
-naissances_laval <- Laval_Births$naissances[Laval_Births$year == 2023]
-naissances_laval <- convert_number(naissances_laval)
+laval_births <- read_xlsx("data/new/naissance.xlsx", skip = 4) |> 
+  filter(`...2` %in% c("Code RA", "13")) |> 
+  select(-`...1`, -`...2`, -`...41`) |> 
+  mutate(`...3` = replace(`...3`, 1, "Years")) |>
+  row_to_names(row_number = 1) |>
+  pivot_longer(cols = -Years, names_to = "Year", values_to = "Naissances") |> 
+  select(-Years) |> 
+  mutate(Year = as.integer(Year),
+         Naissances = as.integer(Naissances)) |> 
+  left_join(birth_rate, by = "Year") |> 
+  mutate(
+    Naissances = as.numeric(Naissances),
+    `Naissances pour 1 000` = as.numeric(`Naissances pour 1 000`)
+  )
 
-# Inspect the specific rows 35 to 39
-naissances_laval_moyenne_5 <- 
-  convert_number(Laval_Births$naissances[Laval_Births$year %in% 2019:2023] |> mean())
+laval_avgbirths <- laval_births |> 
+  filter(Year >= 2018, Year <= 2022) |> 
+  summarise(avg_births = mean(Naissances, na.rm = TRUE)) |> 
+  pull(avg_births) |> 
+  convert_number()
+
+laval_avgbirthrate <- laval_births |> 
+  filter(Year >= 2018, Year <= 2022) |> 
+  summarise(avg_births = mean(`Naissances pour 1 000`, na.rm = TRUE)) |> 
+  pull(avg_births) |> 
+  convert_number()
+
+# laval_births_graph <- 
+#   ggplot(laval_births) + 
+#   geom_line(aes(x = Year, y = Naissances), color = color_theme("browndemographics"),
+#             linewidth = 1.5) + 
+#   scale_y_continuous(labels = convert_number, limits = c(2500,4800)) +
+#   gg_cc_theme_no_sf +
+#   xlab(NULL) +
+#   ylab("Naissances")
+
+scale_factor <- max(laval_births$Naissances, na.rm = TRUE) / max(laval_births$`Naissances pour 1 000`, na.rm = TRUE)
 
 laval_births_graph <- 
-  ggplot(Laval_Births) + 
-  geom_line(aes(x = year, y = naissances), color = color_theme("browndemographics"),
-            linewidth = 1.5) + 
-  scale_y_continuous(labels = convert_number, limits = c(2500,4800)) +
+  ggplot(laval_births) + 
+  geom_bar(aes(x = Year, y = Naissances, fill = "Naissances"), stat = "identity") + 
+  geom_line(aes(x = Year, y = `Naissances pour 1 000` * scale_factor, color = "Naissances pour 1 000"),
+            linewidth = 1.5) +
+  scale_y_continuous(
+    name = "Naissances", 
+    labels = convert_number,
+    sec.axis = sec_axis(~ . / scale_factor, name = "Naissances pour 1 000")
+  ) +
+  scale_fill_manual(values = c("Naissances" = color_theme("browndemographics"))) +
+  scale_color_manual(values = c("Naissances pour 1 000" = color_theme("purpletransport"))) +
+  labs(fill = NULL, color = NULL) +
+  theme(legend.position = "bottom") +
   gg_cc_theme_no_sf +
-  xlab(NULL) +
-  ylab("Naissances")
+  xlab(NULL)
+
+laval_births_2022 <- laval_births |> 
+  filter(Year == 2022) |> 
+  pull(Naissances) |> 
+  convert_number()
+
+laval_births_2010 <- laval_births |> 
+  filter(Year == 2010) |> 
+  pull(Naissances) |> 
+  convert_number()
+
+laval_birthrate_2022 <- laval_births |> 
+  filter(Year == 2022) |> 
+  pull(`Naissances pour 1 000`) |> 
+  convert_number()
+
+laval_birthrate_2009 <- laval_births |> 
+  filter(Year == 2009) |> 
+  pull(`Naissances pour 1 000`) |> 
+  convert_number()
+
 
 ggplot2::ggsave(filename = here::here("output/0_demography/laval_births_graph.pdf"), 
                 plot = laval_births_graph, width = 6.5, height = 4)
@@ -691,6 +786,8 @@ qs::qsavem(laval_population_ISQ_pretty, laval_population_2024_pretty,
            homme_pct_pretty, femme_pct_pretty, ethnic_origins, groupe_ethniques_diff,
            population_change, quebec_pop_change, pop_et_proj, naissances_laval,
            naissances_laval_moyenne_5, laval_births_graph, laval_population_census_pretty,
+           laval_pop_2051, laval_pop_2025, laval_pop_growth, laval_avgbirths, laval_births_2022,
+           laval_births_2010,
            file = "data/demography/demo.qsm")
 
                                     
