@@ -7,6 +7,7 @@ library(extrafont)
 library(showtext)
 library(sf)
 library(gt)
+library(readxl)
 
 # font_import()
 # loadfonts(device = "win", quiet = TRUE)

@@ -2,6 +2,31 @@
 
 source("R/01_startup.R")
 
+data_100 <- readr::read_csv("data/new/2270_100_en.csv", locale = locale(encoding = "Latin1"))
+
+sector_data_100 <- data_100 |> 
+  (\(df) {
+    categories <- as.character(df[1, -1])
+    df[-1, ] |>
+      pivot_longer(cols = -1, names_to = "Data_Type", values_to = "Value") |>
+      rename(Geography = 1) |>
+      mutate(
+        Category = rep(categories, times = nrow(df) - 1),
+        Category = case_when(
+          Category == "Total - Gender" ~ "Total",
+          str_detect(Category, "Men") ~ "Men",
+          str_detect(Category, "Women") ~ "Women",
+          TRUE ~ Category
+        ),
+        Geography = str_sub(Geography, end = -16),
+        Data_Type = str_sub(Data_Type, end = -5),
+        Value = if_else(Value == "...", NA, Value),
+        Value = as.numeric(Value)
+      ) |>
+      select(Geography, Data_Type, Category, Value)
+  })()
+  
+
 # Immigration & Diversity -------------------------------------------------
 #Grabbing immigration numbers and total population for each census year
 imm_21v <- c("total" = "v_CA21_4404", "imm" = "v_CA21_4410")
@@ -131,37 +156,65 @@ imm_evol_graph <-
 ggplot2::ggsave(filename = here::here("output/axe1/immigration/imm_evol_graph.pdf"), 
                 plot = imm_evol_graph, width = 6.5, height = 5.5)
 
-imm_fun <- function(region, year) {
-  imm$percentage[imm$`Region Name` == region & imm$year == year]
-}
+# imm_fun <- function(region, year) {
+#   imm$percentage[imm$`Region Name` == region & imm$year == year]
+# }
+# 
+# imm |> 
+#   group_by(`Region Name`) |> 
+#   summarize(imm = (imm_fun(`Region Name`, 2021) - imm_fun(`Region Name`, 2001)) / imm_fun(`Region Name`, 2001)  * 100)
 
-imm |> 
-  group_by(`Region Name`) |> 
-  summarize(imm = (imm_fun(`Region Name`, 2021) - imm_fun(`Region Name`, 2001)) / imm_fun(`Region Name`, 2001)  * 100)
+imm_change <- imm |>
+  filter(year %in% c(2001, 2021)) |>
+  pivot_wider(names_from = year, values_from = percentage) |>
+  mutate(Change = (`2021` - `2001`)*100)
 
+laval_change <- imm_change |> 
+  filter(`Region Name` == "Laval") |> 
+  pull(Change) |> 
+  convert_number()
+
+mtl_change <- imm_change |> 
+  filter(`Region Name` == "Montréal") |> 
+  pull(Change) |> 
+  convert_number()
+
+qc_change <- imm_change |> 
+  filter(`Region Name` == "Québec") |> 
+  pull(Change) |> 
+  convert_number()
 
 
 #Grabbing specific numbers for the text
-imm_21_lvl_prop <- get_census(dataset = "CA21", 
-                              regions = list(CSD = c(2465005)), 
-                              level = "CSD",
-                              vectors = imm_21v) |> 
-  mutate(percentage = convert_pct(imm / total)) |> 
-  pull(percentage)
+imm_21_lvl_prop <- imm_change |> 
+  filter(`Region Name` == "Laval") |> 
+  pull(`2021`) |> 
+  convert_pct()
 
-imm_21_mtl_prop <- get_census(dataset = "CA21", 
-                              regions = list(CSD = c(2466023)), 
-                              level = "CSD",
-                              vectors = imm_21v) |> 
-  mutate(percentage = convert_pct(imm / total)) |> 
-  pull(percentage)
+imm_21_mtl_prop <- imm_change |> 
+  filter(`Region Name` == "Montréal") |> 
+  pull(`2021`) |> 
+  convert_pct()
 
-imm_21_qc_prop  <- get_census(dataset = "CA21",
-                              regions = list(PR = c(24)),
-                              level = "PR",
-                              vectors = imm_21v) |> 
-  mutate(percentage = convert_pct(imm / total)) |> 
-  pull(percentage)
+imm_21_qc_prop <- imm_change |> 
+  filter(`Region Name` == "Québec") |> 
+  pull(`2021`) |> 
+  convert_pct()
+
+imm_01_lvl_prop <- imm_change |> 
+  filter(`Region Name` == "Laval") |> 
+  pull(`2001`) |> 
+  convert_pct()
+
+imm_01_mtl_prop <- imm_change |> 
+  filter(`Region Name` == "Montréal") |> 
+  pull(`2001`) |> 
+  convert_pct()
+
+imm_01_qc_prop <- imm_change |> 
+  filter(`Region Name` == "Québec") |> 
+  pull(`2001`) |> 
+  convert_pct()
 
 #Prepping data to map it
 breaks <- c(-Inf, 0.2, 0.3, 0.4, 0.5, Inf)
@@ -586,15 +639,12 @@ imm_age_graph <- ggplot(data = age_21_rev, aes(x = Age, y = prop, fill = gender)
   geom_text(aes(label = percentage), position = position_dodge(width = 0.9),
             vjust = 2.5, color = "black", size = 3) +
   scale_fill_manual(values = c("Homme" = "#A3B0D1", "Femme" = "#CD718C")) +
-<<<<<<< HEAD
   scale_y_continuous(labels = convert_pct) +
   labs(x = "Gender",
-       y = "Proportion d'immigrants",
-=======
+       y = "Proportion d'immigrants")
   scale_y_continuous(labels = scales::label_number(big.mark = " ")) +
   labs(x = "Groupe d'âge",
        y = "Nombre d'individus",
->>>>>>> b371aef835316393e8a9d54b34cadd2cf7cde2f1
        fill = "Age Group") +
   gg_cc_theme_no_sf +
   theme(legend.position = "bottom", plot.title = element_blank(),
@@ -957,4 +1007,5 @@ qs::qsavem(imm_evol_graph, imm_21_lvl_prop, imm_21_mtl_prop, imm_21_qc_prop,
            recent_africa, recent_syria, recent_lebanon, recent_algeria, recent_haiti,
            recent_morocco, vis_min_graph, vis_min_laval, vis_min_quebec, vis_min_arab,
            vis_min_black, lvl_secular, qc_secular, lvl_christ, qc_christ, lvl_islam,
+           laval_change, mtl_change, qc_change,
            qc_islam, file = "data/axe1/immigration.qsm")
