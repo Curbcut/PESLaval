@@ -634,21 +634,20 @@ imm_age_sex_prop_graph <- ggplot(data = age_21, aes(x = gender, y = prop, fill =
   guides(fill = guide_legend(reverse = TRUE))
 
 #Graphing numbers by age group
-imm_age_graph <- ggplot(data = age_21_rev, aes(x = Age, y = prop, fill = gender)) +
+imm_age_graph <- ggplot(data = age_21, aes(x = Age, y = prop, fill = gender)) +
   geom_bar(stat = "identity", position = "dodge") +
   geom_text(aes(label = percentage), position = position_dodge(width = 0.9),
             vjust = 2.5, color = "black", size = 3) +
   scale_fill_manual(values = c("Homme" = "#A3B0D1", "Femme" = "#CD718C")) +
-  scale_y_continuous(labels = convert_pct) +
-  labs(x = "Gender",
-       y = "Proportion d'immigrants")
   scale_y_continuous(labels = scales::label_number(big.mark = " ")) +
   labs(x = "Groupe d'âge",
        y = "Nombre d'individus",
        fill = "Age Group") +
   gg_cc_theme_no_sf +
-  theme(legend.position = "bottom", plot.title = element_blank(),
-        legend.title = element_blank(), text = element_text(family = "KMR-Apparat-Regular"))
+  theme(legend.position = "bottom",
+        plot.title = element_blank(),
+        legend.title = element_blank(),
+        text = element_text(family = "KMR-Apparat-Regular"))
 
 ggplot2::ggsave(filename = here::here("output/axe1/immigration/imm_age_graph.pdf"), 
                 plot = imm_age_graph, width = 6.5, height = 4)
@@ -1007,5 +1006,5 @@ qs::qsavem(imm_evol_graph, imm_21_lvl_prop, imm_21_mtl_prop, imm_21_qc_prop,
            recent_africa, recent_syria, recent_lebanon, recent_algeria, recent_haiti,
            recent_morocco, vis_min_graph, vis_min_laval, vis_min_quebec, vis_min_arab,
            vis_min_black, lvl_secular, qc_secular, lvl_christ, qc_christ, lvl_islam,
-           laval_change, mtl_change, qc_change,
+           laval_change, mtl_change, qc_change, imm_age_graph,
            qc_islam, file = "data/axe1/immigration.qsm")

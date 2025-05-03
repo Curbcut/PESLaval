@@ -36,6 +36,19 @@ imm_evol_graph
 
 Laval se distingue par une hausse de `r laval_change` points de pourcentage, doublant de `r imm_01_lvl_prop` en 2001 à `r imm_21_lvl_prop` en 2021. À titre de comparaison, Montréal, qui affichait déjà une proportion élevée d’immigrants (`r imm_01_mtl_prop` en 2001), n’a connu qu’une augmentation plus modérée de `r mtl_change` points de pourcentage, atteignant `r imm_21_mtl_prop` en 2021. L’ensemble du Québec, bien que partant d’une proportion plus faible (`r imm_01_qc_prop` en 2001), a enregistré une croissance de `r qc_change`, atteignant `r imm_21_qc_prop` à 2021.
 
+Ces chiffres illustrent les dynamiques distinctes de l’immigration dans chaque région : Laval connaît une transformation marquée de sa composition démographique, tandis que Montréal, avec une population immigrante déjà importante, affiche une croissance plus stable. L’ensemble du Québec, quant à lui, progresse à un rythme intermédiaire, mais demeure en deçà des proportions observées à Laval et Montréal.
+
+Définition : Une personne immigrante
+Une personne immigrante est une personne qui est, ou qui a déjà été, un immigrant reçu ou résident permanent. Il s'agit d'une personne à qui les autorités de l'immigration ont accordé le droit de résider au Canada en permanence. Les immigrants qui ont obtenu la citoyenneté canadienne par naturalisation sont compris dans ce groupe.
+
+En 2021, près d’un tiers (31,5 %) de la population lavalloise était constituée de personnes immigrantes, contre 33,4 % à Montréal et 14,6 % dans l’ensemble du Québec. La Figure 2.1
+montre la répartition spatiale de la population immigrante lavalloise, avec des proportions plus élevées dans et autour du secteur d’aménagement Chomedey.
+
+En 2021, plus du tiers de la population lavalloise (37,0 %) a déclaré être d’origine ethnique ou culturelle européenne, suivi par 28,6 % d’origine nord-américaine, 18,3 % asiatique, 10,7 % africaine, 10,6 % caribéenne ou d’Amérique centrale et du Sud, et 7,2 % d’origine océanique ou d’autres origines.
+
+Définition : Origine ethnique
+L’origine ethnique d’une personne fait référence aux origines ethniques ou culturelles de ses ancêtres. Un ancêtre est souvent plus éloigné qu’un grand-parent. Une personne peut déclarer plus d’une origine ethnique ou culturelle.18
+
 ```{r immPropMap, include=TRUE, fig.cap="Proportion d'immigrants dans la population (2021)", fig.align = 'center'}
 imm_prop_map
 ```
@@ -88,9 +101,10 @@ ad_cat_graph
 
 ### Âge à l’immigration
 
-Le groupe d'âge le plus représenté parmi les résident·e·s immigrant·e·s est de loin celui des 25 à 44 ans. Bien que toutes les catégories d'âge montrent un équilibre entre les genres, la catégorie des 15 à 24 ans ne respecte pas cette tendance. En effet, il y a plus de femmes que d'hommes qui immigrent dans le groupe d'âge des adolescents et jeunes adultes, comme au niveau des 45 ans et plus, bien qu’à plus petite proportion.
+La plupart des immigrants sont arrivées à Laval à l'âge de 25 à 44 ans. De plus, on observe qu'il y a plus de femmes que d’hommes, en proportion, parmi les personnes immigrantes des
+groupes d’âge des adolescent·e·s et des jeunes adultes, ainsi que chez les 45 ans et plus, bien qu’en plus petite proportion (Graphique 2.4).
 
-```{r immAgeGraph, include=TRUE, fig.cap="Âge à l’immigration (2021)", fig.align = 'center'}
+```{r imm_age_graph, include=TRUE, fig.cap="Âge à l’immigration (2021)", fig.align = 'center'}
 
 imm_stackedage_graph
 
