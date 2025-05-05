@@ -13,7 +13,7 @@ qs::qload(here::here("data/axe1/education.qsm"))
 
 ### Évolution des inscriptions scolaires
 
-Pour l'année scolaire 2022-2023, le nombre total d'élèves inscrits dans les différents secteurs et ordres d'enseignement à Laval s'élèvait à 70 839. Cette répartition se concentrait principalement au niveau primaire, qui accueillait 28 072 élèves, soit 39,6 % de la population étudiante. Le secondaire suivait avec 24 214 élèves, représentant 34,2 % des inscriptions. Les niveaux scolaires de la formation générale des adultes (FGA) et de la formation professionnelle (FP) accueillaient respectivement 5 931 (8,4 %) et 7 657 (10,8 %) élèves. Le préscolaire, avec 4 965 élèves, constituait 7,0 % du total.^[Institut de la Statistique du Québec. (2024). Tableau de bord de l'éducation. Récupéré de https://www.quebec.ca/education/indicateurs-statistiques/prescolaire-primaire-secondaire/tableau-de-bord]
+<!-- Pour l'année scolaire 2022-2023, le nombre total d'élèves inscrits dans les différents secteurs et ordres d'enseignement à Laval s'élèvait à 70 839. Cette répartition se concentrait principalement au niveau primaire, qui accueillait 28 072 élèves, soit 39,6 % de la population étudiante. Le secondaire suivait avec 24 214 élèves, représentant 34,2 % des inscriptions. Les niveaux scolaires de la formation générale des adultes (FGA) et de la formation professionnelle (FP) accueillaient respectivement 5 931 (8,4 %) et 7 657 (10,8 %) élèves. Le préscolaire, avec 4 965 élèves, constituait 7,0 % du total.^[Institut de la Statistique du Québec. (2024). Tableau de bord de l'éducation. Récupéré de https://www.quebec.ca/education/indicateurs-statistiques/prescolaire-primaire-secondaire/tableau-de-bord]
 
 Entre l'année scolaire 2014-2015 et 2022-2023 à Laval, le nombre total d'élèves inscrits a augmenté, passant de 67 303 à 70 839, ce qui reflète une croissance globale de la population scolaire, suivant l'augmentation de la population globale. Un changement notable est la diminution marquée du nombre d'élèves inscrits en formation générale des adultes (FGA) et en formation professionnelle (FP). En 2014-2015, la FGA comptait 7 458 élèves, soit 11,1 % du total, alors qu'en 2022-2023, ce chiffre a chuté à 5 931 élèves, représentant seulement 8,4 % de la population étudiante. De même, les inscriptions en formation professionnelle ont diminué, passant de 8 191 élèves (12,2 %) à 7 657 élèves (10,8 %).^[Institut de la Statistique du Québec. (2024). Tableau de bord de l'éducation. Récupéré de https://www.quebec.ca/education/indicateurs-statistiques/prescolaire-primaire-secondaire/tableau-de-bord]
 
@@ -21,7 +21,20 @@ En comparaison avec l'ensemble du Québec, Laval se distingue légèrement par u
 
 Le graphique \@ref(fig:educationIndice) compare l'évolution du nombre d'élèves inscrits dans les secteurs et ordres d'enseignement à Laval et au Québec entre 2014-2015 et 2022-2023, en utilisant une base 100 pour l'année de départ. L'indice de 100 signifie que le nombre d'élèves en 2014-2015 sert de référence. Par exemple, un indice de 105 en 2022-2023 indique une augmentation de 5 % par rapport à 2014-2015. 
 
-Tandis que pour l'ensemble du Québec, la courbe montre une croissance régulière du nombre d'élèves, atteignant une augmentation de `r education_eleves_var_qc` depuis 2014-2015, la croissance à Laval a été plus irrégulière. Après une augmentation initiale plus marquée, le nombre d'élèves a connu une baisse entre 2017 et 2019, puis a repris sa progression. En 2022-2023, le nombre d'élèves à Laval était `r education_eleves_var` plus élevé qu'en 2014-2015.^[Institut de la Statistique du Québec. (2024). Tableau de bord de l'éducation. Récupéré de https://www.quebec.ca/education/indicateurs-statistiques/prescolaire-primaire-secondaire/tableau-de-bord]
+Tandis que pour l'ensemble du Québec, la courbe montre une croissance régulière du nombre d'élèves, atteignant une augmentation de `r education_eleves_var_qc` depuis 2014-2015, la croissance à Laval a été plus irrégulière. Après une augmentation initiale plus marquée, le nombre d'élèves a connu une baisse entre 2017 et 2019, puis a repris sa progression. En 2022-2023, le nombre d'élèves à Laval était `r education_eleves_var` plus élevé qu'en 2014-2015.^[Institut de la Statistique du Québec. (2024). Tableau de bord de l'éducation. Récupéré de https://www.quebec.ca/education/indicateurs-statistiques/prescolaire-primaire-secondaire/tableau-de-bord] -->
+
+Pour l’année scolaire 2022-2023, le nombre total d’élèves inscrits dans les différents secteurs et institutions d’enseignement à Laval s’élèvait à 70 839. Le niveau primaire accueille le lus d'élèves (28 072) soit 39,6 % de la population étudiante. Le secondaire suivait avec 24 214 élèves, représentant 34,2 % des inscriptions. Les niveaux scolaires de la formation générale des adultes (FGA) et de la formation professionnelle (FP) accueillaient respectivement 5 931 (8,4 %) et 7 657 (10,8 %) élèves. Le préscolaire, avec 4 965 élèves, constituait 7,0 % du total.75
+
+Entre l’année scolaire 2014-2015 et 2022-2023 à Laval, le nombre total d’élèves inscrits a augmenté, passant de 67 303 à 70 839, ce qui reflète une croissance globale de la population scolaire. Un changement notable est la diminution marquée du nombre d’élèves inscrits en formation générale des adultes (FGA) et en formation professionnelle (FP). En 2014-2015, la FGA comptait 7 458 élèves, soit 11,1 % du total, alors qu’en 2022-2023, ce chiffre a chuté à 5 931 élèves, représentant seulement 8,4 % de la population étudiante. De même, les inscriptions en formation professionnelle ont diminué, passant de 8 191 élèves (12,2 %) à 7 657 élèves (10,8 %).
+
+En comparaison avec l’ensemble du Québec, Laval se distingue légèrement par une proportion plus élevée d’élèves inscrits en formation professionnelle (8,5 % pour l'ensemble du Québec contre 10,8 % à Laval), suggérant une orientation vers des filières techniques et professionnelles plus marquée à Laval.
+
+Le Graphique 2.17 compare l’évolution du nombre d’élèves inscrits dans les secteurs et ordres d’enseignement à Laval et dans l'ensemble du Québec entre 2014-2015 et 2022-2023, en utilisant une base 100 pour l’année de départ. L’indice de 100 signifie que le nombre d’élèves en 2014-2015 sert de référence. Par exemple, un indice de 105 en 2022-2023 indique une
+augmentation de 5 % par rapport à 2014-2015.
+
+Tandis que pour l’ensemble du Québec, la courbe montre une croissance régulière du nombre d’élèves, atteignant une augmentation de 7,3 % depuis 2014- 2015, la croissance à Laval a été plus irrégulière. Après une augmentation initiale plus marquée, le nombre d’élèves a connu une baisse entre 2017 et 2019, puis a repris sa progression. En 2022-2023, le nombre d’élèves à Laval était 5,3 % plus élevé qu’en 2014-2015.
+
+<!-- https://app.powerbi.com/view?r=eyJrIjoiODMzYTQyYTctNTc5YS00YjJmLWEzMWQtYjhjOGUzYTM1MWFmIiwidCI6IjJjZThmYzE4LWE1YjAtNDhlYy05MjAwLTI4N2E4OTA2ODkwNCJ9 -->
 
 ```{r educationIndice, include=TRUE, fig.cap="Évolution du nombre d'élèves inscrits à Laval et au Québec de 2014-2015 à 2022-2023 (Indice base 100 en 2014-2015). Source: Institut de la Statistique du Québec.", fig.align = 'center'}
 education_indice_plot
@@ -31,17 +44,19 @@ education_indice_plot
 
 #### Évolution du niveau de scolarité
 
-Les données sur la population âgée de 25 à 64 ans montrent une nette augmentation des niveaux de scolarité entre 2006 et 2021. À Laval, la proportion de personnes sans diplôme a graduellement diminué de `r no_diploma_pct_2006_laval` en 2006 à `r no_diploma_pct_2021_laval` en 2021. Pendant la même période, la proportion de la population ayant un diplôme universitaire (baccalauréat ou supérieur) a augmenté de `r bachelor_higher_pct_2006_laval` à `r bachelor_higher_pct_2021_laval`. Les tendances sont similaires dans l'ensemble du Québec, avec une baisse de la proportion de la population sans diplôme de `r no_diploma_pct_2006_qc` en 2006 à `r no_diploma_pct_2021_qc` en 2021, et une augmentation de la proportion de diplômés de niveau baccalauréat ou supérieur de `r bachelor_higher_pct_2006_qc` à `r bachelor_higher_pct_2021_qc`. Laval se distingue donc légèrement par une plus faible proportion d'individus sans diplôme et une proportion plus élevée de diplômés universitaires.
+Les données sur la population âgée de 25 à 64 ans montrent une nette augmentation des niveaux de scolarité entre 2006 et 2021. À Laval, la proportion de personnes sans diplôme a graduellement diminué de `r no_diploma_pct_2006_laval` en 2006 à `r no_diploma_pct_2021_laval` en 2021. Pendant la même période, la proportion de la population ayant un diplôme universitaire (baccalauréat ou supérieur) a augmenté de `r bachelor_higher_pct_2006_laval` à `r bachelor_higher_pct_2021_laval`. Les tendances sont similaires dans l'ensemble du Québec, avec une baisse de la proportion de la population sans diplôme de `r no_diploma_pct_2006_qc` en 2006 à `r no_diploma_pct_2021_qc` en 2021, et une augmentation de la proportion de diplômés de niveau baccalauréat ou supérieur de `r bachelor_higher_pct_2006_qc` à `r bachelor_higher_pct_2021_qc`. Laval se distingue donc légèrement par une plus faible proportion d'individus sans diplôme et une proportion plus élevée de diplômé·e·s universitaires.
 
-```{r educationComposition, include=TRUE, fig.cap="", fig.align = 'center'}
+```{r educationComposition, include=TRUE, fig.cap="Évolution des niveaux de scolarité chez les 25 à 64 ans à Laval en 2021 Source: Statistique Canada, Recensement de la population de 2006, 2016 et 2021, et Enquête nationale auprès des ménages de 2011", fig.align = 'center'}
 edu_comp_graph
 ```
 
-#### Niveau de scolarité selon le genre
+<!--#### Niveau de scolarité selon le genre -->
+
+#### Niveau de scolarité selon le sexe
 
 Le graphique \@ref(fig:educationGender) illustre la répartition des niveaux de scolarité parmi la population de 25 à 64 ans à Laval en 2021. Les femmes surpassaient les hommes en termes de scolarité supérieure : 34,9 % des femmes détiennent un baccalauréat ou un grade supérieur contre 29,5 % des hommes. À l'inverse, les hommes sont plus nombreux à n'avoir aucun diplôme (12,4 % contre 9,5 % pour les femmes) ou à détenir uniquement un diplôme d'études secondaires.
 
-```{r educationGender, include=TRUE, fig.cap="Répartition des niveaux de scolarité par genre chez les 25 à 64 ans à Laval (2021)", fig.align = 'center'}
+```{r educationGender, include=TRUE, fig.cap="Répartition des niveaux de scolarité par genre chez les 25 à 64 ans à Laval (2021) Source: Statistique Canada, Recensement de la population de 2021.", fig.align = 'center'}
 edu_gender_graph
 ```
 
@@ -56,7 +71,7 @@ education_uni_aucun_plot
 Le tableau \@ref(tab:educationSectorTable) indique les niveaux de scolarité des individus âgés de 25 à 64 ans à Laval, répartis par secteur. Le secteur de Chomedey affiche le taux le plus élevé de personnes sans diplôme (15,5 %), tandis que Sainte-Rose, Fabreville a le taux le plus bas (7,8 %). En termes de scolarisation postsecondaire, Sainte-Rose, Fabreville se démarque également, avec 75,7 % des résidents détenant un tel diplôme, contre seulement 65,0 % à Chomedey. Enfin, le secteur Laval-Ouest, Sainte-Dorothée et Laval-sur-le-Lac se distingue avec la plus forte proportion de diplômés universitaires (34,2 %), tandis que Duvernay, Saint-Vincent-de-Paul, Saint-François, Vimont, Auteuil et Chomedey présentent des pourcentages légèrement inférieurs à la moyenne lavalloise.
 
 ```{r educationSectorTable, include=TRUE, tab.cap="Répartition des niveaux de scolarité par secteur à Laval (Population âgée de 25 à 64 ans) (2021)"}
-educ_sectors_table
+edu_table
 ```
 
 ### Sorties sans diplôme ni qualification

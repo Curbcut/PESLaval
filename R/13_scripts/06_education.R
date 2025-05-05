@@ -2,6 +2,30 @@
 
 source("R/01_startup.R")
 
+data_25 <- readr::read_csv("data/new/2270_25_en.csv", locale = locale(encoding = "Latin1"))
+
+sector_data_25 <- data_25 |> 
+  (\(df) {
+    categories <- as.character(df[1, -1])
+    df[-1, ] |>
+      pivot_longer(cols = -1, names_to = "Data_Type", values_to = "Value") |>
+      rename(Geography = 1) |>
+      mutate(
+        Category = rep(categories, times = nrow(df) - 1),
+        Category = case_when(
+          Category == "Total - Gender" ~ "Total",
+          str_detect(Category, "Men") ~ "Men",
+          str_detect(Category, "Women") ~ "Women",
+          TRUE ~ Category
+        ),
+        Geography = str_sub(Geography, end = -16),
+        Data_Type = str_sub(Data_Type, end = -5),
+        Value = if_else(Value == "...", NA, Value),
+        Value = as.numeric(Value)
+      ) |>
+      select(Geography, Data_Type, Category, Value)
+  })()
+
 # Nombre d'élèves ---------------------------------------------------------
 
 student_data <- data.frame(
@@ -430,10 +454,97 @@ educ_sectors_table <-
     table.font.size = 12,
     row_group.font.size = 12,
     table.width = px(6 * 96)
-    
   )
 
+
+# Education Level Beyond2020 ----------------------------------------------
+education_25 <- data_25 |> 
+  select(which(str_detect(as.character(data_25[1, ]), regex("Total|Geography", ignore_case = TRUE)))) |> 
+  select(1, 1985:2000) |> 
+  slice(-1) |> 
+  select(1:4, 6, 12) |> 
+  rename(`Zone géographique` = 1, Total = 2, 
+         "Aucun certificat, diplôme ou grade (n)" = 3, 
+         "Diplôme d'études secondaires ou attestation d'équivalence (n)" = 4, 
+         "Certificat ou diplôme d’études postsecondaires inférieur au baccalauréat (n)" = 5, 
+         "Baccalauréat ou grade supérieur (n)" = 6) |> 
+  mutate(`Zone géographique` = replace(`Zone géographique`, 1, "Secteur 3 : Chomedey"),
+         `Zone géographique` = replace(`Zone géographique`, 2, "Secteur 1 : Duvernay, Saint-François et Saint-Vincent-de-Paul"),
+         `Zone géographique` = replace(`Zone géographique`, 3, "Secteur 2 : Pont-Viau, Renaud-Coursol et Laval-des-Rapides"),
+         `Zone géographique` = replace(`Zone géographique`, 4, "Secteur 4 : Sainte-Dorothée, Laval-Ouest, Les Îles-Laval, Fabreville-Ouest et Laval-sur-le-Lac"),
+         `Zone géographique` = replace(`Zone géographique`, 5, "Secteur 5 : Fabreville-Est et Sainte-Rose"),
+         `Zone géographique` = replace(`Zone géographique`, 6, "Secteur 6 : Vimont et Auteuil")) |> 
+  arrange(`Zone géographique`) |> 
+  mutate(across(-`Zone géographique`, parse_number)) |>
+  (\(df) bind_rows(
+    df |> summarise(across(-`Zone géographique`, sum, na.rm = TRUE)) |> 
+      mutate(`Zone géographique` = "Laval") |> 
+      select(`Zone géographique`, everything()),
+    df))() |> 
+  mutate(`Aucun certificat, diplôme ou grade (%)` = `Aucun certificat, diplôme ou grade (n)` / Total, 
+         `Diplôme d'études secondaires ou attestation d'équivalence (%)` = `Diplôme d'études secondaires ou attestation d'équivalence (n)` / Total,
+         `Certificat ou diplôme d’études postsecondaires inférieur au baccalauréat (%)` = `Certificat ou diplôme d’études postsecondaires inférieur au baccalauréat (n)` / Total, 
+         `Baccalauréat ou grade supérieur (%)` = `Baccalauréat ou grade supérieur (n)` / Total) |> 
+  select(`Zone géographique`, `Aucun certificat, diplôme ou grade (n)`, `Aucun certificat, diplôme ou grade (%)`, 
+         `Diplôme d'études secondaires ou attestation d'équivalence (n)`, `Diplôme d'études secondaires ou attestation d'équivalence (%)`,
+         `Certificat ou diplôme d’études postsecondaires inférieur au baccalauréat (n)`, `Certificat ou diplôme d’études postsecondaires inférieur au baccalauréat (%)`, 
+         `Baccalauréat ou grade supérieur (n)`, `Baccalauréat ou grade supérieur (%)`)
+
+hsqc_21v <- c("Total" = "v_CA21_5865", 
+            "Aucun certificat, diplôme ou grade (n)" = "v_CA21_5868", 
+            "Diplôme d'études secondaires ou attestation d'équivalence (n)" = "v_CA21_5871",
+            "Certificat ou diplôme d’études postsecondaires inférieur au baccalauréat (n)" = "v_CA21_5877",
+            "Baccalauréat ou grade supérieur (n)" = "v_CA21_5895")
+
+educ_qc_21 <- get_census(dataset = "CA21",
+                         regions = list(PR = 24),
+                         level = "PR",
+                         vectors = hsqc_21v) |> 
+  mutate(`Zone géographique` = "Ensemble du Québec") |> 
+  mutate(`Aucun certificat, diplôme ou grade (%)` = `Aucun certificat, diplôme ou grade (n)` / Total, 
+         `Diplôme d'études secondaires ou attestation d'équivalence (%)` = `Diplôme d'études secondaires ou attestation d'équivalence (n)` / Total,
+         `Certificat ou diplôme d’études postsecondaires inférieur au baccalauréat (%)` = `Certificat ou diplôme d’études postsecondaires inférieur au baccalauréat (n)` / Total, 
+         `Baccalauréat ou grade supérieur (%)` = `Baccalauréat ou grade supérieur (n)` / Total) |> 
+  select(`Zone géographique`, `Aucun certificat, diplôme ou grade (n)`, `Aucun certificat, diplôme ou grade (%)`, 
+         `Diplôme d'études secondaires ou attestation d'équivalence (n)`, `Diplôme d'études secondaires ou attestation d'équivalence (%)`,
+         `Certificat ou diplôme d’études postsecondaires inférieur au baccalauréat (n)`, `Certificat ou diplôme d’études postsecondaires inférieur au baccalauréat (%)`, 
+         `Baccalauréat ou grade supérieur (n)`, `Baccalauréat ou grade supérieur (%)`)
+
+edu_21_data <- bind_rows(educ_qc_21, education_25)
+
+edu_table <- gt(edu_21_data) |> 
+  data_color(
+    columns = ends_with("%)"),
+    colors = scales::col_numeric(
+      palette = c("white", color_theme("purpletransport")),
+      domain = NULL)) |> 
+  fmt(columns = ends_with("%)"),
+      fns = convert_pct) |>
+  tab_row_group(label = "Secteur", # Adding the row group for "Secteur"
+                rows = 3:nrow(educ_sectors)) |>
+  tab_row_group(label = "Région", # Adding the row group for "Région"
+                rows = 1:2) |>
+  tab_style(style = list(cell_text(weight = "bold")),
+    locations = cells_body(rows = 2)) |>
+  tab_style(style = cell_borders(sides = c("top"),
+                                 color = "white",
+                                 weight = px(10)),
+            locations = cells_row_groups()) |>
+  tab_style(style = cell_text(font = "KMR-Apparat-Regular"), # Apply font style to the whole table
+            locations = cells_body()) |>
+  tab_style(style = cell_text(font = "KMR-Apparat-Regular"),
+            locations = cells_column_labels()) |>
+  tab_style(style = cell_text(font = "KMR-Apparat-Regular"),
+            locations = cells_row_groups()) |>
+  tab_style(style = cell_fill(color = "#F0F0F0"),
+            locations = cells_row_groups()) |> 
+  tab_options(table.font.size = 12,
+              row_group.font.size = 12,
+              table.width = px(6 * 96))
+
 gtsave(educ_sectors_table, "output/axe1/education/educ_sectors_table.png", zoom = 3)
+gtsave(edu_table, "output/axe1/education/edu_table.png", zoom = 3)
+
 
 # Composition 2006-2021 ---------------------------------------------------
 
@@ -600,4 +711,5 @@ qs::qsavem(education_indice_plot, education_eleves_var, education_eleves_var_qc,
            no_diploma_pct_2021_qc, bachelor_higher_pct_2006_qc,
            bachelor_higher_pct_2021_qc, education_uni_aucun_plot,
            educ_sectors_table, edu_comp_graph, edu_gender_graph, dropout_plot,
+           edu_table,
            file = "data/axe1/education.qsm")
