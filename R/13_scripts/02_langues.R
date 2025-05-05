@@ -1,6 +1,30 @@
 ### LANGUES ####################################################################
 source("R/01_startup.R")
 
+data_100 <- readr::read_csv("data/new/2270_100_en.csv", locale = locale(encoding = "Latin1"))
+
+sector_data_100 <- data_100 |> 
+  (\(df) {
+    categories <- as.character(df[1, -1])
+    df[-1, ] |>
+      pivot_longer(cols = -1, names_to = "Data_Type", values_to = "Value") |>
+      rename(Geography = 1) |>
+      mutate(
+        Category = rep(categories, times = nrow(df) - 1),
+        Category = case_when(
+          Category == "Total - Gender" ~ "Total",
+          str_detect(Category, "Men") ~ "Men",
+          str_detect(Category, "Women") ~ "Women",
+          TRUE ~ Category
+        ),
+        Geography = str_sub(Geography, end = -16),
+        Data_Type = str_sub(Data_Type, end = -5),
+        Value = if_else(Value == "...", NA, Value),
+        Value = as.numeric(Value)
+      ) |>
+      select(Geography, Data_Type, Category, Value)
+  })()
+
 # 1996 Census Data - Knowledge of official languages
 LOffLang96 <- cancensus::get_census(
   dataset = "CA1996",
@@ -826,15 +850,19 @@ table <- tibble::tibble(
                            agg_data$Value[agg_data$Language == "Français" & agg_data$Type == "Seulement"]),
   "Français et autre(s)" = c(french_1996_with_other, french_01_with_other, french_06_with_other, 
                              french_11_with_other, french_16_with_other,
-                             sum(agg_data$Value[agg_data$Language == "Français"]))
-)
+                             sum(agg_data$Value[agg_data$Language == "Français"]))) |> 
+  mutate(`Français seulement %` = `Français seulement` / Population,
+         `Français et autre(s) %` = `Français et autre(s)` / Population)
 
 
 # Pivot longer for ggplot-friendly format
+scale_factor <- 100000
+
 table_long <- table %>%
   tidyr::pivot_longer(cols = c("Population", "Français seulement", "Français et autre(s)"),
                       names_to = "Type",
                       values_to = "Valeur")
+
 
 # Define colors: black for population, blue for French data
 line_colors <- c(
@@ -842,6 +870,7 @@ line_colors <- c(
   "Français seulement" = scales::alpha(color_theme("blueexplorer"), 1),
   "Français et autre(s)" = scales::alpha(color_theme("blueexplorer"), 0.4)
 )
+
 
 french_over_time <-
   ggplot(data = table_long, aes(x = Année, y = Valeur, color = Type, group = Type)) +
@@ -862,10 +891,7 @@ french_over_time <-
   gg_cc_theme_no_sf +
   theme(
     legend.title = element_blank()
-  ) 
-
-ggplot2::ggsave(filename = here::here("output/axe1/langues/french_over_time.pdf"), 
-                plot = french_over_time, width = 6.5, height = 6)
+  )
 
 
 table_long$Valeur[table_long$Année == 2021 & table_long$Type == "Français et autre(s)"] /
@@ -879,25 +905,6 @@ table_long$Valeur[table_long$Année == 1996 & table_long$Type == "Français et a
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 qs::qsavem(knowledge_official, bilingual_1996, bilingual_2021,
            no_official_1996, no_official_2021, know_official_laval_qc_diff,
            know_fr_qc, know_fr_laval, know_bilingual_laval, know_bilingual_qc,
@@ -905,5 +912,5 @@ qs::qsavem(knowledge_official, bilingual_1996, bilingual_2021,
            most_spoken_at_home, maison_nonoff_laval, maison_nonoff_qc,
            maison_nonoff_laval_1996, maison_en_laval_2001, maison_en_laval,
            most_spoken_at_home_maps, language_work_fr_laval, language_work_fr_qc,
-           language_work_en_laval, language_work_en_qc,
+           language_work_en_laval, language_work_en_qc, mother_tongue_plot,
            file = "data/axe1/language.qsm")
