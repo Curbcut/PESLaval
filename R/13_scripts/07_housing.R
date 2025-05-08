@@ -169,6 +169,14 @@ housing_owner_2016_pct <- housing_statut_fun("owner", 2016)
 housing_owner_2001_pct <- housing_statut_fun("owner", 2001)
 housing_owner_2021_pct <- housing_statut_fun("owner", 2021)
 
+owner_2016_2021 <- pto_graph |> 
+  filter(Type == "owner") |> 
+  filter(Year %in% c(2016, 2021)) |> 
+  select(Proportion) |> 
+  summarise(Difference = (Proportion[1] - Proportion[2]) * 100) |> 
+  pull() |> 
+  convert_number()
+
 housing_statut_evol_fun <- function(year, type) {
   pto_graph$Households[pto_graph$Type == type & pto_graph$Year == year]
 }
@@ -354,6 +362,13 @@ housing_loyer_var_QC <- convert_pct((housing_loyer_2023_QC - housing_loyer_2010_
 
 housing_loyer_2023_QC <- convert_number_noround(housing_loyer_2023_QC)
 
+hous2010_lvl_2bd <- avg_rent_lvl |> 
+  filter(Year == 2010) |> 
+  pull(Value)
+
+hous2010_qc_2bd <- avg_rent_qc |> 
+  filter(Year == 2010) |> 
+  pull(Value)
 
 # # Median Rent -------------------------------------------------------------
 # #Choosing years to pull data from
@@ -704,45 +719,294 @@ owner_tenant_sf_2021 <- owner_tenant_sf_2021[1:6, ]
 owner_tenant <- sf::st_drop_geometry(owner_tenant_sf_2021)
 names(owner_tenant) <- c("Secteur", "Loyer médian mensuel", "Frais de logement mensuels médians (propriétaires)")
 
-housing_loyer_med_table <-
-  gt(owner_tenant[1:6, 1:2]) |> 
-  # Appliquer une mise en couleur sur les colonnes médianes
-  data_color(
-    columns = 2,
-    colors = scales::col_numeric(
-      palette = c("white", color_theme("purpletransport")),
-      domain = NULL
-    )
+#From the cmhc website
+bd2_rent <- read.csv("data/new/TableExport.csv", fileEncoding = "latin1", skip = 2) |> 
+  select(X, X2.Bedroom) |> 
+  filter(`X` %in% c("St-François/St-Vincent/Duvernay", "Pont-Viau", "Laval-des-Rapides",
+                           "Chomedey/Sainte-Dorothée", "Laval-Ouest/Fabreville/Ste-Rose", "Vimont/Auteuil"))
+
+
+med_rent_table <- med_rent |> 
+  mutate(across(1:2, as.character)) |> 
+  mutate(
+    across(1, ~replace(., 1, "Secteur")),
+    across(2, ~replace(., 1, "Loyer médian mensuel (2021)"))
   ) |> 
-  fmt(columns = 2, fns = \(x) paste(convert_number_tens(x), "$")) |> 
-  # Ajouter des bordures en haut de chaque groupe de ligne
-  tab_style(
-    style = cell_borders(
-      sides = c("top"),
-      color = "white",
-      weight = px(10)
-    ),
-    locations = cells_row_groups()
+  (\(df) {
+    colnames(df) <- df[1, ]
+    df |> slice(-1)
+  })() |> 
+  mutate(`Secteur` = replace(`Secteur`, 1, "Secteur 3 : Chomedey"),
+         `Secteur` = replace(`Secteur`, 2, "Secteur 1 : Duvernay, Saint-François et Saint-Vincent-de-Paul"),
+         `Secteur` = replace(`Secteur`, 3, "Secteur 2 : Pont-Viau, Renaud-Coursol et Laval-des-Rapides"),
+         `Secteur` = replace(`Secteur`, 4, "Secteur 4 : Sainte-Dorothée, Laval-Ouest, Les Îles-Laval, Fabreville-Ouest et Laval-sur-le-Lac"),
+         `Secteur` = replace(`Secteur`, 5, "Secteur 5 : Fabreville-Est et Sainte-Rose"),
+         `Secteur` = replace(`Secteur`, 6, "Secteur 6 : Vimont et Auteuil")) |> 
+  arrange(`Secteur`) |> 
+  mutate(across(2, as.numeric))
+
+med_rent_2016 <- get_census(dataset = "CA16",
+                            regions = list(CSD = 2465005),
+                            level = "CT",
+                            vectors = c(osc_16v, owner_hou = "v_CA16_4890", tenant_hou = "v_CA16_4897"),
+                            geo_format = "sf")
+z <- sf::st_intersects(sf::st_centroid(med_rent_2016), laval_sectors)
+med_rent_2016$secteur <- sapply(z, \(x) {
+  if (length(x) == 0) return(NA)
+  laval_sectors$name[x]
+})
+med_rent_2016 <- sf::st_drop_geometry(med_rent_2016)
+med_rent_2016 <-
+  med_rent_2016 |>
+  group_by(secteur) |>
+  summarize(med_tenant_2016 = weighted_mean(med_tenant, tenant_hou, na.rm = TRUE),
+            med_owner_2016 = weighted_mean(med_owner, owner_hou, na.rm = TRUE))
+med_rent_2016 <- med_rent_2016[1:6,] |> 
+  rename("Secteur" = "secteur")
+
+
+med_rent_16_lvl <- get_census(dataset = "CA16",
+                              regions = list(CSD = 2465005),
+                              level = "CSD",
+                              vectors = c(`Loyer médian mensuel (2016)` = "v_CA16_4900")) |> 
+  mutate(Name = "Laval") |> 
+  select(Name, `Loyer médian mensuel (2016)`)
+
+med_rent_16_qc <- get_census(dataset = "CA16",
+                             regions = list(CSD = 24),
+                             level = "PR",
+                             vectors = c(`Loyer médian mensuel (2016)` = "v_CA16_4900")) |> 
+  mutate(Name = "Ensemble du Québec") |> 
+  select(Name, `Loyer médian mensuel (2016)`)
+
+med_rent_lvl <- get_census(dataset = "CA16",
+                              regions = list(CSD = 2465005),
+                              level = "CSD",
+                              vectors = c(`Loyer médian mensuel (2021)` = "v_CA21_4317")) |> 
+  mutate(Name = "Laval") |> 
+  select(Name, `Loyer médian mensuel (2021)`) |> 
+  left_join(med_rent_16_lvl, by = "Name")
+
+med_rent_qc <- get_census(dataset = "CA16",
+                             regions = list(CSD = 24),
+                             level = "PR",
+                             vectors = c(`Loyer médian mensuel (2021)` = "v_CA21_4317")) |> 
+  mutate(Name = "Ensemble du Québec") |> 
+  select(Name, `Loyer médian mensuel (2021)`) |> 
+  left_join(med_rent_16_qc, by = "Name")
+
+med_rent_table_sectors <- med_rent_table |> 
+  left_join(med_rent_2016, by = "Secteur") |> 
+  rename("Loyer médian mensuel (2016)" = med_tenant_2016,
+         "Name" = Secteur) |> 
+  mutate(across(2:3, as.numeric)) |> 
+  select(-med_owner_2016)
+  
+
+med_rent_table_complete <- med_rent_qc |> 
+  bind_rows(med_rent_lvl, med_rent_table_sectors) |> 
+  mutate(`Augmentation du loyer mensuel médian (2016 - 2021)` = 
+           (`Loyer médian mensuel (2021)` / `Loyer médian mensuel (2016)`)-1) |> 
+  select(Name, `Loyer médian mensuel (2016)`, `Loyer médian mensuel (2021)`, `Augmentation du loyer mensuel médian (2016 - 2021)`) |> 
+  rename("Région" = Name)
+  
+
+loyer_med_table_complete <- 
+  gt(med_rent_table_complete) |> 
+  cols_label(Région = "") |> 
+  data_color(columns = 2:4,
+             colors = scales::col_numeric(palette = c("white", color_theme("purpletransport")),
+                                          domain = NULL)) |> 
+  fmt(columns = 2:3, fns = \(x) paste(convert_number_tens(x), "$")) |> 
+  fmt(columns = 4, fns = convert_pct) |>
+  tab_row_group(label = "Secteur", rows = 3:8) |>
+  tab_row_group(label = "Région", rows = 1:2) |>
+  tab_style(style = list(cell_text(weight = "bold")),
+            locations = cells_body(rows = 2)) |>
+  tab_style(style = cell_borders(sides = c("top"),
+                                 color = "white",
+                                 weight = px(10)),
+            locations = cells_row_groups()) |>
+  tab_style(style = cell_text(font = "KMR-Apparat-Regular"),
+            locations = cells_body()) |>
+  tab_style(style = cell_text(font = "KMR-Apparat-Regular"),
+            locations = cells_column_labels()) |>
+  tab_style(style = cell_text(font = "KMR-Apparat-Regular"),
+            locations = cells_row_groups()) |>
+  tab_style(style = cell_fill(color = "#F0F0F0"),
+            locations = cells_row_groups()) |> 
+  tab_options(table.font.size = 12,
+              row_group.font.size = 12,
+              table.width = px(6 * 96))
+
+median_owner <- data_25 |>
+  select(1, which(str_detect(names(data_25), "4367"))) |>
+  mutate(across(1:2, as.character)) |> 
+  mutate(
+    across(1, ~replace(., 1, "Secteur")),
+    across(2, ~replace(., 1, "Frais de logement mensuels médians (2021)"))
   ) |> 
-  # Appliquer le style de la police à toute la table
-  tab_style(
-    style = cell_text(
-      font = "KMR-Apparat-Regular"
-    ),
-    locations = cells_body()
-  ) |> 
-  tab_style(
-    style = cell_text(
-      font = "KMR-Apparat-Regular"
-    ),
-    locations = cells_column_labels()
-  ) |> 
-  # Options générales pour la table
-  tab_options(
-    table.font.size = 12,
-    row_group.font.size = 12,
-    table.width = px(6 * 96)
-  )
+  (\(df) {
+    colnames(df) <- df[1, ]
+    df |> slice(-1)
+  })() |> 
+  mutate(`Secteur` = replace(`Secteur`, 1, "Secteur 3 : Chomedey"),
+         `Secteur` = replace(`Secteur`, 2, "Secteur 1 : Duvernay, Saint-François et Saint-Vincent-de-Paul"),
+         `Secteur` = replace(`Secteur`, 3, "Secteur 2 : Pont-Viau, Renaud-Coursol et Laval-des-Rapides"),
+         `Secteur` = replace(`Secteur`, 4, "Secteur 4 : Sainte-Dorothée, Laval-Ouest, Les Îles-Laval, Fabreville-Ouest et Laval-sur-le-Lac"),
+         `Secteur` = replace(`Secteur`, 5, "Secteur 5 : Fabreville-Est et Sainte-Rose"),
+         `Secteur` = replace(`Secteur`, 6, "Secteur 6 : Vimont et Auteuil")) |> 
+  arrange(`Secteur`) |> 
+  mutate(across(2, as.numeric)) |> 
+  left_join(med_rent_2016, by = "Secteur") |> 
+  rename("Name" = `Secteur`,
+         "Frais de logement mensuels médians (2016)" = med_owner_2016) |> 
+  select(-med_tenant_2016)
+
+med_own_16_lvl <- get_census(dataset = "CA16",
+                              regions = list(CSD = 2465005),
+                              level = "CSD",
+                              vectors = c(`Frais de logement mensuels médians (2016)` = "v_CA16_4893")) |> 
+  mutate(Name = "Laval") |> 
+  select(Name, `Frais de logement mensuels médians (2016)`)
+
+med_own_16_qc <- get_census(dataset = "CA16",
+                             regions = list(CSD = 24),
+                             level = "PR",
+                             vectors = c(`Frais de logement mensuels médians (2021)` = "v_CA16_4893")) |> 
+  mutate(Name = "Ensemble du Québec") |> 
+  select(Name, `Frais de logement mensuels médians (2016)`)
+
+med_own_lvl <- get_census(dataset = "CA16",
+                           regions = list(CSD = 2465005),
+                           level = "CSD",
+                           vectors = c(`Frais de logement mensuels médians (2021)` = "v_CA21_4309")) |> 
+  mutate(Name = "Laval") |> 
+  select(Name, `Frais de logement mensuels médians (2021)`) |> 
+  left_join(med_own_16_lvl, by = "Name")
+
+med_own_qc <- get_census(dataset = "CA16",
+                          regions = list(CSD = 24),
+                          level = "PR",
+                          vectors = c(`Frais de logement mensuels médians (2021)` = "v_CA21_4309")) |> 
+  mutate(Name = "Ensemble du Québec") |> 
+  select(Name, `Frais de logement mensuels médians (2021)`) |> 
+  left_join(med_own_16_qc, by = "Name")
+
+med_own_table <- med_own_qc |> 
+  bind_rows(med_own_lvl, median_owner) |> 
+  mutate(`Augmentation du logement mensuels médians (2016 - 2021)` = 
+           (`Frais de logement mensuels médians (2021)` / `Frais de logement mensuels médians (2016)`)-1) |> 
+  select(Name, `Frais de logement mensuels médians (2016)`, `Frais de logement mensuels médians (2021)`, `Augmentation du logement mensuels médians (2016 - 2021)`) |> 
+  rename("Région" = Name)
+
+med_own_table_complete <- 
+  gt(med_own_table) |> 
+  cols_label(Région = "") |> 
+  data_color(columns = 2:4,
+             colors = scales::col_numeric(palette = c("white", color_theme("purpletransport")),
+                                          domain = NULL)) |> 
+  fmt(columns = 2:3, fns = \(x) paste(convert_number_tens(x), "$")) |> 
+  fmt(columns = 4, fns = convert_pct) |>
+  tab_row_group(label = "Secteur", rows = 3:8) |>
+  tab_row_group(label = "Région", rows = 1:2) |>
+  tab_style(style = list(cell_text(weight = "bold")),
+            locations = cells_body(rows = 2)) |>
+  tab_style(style = cell_borders(sides = c("top"),
+                                 color = "white",
+                                 weight = px(10)),
+            locations = cells_row_groups()) |>
+  tab_style(style = cell_text(font = "KMR-Apparat-Regular"),
+            locations = cells_body()) |>
+  tab_style(style = cell_text(font = "KMR-Apparat-Regular"),
+            locations = cells_column_labels()) |>
+  tab_style(style = cell_text(font = "KMR-Apparat-Regular"),
+            locations = cells_row_groups()) |>
+  tab_style(style = cell_fill(color = "#F0F0F0"),
+            locations = cells_row_groups()) |> 
+  tab_options(table.font.size = 12,
+              row_group.font.size = 12,
+              table.width = px(6 * 96))
+
+# housing_loyer_med_table <-
+#   gt(med_rent_table) |> 
+#   # Appliquer une mise en couleur sur les colonnes médianes
+#   data_color(
+#     columns = 2,
+#     colors = scales::col_numeric(
+#       palette = c("white", color_theme("purpletransport")),
+#       domain = NULL
+#     )
+#   ) |> 
+#   fmt(columns = 2, fns = \(x) paste(convert_number_tens(x), "$")) |> 
+#   # Ajouter des bordures en haut de chaque groupe de ligne
+#   tab_style(
+#     style = cell_borders(
+#       sides = c("top"),
+#       color = "white",
+#       weight = px(10)
+#     ),
+#     locations = cells_row_groups()
+#   ) |> 
+#   # Appliquer le style de la police à toute la table
+#   tab_style(
+#     style = cell_text(
+#       font = "KMR-Apparat-Regular"
+#     ),
+#     locations = cells_body()
+#   ) |> 
+#   tab_style(
+#     style = cell_text(
+#       font = "KMR-Apparat-Regular"
+#     ),
+#     locations = cells_column_labels()
+#   ) |> 
+#   # Options générales pour la table
+#   tab_options(
+#     table.font.size = 12,
+#     row_group.font.size = 12,
+#     table.width = px(6 * 96)
+#   )
+
+# housing_loyer_med_table <-
+#   gt(owner_tenant[1:6, 1:2]) |> 
+#   # Appliquer une mise en couleur sur les colonnes médianes
+#   data_color(
+#     columns = 2,
+#     colors = scales::col_numeric(
+#       palette = c("white", color_theme("purpletransport")),
+#       domain = NULL
+#     )
+#   ) |> 
+#   fmt(columns = 2, fns = \(x) paste(convert_number_tens(x), "$")) |> 
+#   # Ajouter des bordures en haut de chaque groupe de ligne
+#   tab_style(
+#     style = cell_borders(
+#       sides = c("top"),
+#       color = "white",
+#       weight = px(10)
+#     ),
+#     locations = cells_row_groups()
+#   ) |> 
+#   # Appliquer le style de la police à toute la table
+#   tab_style(
+#     style = cell_text(
+#       font = "KMR-Apparat-Regular"
+#     ),
+#     locations = cells_body()
+#   ) |> 
+#   tab_style(
+#     style = cell_text(
+#       font = "KMR-Apparat-Regular"
+#     ),
+#     locations = cells_column_labels()
+#   ) |> 
+#   # Options générales pour la table
+#   tab_options(
+#     table.font.size = 12,
+#     row_group.font.size = 12,
+#     table.width = px(6 * 96)
+#   )
 
 gtsave(housing_loyer_med_table, "output/axe1/housing/housing_loyer_med_table.png", zoom = 3)
 
@@ -978,6 +1242,22 @@ housing_rent_svpsf_2016 <- convert_number_tens(housing_rent_svpsf_2016)
 housing_rent_var_svpsf <- owner_tenant_sf_var_table$`Augmentation du loyer mensuel médian (2016 - 2021)`[
   owner_tenant_sf_var_table$` ` == svpsf
 ] |> convert_pct()
+
+data_25 <- readr::read_csv("data/new/2270_25_en.csv", locale = locale(encoding = "Latin1"))
+
+med_rent <- data_25 |> 
+  select(1, which(str_detect(names(data_25), "4391"))) |> 
+  mutate(`Median monthly shelter costs for rented dwellings ($)...4391` = as.numeric(`Median monthly shelter costs for rented dwellings ($)...4391`))
+
+highest_med_rent <- med_rent |> 
+  filter(`...1` == "Laval-Ouest, Sainte-Dorothée, Laval-sur-le-Lac 00000 (  3.5%)") |> 
+  pull(`Median monthly shelter costs for rented dwellings ($)...4391`) |> 
+  convert_number_tens()
+
+chomedey_rent <- med_rent |> 
+  filter(`...1` == "Chomedey 00000 (  4.6%)") |> 
+  pull(`Median monthly shelter costs for rented dwellings ($)...4391`) |> 
+  convert_number_tens()
 
 
 # Coût des logements ------------------------------------------------------
@@ -1334,6 +1614,15 @@ housing_te_CMA <- get_census(dataset = "CA21",
   transmute(Year, total_30, owner_30 = owner_30 / 100, 
             tenant_30 = tenant_30 / 100) |> 
   pull(total_30) |> convert_pct()
+housing_te_QC <- housing_te_CMA <- get_census(dataset = "CA21",
+                                              regions = list(PR = 24),
+                                              level = "PR",
+                                              vectors = aff_21v) |> 
+  mutate(Year = 2021,
+         total_30 = total_30 / total) |> 
+  transmute(Year, total_30, owner_30 = owner_30 / 100, 
+            tenant_30 = tenant_30 / 100) |> 
+  pull(total_30) |> convert_pct()
 
 
 # Tableau des taux d'efforts
@@ -1407,6 +1696,79 @@ taux_efforts <- pivot_wider(taux_efforts, names_from = Année,
                             values_from = c(`Ménages propriétaires`, `Ménages locataires`, 
                                             `Tous les ménages`))
 taux_efforts <- taux_efforts[c(1,4,3,2)]
+
+#Creating a new data frame as reference doesn't have a csv version
+#https://www.lavalensante.com/fileadmin/internet/cisss_laval/Documentation/Sante_publique/Profils_et_portraits/Portraits/Donnees_par_secteur_d_amenagement_2021_VF.pdf
+taux_efforts_new <- data.frame(
+  Name = c("Ensemble du Québec", "Laval", "Secteur 1 : Duvernay, Saint-François et Saint-Vincent-de-Paul", 
+           "Secteur 2 : Pont-Viau, Renaud-Coursol et Laval-des-Rapides", "Secteur 3 : Chomedey",
+           "Secteur 4 : Sainte-Dorothée, Laval-Ouest, Les Îles-Laval, Fabreville-Ouest et Laval-sur-le-Lac",
+           "Secteur 5 : Fabreville-Est et Sainte-Rose", "Secteur 6 : Vimont et Auteuil"),
+  "Ménages locataires" = c(0.252, 0.282, 0.251, 0.254, 0.317, 0.341, 0.297, 0.225),
+  "Ménages propriétaires" = c(0.100, 0.119, 0.101, 0.141, 0.173, 0.120, 0.087, 0.093),
+  "Tous les ménages" = c(0.161, 0.173,
+                         (0.251*4965+0.101*17550)/(4965+17550),
+                         (0.254*19055+0.141*15600)/(19055+15600),
+                         (0.317*17645+0.173*20460)/(17645+20460),
+                         (0.341*4615+0.120*19935)/(4615+19935),
+                         (0.297*5745+0.087*21800)/(21800+5745),
+                         (0.225*4760+0.093*17660)/(4760+17660)),
+  check.names = FALSE)
+
+new_taux_efforts_table <- 
+  gt(taux_efforts_new) |> 
+  data_color(columns = 2:ncol(taux_efforts_new),
+             colors = scales::col_numeric(palette = c("white",
+                                                      color_theme("purpletransport")),
+                                          domain = NULL)) |> 
+  fmt(columns = 2:ncol(taux_efforts_new), fns = convert_pct) |> 
+  tab_row_group(label = "Secteur",
+                rows = 3:nrow(taux_efforts)) |>
+  tab_row_group(label = "Région", rows = 1:2) |>
+  tab_style(
+    style = list(
+      cell_text(weight = "bold")
+    ),
+    locations = cells_body(
+      rows = 2
+    )
+  ) |>
+  tab_style(
+    style = cell_borders(
+      sides = c("top"),
+      color = "white",
+      weight = px(10)
+    ),
+    locations = cells_row_groups()
+  ) |>
+  # Apply font style to the whole table
+  tab_style(
+    style = cell_text(
+      font = "KMR-Apparat-Regular"
+    ),
+    locations = cells_body()
+  ) |>
+  tab_style(
+    style = cell_text(
+      font = "KMR-Apparat-Regular"
+    ),
+    locations = cells_column_labels()
+  ) |>
+  tab_style(
+    style = cell_text(
+      font = "KMR-Apparat-Regular"
+    ),
+    locations = cells_row_groups()
+  ) |>
+  tab_style(
+    style = cell_fill(color = "#F0F0F0"),
+    locations = cells_row_groups()
+  ) |> 
+  tab_options(
+    table.font.size = 12,
+    row_group.font.size = 12,
+    table.width = px(6 * 96)
+  )
 
 taux_efforts_table <- 
 gt(taux_efforts) |> 
@@ -1866,7 +2228,9 @@ qs::qsavem(housing_owner_2016, housing_owner_2021,
            taille_tenant, acceptable_all, acceptable_owner, acceptable_tenant,
            core_need_table, core_need_2006, core_need_tenant,
            core_need_tenant_QC, core_need_2021, housing_owner_2016_pct,
-           housing_owner_2021_pct, housing_owner_2001_pct,
+           housing_owner_2021_pct, housing_owner_2001_pct, owner_2016_2021,
+           hous2010_lvl_2bd, hous2010_qc_2bd, highest_med_rent, chomedey_rent,
+           loyer_med_table_complete, med_own_table_complete, new_taux_efforts_table,
            acceptable_housing_table, file = "data/axe1/housing.qsm")
 
 
