@@ -29,7 +29,7 @@ mhh_census_grabber_20 <- function(region, geolevel, geoname, filter_v){
   get_census(dataset = "CA21",
              regions = regions_list,
              level = geolevel,
-             vectors = "v_CA21_906"
+             vectors = "v_CA21_560"
   ) |> 
     select(-filter_v) |> 
     mutate(Geography = geoname, .before = 1)
@@ -52,22 +52,22 @@ mhh_census_grabber <- function(cyear, region, geolevel, vectorid, filter_v, ryea
 #Grabbing median individual income for Laval for years 2000-2020
 mhh_inc20_lvl <- mhh_census_grabber_20("2465005", "CSD", "Laval", (1:10)) |> 
   rename("2020" := last_col())
-mhh_inc15_lvl <- mhh_census_grabber("CA16","2465005", "CSD", "v_CA16_2397", (1:10), "2015")
-mhh_inc10_lvl <- mhh_census_grabber("CA11", "2465005", "CSD", "v_CA11N_2562", (1:10), "2010") |> 
+mhh_inc15_lvl <- mhh_census_grabber("CA16","2465005", "CSD", "v_CA16_2207", (1:10), "2015")
+mhh_inc10_lvl <- mhh_census_grabber("CA11", "2465005", "CSD", "v_CA11N_2341", (1:10), "2010") |> 
   select(-1)
-mhh_inc05_lvl <- mhh_census_grabber("CA06", "2465005", "CSD", "v_CA06_2000", (1:10), "2005")
-mhh_inc00_lvl <- mhh_census_grabber("CA01", "2465005", "CSD", "v_CA01_1634", (1:10), "2000")
+mhh_inc05_lvl <- mhh_census_grabber("CA06", "2465005", "CSD", "v_CA06_1583", (1:10), "2005")
+mhh_inc00_lvl <- mhh_census_grabber("CA01", "2465005", "CSD", "v_CA01_1449", (1:10), "2000")
 #Binding the tables together
 mhh_lvl_graph <- bind_cols(mhh_inc20_lvl, mhh_inc15_lvl, mhh_inc10_lvl, mhh_inc05_lvl, mhh_inc00_lvl)
 
 #Grabbing median individual income for Quebec for years 2000-2020
 mhh_inc20_qc <- mhh_census_grabber_20("24", "PR", "Quebec", (1:8)) |> 
   rename("2020" := last_col())
-mhh_inc15_qc <- mhh_census_grabber("CA16", "24", "PR", "v_CA16_2397", (1:8), "2015")
-mhh_inc10_qc <- mhh_census_grabber("CA11", "24", "PR", "v_CA11N_2562", (1:8), "2010") |> 
+mhh_inc15_qc <- mhh_census_grabber("CA16", "24", "PR", "v_CA16_2207", (1:8), "2015")
+mhh_inc10_qc <- mhh_census_grabber("CA11", "24", "PR", "v_CA11N_2341", (1:8), "2010") |> 
   select(-1)
-mhh_inc05_qc <- mhh_census_grabber("CA06", "24", "PR", "v_CA06_2000", (1:8), "2005")
-mhh_inc00_qc <- mhh_census_grabber("CA01", "24", "PR", "v_CA01_1634", (1:8), "2000")
+mhh_inc05_qc <- mhh_census_grabber("CA06", "24", "PR", "v_CA06_1583", (1:8), "2005")
+mhh_inc00_qc <- mhh_census_grabber("CA01", "24", "PR", "v_CA01_1449", (1:8), "2000")
 #Bind the tables together
 mhh_qc_graph <- bind_cols(mhh_inc20_qc, mhh_inc15_qc, mhh_inc10_qc, mhh_inc05_qc, mhh_inc00_qc)
 
@@ -94,7 +94,8 @@ rev_med_aug_QC <- convert_pct((rev_med_QC - rev_med_2015_QC) / rev_med_2015_QC)
 names(mhh_graph) <- c("Région", "Année", "Revenu médian des ménages")
 mhh_graph <- mhh_graph %>%
   pivot_wider(names_from = Région, 
-              values_from = c(`Revenu médian des ménages`))
+              values_from = c(`Revenu médian des ménages`)) %>%
+  (\(.) { .[3, 2:3] <- list(29893, 29034); . })()
 
 names(mhh_graph) <- c("Année", "Ville de Laval", "Ensemble du Québec")
 
@@ -607,7 +608,8 @@ rev_mid_ind_aug_QC <- convert_pct((rev_mid_ind_QC - rev_mid_ind_2015_QC) / rev_m
 names(mii_graph) <- c("Région", "Année", "Revenu médian des ménages")
 mii_graph <- mii_graph %>%
   pivot_wider(names_from = Région, 
-              values_from = c(`Revenu médian des ménages`))
+              values_from = c(`Revenu médian des ménages`)) |> 
+  (\(.) { .[3, 2:3] <- list(29893, 29034); . })()
 
 names(mii_graph) <- c("Année", "Ville de Laval", "Ensemble du Québec")
 
@@ -782,7 +784,7 @@ inc_ind_less50_pct <- convert_pct(inc_ind_less50 / inc_ind_all)
 inc_ind_less50 <- convert_number(inc_ind_less50)
 
 inc_ind_between_20k30k <- sum(ind_total_laval$Value[3])
-inc_ind_less50_pct <- convert_pct(inc_ind_between_20k30k / inc_ind_all)
+inc_ind_20k_pct <- convert_pct(inc_ind_between_20k30k / inc_ind_all)
 inc_ind_between_20k30k <- convert_number(inc_ind_between_20k30k)
 
 
@@ -839,19 +841,41 @@ ggplot2::ggsave(filename = here::here("output/axe1/income/median_income_ind_plot
 
 
 # Tableau des loyers médians par secteurs
-median_income_sf_2021 <- median_income_ind_sf
-z <- sf::st_intersects(sf::st_centroid(median_income_sf_2021), laval_sectors)
-median_income_sf_2021$secteur <- sapply(z, \(x) {
-  if (length(x) == 0) return(NA)
-  laval_sectors$name[x]
-})
-median_income_sf_2021 <-
-  median_income_sf_2021 |>
-  group_by(secteur) |>
-  summarize(median_income = weighted_mean(median_income, tot_rec, na.rm = TRUE))
-median_income_sf_2021 <- median_income_sf_2021[1:6, ]
-median_income_sf_2021 <- sf::st_drop_geometry(median_income_sf_2021)
-names(median_income_sf_2021) <- c("Secteur", "Revenu médian des individus")
+# median_income_sf_2021 <- median_income_ind_sf
+# z <- sf::st_intersects(sf::st_centroid(median_income_sf_2021), laval_sectors)
+# median_income_sf_2021$secteur <- sapply(z, \(x) {
+#   if (length(x) == 0) return(NA)
+#   laval_sectors$name[x]
+# })
+# median_income_sf_2021 <-
+#   median_income_sf_2021 |>
+#   group_by(secteur) |>
+#   summarize(median_income = weighted_mean(median_income, tot_rec, na.rm = TRUE))
+# median_income_sf_2021 <- median_income_sf_2021[1:6, ]
+# median_income_sf_2021 <- sf::st_drop_geometry(median_income_sf_2021)
+# names(median_income_sf_2021) <- c("Secteur", "Revenu médian des individus")
+
+data_25 <- readr::read_csv("data/new/2270_25_en.csv", locale = locale(encoding = "Latin1"))
+  
+median_income_sf_2021 <- data_25 |> 
+  select(1, which(str_detect(names(data_25), "total income in 2020"))) |> 
+  select(1,2) |> 
+  mutate(
+    across(1, ~replace(., 1, "Secteur")),
+    across(2, ~replace(., 1, "Revenu mensuel des individus"))
+  ) |> 
+  (\(df) {
+    colnames(df) <- df[1, ]
+    df |> slice(-1)
+  })() |> 
+  mutate(`Secteur` = replace(`Secteur`, 1, "Secteur 3 : Chomedey"),
+         `Secteur` = replace(`Secteur`, 2, "Secteur 1 : Duvernay, Saint-François et Saint-Vincent-de-Paul"),
+         `Secteur` = replace(`Secteur`, 3, "Secteur 2 : Pont-Viau, Renaud-Coursol et Laval-des-Rapides"),
+         `Secteur` = replace(`Secteur`, 4, "Secteur 4 : Sainte-Dorothée, Laval-Ouest, Les Îles-Laval, Fabreville-Ouest et Laval-sur-le-Lac"),
+         `Secteur` = replace(`Secteur`, 5, "Secteur 5 : Fabreville-Est et Sainte-Rose"),
+         `Secteur` = replace(`Secteur`, 6, "Secteur 6 : Vimont et Auteuil")) |> 
+  arrange(`Secteur`) |> 
+  mutate(across(2, as.numeric))
 
 median_income_ind_table <-
   gt(median_income_sf_2021) |> 
@@ -1655,8 +1679,30 @@ frev_sf_2021 <- frev_sf_2021[1:6, ]
 frev_sf_2021 <- sf::st_drop_geometry(frev_sf_2021)
 names(frev_sf_2021) <- c("Secteur", "Faible revenu (%)")
 
+frev_sector_data <- data_25 |> 
+  select(1, which(str_detect(names(data_25), "LIM-AT"))) |> 
+  select(1,5) |> 
+  mutate(
+    across(1, ~replace(., 1, "Secteur")),
+    across(2, ~replace(., 1, "Faible revenu (%)"))
+  ) |> 
+  (\(df) {
+    colnames(df) <- df[1, ]
+    df |> slice(-1)
+  })() |> 
+  mutate(`Secteur` = replace(`Secteur`, 1, "Secteur 3 : Chomedey"),
+         `Secteur` = replace(`Secteur`, 2, "Secteur 1 : Duvernay, Saint-François et Saint-Vincent-de-Paul"),
+         `Secteur` = replace(`Secteur`, 3, "Secteur 2 : Pont-Viau, Renaud-Coursol et Laval-des-Rapides"),
+         `Secteur` = replace(`Secteur`, 4, "Secteur 4 : Sainte-Dorothée, Laval-Ouest, Les Îles-Laval, Fabreville-Ouest et Laval-sur-le-Lac"),
+         `Secteur` = replace(`Secteur`, 5, "Secteur 5 : Fabreville-Est et Sainte-Rose"),
+         `Secteur` = replace(`Secteur`, 6, "Secteur 6 : Vimont et Auteuil")) |> 
+  arrange(`Secteur`) |> 
+  mutate(across(2, as.numeric)) |> 
+  mutate(`Faible revenu (%)` = `Faible revenu (%)` / 100)
+
+
 frev_sector_table <-
-  gt(frev_sf_2021) |> 
+  gt(frev_sector_data) |> 
   # Appliquer une mise en couleur sur les colonnes médianes
   data_color(
     columns = 2,

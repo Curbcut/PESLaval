@@ -13,18 +13,23 @@ qs::qload(here::here("data/axe1/income.qsm"))
 
 Dans cette section, nous indexons l'ensemble des données sur le revenu à l'Indice des prix à la consommation (IPC)^[Statistique Canada. (2024). Portail de l'indice des prix à la consommation. Récupéré de https://www.statcan.gc.ca/fr/sujets-debut/prix_et_indices_des_prix/indices_des_prix_a_la_consommation], en prenant 2020 comme année de référence. Cette démarche permet de prendre en compte l'inflation et d'ajuster les chiffres en fonction de l'évolution des prix au fil du temps. Cela nous donne une vision plus précise du pouvoir d'achat réel des résident·e·s, en évitant les distorsions causées par la simple augmentation des montants nominaux.
 
+Définition : L'Indice des prix à la consommation (IPC)
+L'IPC représente les variations de prix comme expérimenté par les consommateurs canadiens. Il mesure la variation de prix en comparant, au fil du temps, le coût d'un panier fixe de biens et services.
+
+Les biens et services dans le panier de l'IPC sont divisés en huit composantes majeures : Aliments; Logement; Dépenses courantes, ameublement et équipement du ménage; Vêtements et chaussures; Transports; Soins de santé et soins personnels; Loisirs, formation et lecture, et boissons alcoolisées, tabac et cannabis récréatif.146
+
 ### Revenu des ménages
 
-Laval et l’ensemble du Québec ont connu une augmentation du revenu médian avant taxes des ménages au cours des dernières années. En 2020, le revenu médian des ménages à Laval était de `r rev_med` \$. La majorité des ménages se situait dans la tranche de revenus comprise entre 50 000 \$ et 99 999 \$. Entre 2015 et 2020, le revenu médian des ménages à Laval a augmenté de `r rev_med_aug`, passant ainsi de `r rev_med_2015` \$ à 85 000 \$. Cette croissance est légèrement inférieure à celle de la province de Québec, qui s'est élevée à `r rev_med_aug_QC` . La différence de revenu médian des ménages entre Laval et l'ensemble du Québec reflète probablement la réalité des ménages plus nombreux à Laval, où il y a moins de ménages d'une seule personne.
+Laval et l’ensemble du Québec ont connu une augmentation du revenu médian avant taxes des ménages au cours des dernières années. En 2020, le revenu médian des ménages à Laval était de `r rev_med` \$. La majorité des ménages se situait dans la tranche de revenus comprise entre 50 000 \$ et 99 999 \$. Entre 2015 et 2020, le revenu médian des ménages à Laval a augmenté de `r rev_med_aug`, passant ainsi de `r rev_med_2015` \$ à 85 000 \$. Cette croissance est légèrement inférieure à celle de la province de Québec, qui s'est élevée à `r rev_med_aug_QC` . La différence de revenu médian des ménages entre Laval et l'ensemble du Québec reflète probablement la réalité des ménages <!--plus nombreux à Laval, où il y a moins de ménages d'une seule personne. --> sont de plus grande taille à Laval.
 
-Définition : revenu médian 
-- Le revenu médian est la valeur qui divise la répartition du revenu en deux parties égales. La moitié des unités ont un revenu supérieur à cette valeur, et l’autre moitié, un revenu inférieur.^[Statistics Canada. (2021). Visualisation des données du recensement de 2021 : Revenu. Récupéré de https://www12.statcan.gc.ca/census-recensement/2021/dp-pd/dv-vd/income-revenu/index-fr.html]
+Définition : Revenu médian 
+Le revenu médian est la valeur qui divise la répartition du revenu en deux parties égales. La moitié des unités ont un revenu supérieur à cette valeur, et l’autre moitié, un revenu inférieur.^[Statistics Canada. (2021). Visualisation des données du recensement de 2021 : Revenu. Récupéré de https://www12.statcan.gc.ca/census-recensement/2021/dp-pd/dv-vd/income-revenu/index-fr.html]
 
 ```{r mhhPlot, include=TRUE, tab.cap="Évolution du revenu médian des ménages de (2000-2020) (Source: Statistique Canada.)"}
 mhh_plot
 ```
 
-En ce qui concerne la répartition du revenu médian des ménages dans la région de Laval, les secteurs de Laval-des-Rapides, Pont-Viau et Chomedey ont des revenus plus faibles, comme le montre la carte du graphique \@ref(fig:medianIncomeDA) et le tableau \@ref(tab:medianIncomeTable).
+En ce qui concerne la répartition du revenu médian des ménages dans la région de Laval, les secteurs de Laval-des-Rapides, Pont-Viau et Chomedey ont des revenus plus faibles, comme le montre la carte de la Figure \@ref(fig:medianIncomeDA) et le tableau \@ref(tab:medianIncomeTable).
 
 ```{r medianIncomeDA, include=TRUE, fig.cap="Revenu médian des ménages (2020)", fig.align = 'center'}
 median_income_sf_plot
@@ -36,13 +41,13 @@ median_income_table
 
 ### Revenu individuel
 
-Similaire au revenu médian des ménages, Laval a connu une augmentation du revenu individuel médian avant impôt de 2015 à 2020, soit une hausse de `r rev_med_aug`, passant de `r rev_mid_ind_2015` \$ à `r rev_mid_ind` \$, enregistrant la plus grande croissance sur 5 ans depuis 2005. Cette tendance a aussi été observée dans l’ensemble du Québec, où le revenu individuel médian a augmenté de `r rev_mid_ind_aug_QC` passant de `r rev_mid_ind_2015_QC` \$ en 2015 à `r rev_mid_ind_QC` \$ en 2020. Ce sont `r inc_ind_less50` individus (`r inc_ind_less50_pct`) âgés de 15 ans et plus à Laval qui ont gagné moins de 50 000 \$ au cours de la même période, le groupe le plus important dans cette fourchette (`r inc_ind_less50_pct`) ayant gagné entre 20 000 \$ et 29 999 \$ (graphique \@ref(fig:revenueAnnuelInd)). Ces mêmes tendances ont été observées dans l'ensemble du Québec.
+Similaire au revenu médian des ménages, Laval a connu une augmentation du revenu individuel médian avant impôt de 2015 à 2020, passant de `r rev_mid_ind_2015` \$ à `r rev_mid_ind` \$, soit une hausse de `r rev_med_aug`, enregistrant la plus grande croissance sur 5 ans depuis 2005. Cette tendance a aussi été observée dans l’ensemble du Québec, où le revenu individuel médian a augmenté de `r rev_mid_ind_aug_QC` passant de `r rev_mid_ind_2015_QC` \$ en 2015 à `r rev_mid_ind_QC` \$ en 2020. Ce sont `r inc_ind_less50` individus (`r inc_ind_less50_pct`) âgés de 15 ans et plus à Laval qui ont gagné moins de 50 000 \$ au cours de la même période, le groupe le plus important dans cette fourchette (`r inc_ind_20k_pct`) ayant gagné entre 20 000 \$ et 29 999 \$ (graphique \@ref(fig:revenueAnnuelInd)).
+
+Ces mêmes tendances ont été observées dans l'ensemble du Québec.  À Laval en 2020, le revenu individuel médian des hommes était de `r median_income_hommes` \$, tandis que celui des femmes représentait `r inc_f_x_h` fois celui des hommes, soit `r median_income_femmes` \$. Tant les hommes que les femmes ont vu leur revenu individuel médian augmenter, mais la hausse a été plus marquée pour les femmes, avec une progression de `r med_inc_femmes_aug` contre `r med_inc_hommes_aug` pour les hommes.  En 2015, le revenu des femmes représentait `r inc_f_x_h_2016` fois celui des hommes, ce qui montre donc une amélioration significative, même si une différence notable persiste. Cette tendance où les revenus des femmes augmentent plus rapidement que ceux des hommes se retrouve également à l'échelle du Québec.
 
 ```{r revenueAnnuelInd, include=TRUE, fig.cap="Répartition des personnes âgées de 15 ans et plus selon les tranches de revenu et le genre à Laval, 2020 (Source: Statistique Canada)", fig.align = 'center'}
 revenue_annuel_plot
 ```
-
-À Laval en 2020, le revenu individuel médian des hommes était de `r median_income_hommes` \$, tandis que celui des femmes représentait `r inc_f_x_h` fois celui des hommes, soit `r median_income_femmes` \$. Tant les hommes que les femmes ont vu leur revenu individuel médian augmenter, mais la hausse a été plus marquée pour les femmes, avec une progression de `r med_inc_femmes_aug` contre `r med_inc_hommes_aug` pour les hommes.  En 2015, le revenu des femmes représentait `r inc_f_x_h_2016` fois celui des hommes, ce qui montre donc une amélioration significative, même si une différence notable persiste. Cette tendance où les revenus des femmes augmentent plus rapidement que ceux des hommes se retrouve également à l'échelle du Québec.
 
 Pour la première fois en 20 ans, le revenu médian des particuliers à Laval a été dépassé par le revenu médian provincial, comme le montre le tableau \@ref(tab:mii_plot), qui illustre l'évolution de ces revenus médians entre 2000 et 2020 dans les deux régions. 
 
@@ -66,13 +71,14 @@ median_income_ind_table
 
 Ce taux a diminué depuis 2015, où il était de `r frev_pct_2015` à Laval. Cette baisse pourrait être en partie attribuable aux programmes gouvernementaux temporaires mis en place durant la pandémie de COVID-19, qui ont pu offrir un répit financier à plusieurs ménages. Le prochain recensement en 2026 permettra de mesurer avec précision si cette diminution du taux de faible revenu a été durable.
 
-Les personnes âgées demeurent la tranche de la population la plus touchée par la pauvreté, tant à Laval que dans l'ensemble du Québec. À Laval, `r frev_total_old` des personnes âgées de 65 ans et plus sont considérées comme vivant sous le seuil de faible revenu, et ce groupe est le seul à avoir vu son taux augmenter depuis 2015 (`r frev_pct_old_2015`). Cette vulnérabilité plus importante chez les aînés s'explique souvent par leur dépendance à des revenus fixes, comme les pensions de retraite. La MFR-ApI est un indicateur qui détermine le seuil de faible revenu en fonction de la répartition des revenus au sein de la population. Plus précisément, une personne est considérée en situation de faible revenu si son revenu après impôt est inférieur à 50 % du revenu médian des ménages, ajusté selon la taille de la famille. Cet indicateur ne prend donc pas en compte la richesse accumulée, comme la propriété d'une maison, mais uniquement les revenus annuels disponibles après impôt. Ainsi, un pourcentage élevé de personnes âgées sous ce seuil peut refléter des revenus courants insuffisants, même si elles possèdent d'autres formes de patrimoine.
+Définition : Mesure de faible revenu après impôt (MFR-ApI)
+« La Mesure de faible revenu après impôt (MFR-ApI) est un pourcentage fixe (50 %) de la médiane du revenu après impôt rajusté du ménage observée au niveau des personnes, où « rajusté » indique que les besoins du ménage sont pris en considération. »
+
+Les personnes âgées demeurent la tranche de la population la plus touchée par la pauvreté, tant à Laval que dans l'ensemble du Québec. À Laval, `r frev_total_old` des personnes âgées de 65 ans et plus sont considérées comme vivant sous le seuil de faible revenu, et ce groupe est le seul à avoir vu son taux augmenter depuis 2015 (`r frev_pct_old_2015`). Cette vulnérabilité plus importante chez les aînés s'explique souvent par leur dépendance à des revenus fixes, comme les pensions de retraite. <!--La MFR-ApI est un indicateur qui détermine le seuil de faible revenu en fonction de la répartition des revenus au sein de la population. Plus précisément, une personne est considérée en situation de faible revenu si son revenu après impôt est inférieur à 50 % du revenu médian des ménages, ajusté selon la taille de la famille. Cet indicateur ne prend donc pas en compte la richesse accumulée, comme la propriété d'une maison, mais uniquement les revenus annuels disponibles après impôt. Ainsi, un pourcentage élevé de personnes âgées sous ce seuil peut refléter des revenus courants insuffisants, même si elles possèdent d'autres formes de patrimoine. -->
 
 ```{r frevTable, include=TRUE, tab.cap="Proportion de la population vivant sous le seuil de faible revenu selon la MFR-ApI, par groupe d'âge, à Laval et au Québec (2020). Source: Statistique Canada."}
 frev_wide_table
 ```
-
-
 
 Comme le montre le graphique \@ref(fig:frevPlot), il y a des pochettes de taux de faible revenu plus élevé dans chacun des secteurs de Laval. Toutefois, le plus haut taux se trouve dans les secteurs de Chomedey et Laval-des-Rapides, Pont-Viau.
 
@@ -90,7 +96,12 @@ Selon l'Institut national de santé publique du Québec (INSPQ), la défavorisat
 
 La carte du graphique \@ref(fig:defavPlot) illustre les variations régionales de la défavorisation matérielle et sociale dans la région de Laval. Il y a des pochettes de défavorisation matérielle et sociale dans tous les secteurs de la ville, et les plus grandes pochettes se trouvent dans Chomedey et Laval-des-Rapides, Pont-Viau. 
 
-L'indice de défavorisation est normalement réparti en 9 catégories distinctes, allant des très favorisés à très défavorisés, tant sur les plans matériel que social. Cependant, pour simplifier la présentation, nous les avons regroupés en 5 catégories principales sur la carte.
+L'indice de défavorisation est normalement réparti en 9 catégories distinctes, allant des très favorisés à très défavorisés, tant sur les plans matériel que social. <!-- Cependant, pour simplifier la présentation, nous les avons regroupés en 5 catégories principales sur la carte.--> Ce regroupement permet d’éviter une surcharge d’information tout en mettant en évidence les tendances générales de la défavorisation à Laval. Voici comment elles correspondent aux catégories de l’INSPQ :
+- Favorisés (catégories 1 et 2) : ménages favorisés à la fois matériellement et socialement.
+- Intermédiaires (catégorie 3) : ménages se situant à un niveau intermédiaire sur les deux dimensions.
+- Défavorisés (mat.) (catégories 6 et 7) : ménages en situation de défavorisation matérielle uniquement.
+- Défavorisés (soc.) (catégories 4 et 5) : ménages en situation de défavorisation sociale uniquement.
+- Défavorisés (mat. et soc.) (catégories 8 et 9) : ménages cumulant à la fois une défavorisation matérielle et sociale.
 
 ```{r defavPlot, include=TRUE, fig.cap="Défavorisation matérielle et sociale à Laval (Variations régionales) (2021). (Source: INSPQ).", fig.align = 'center'}
 defav_plot
