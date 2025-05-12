@@ -35,6 +35,7 @@ ttm_walk_15 <- ttm()
 school_public <- read_sf("data/axe3/schools/PPS_Public_Ecole.shp") |> 
   filter(ADULTE != 1, FORM_PRO != 1, ORDRE_ENS != "Préscolaire") |> 
   sf::st_filter(laval_sectors) |> 
+  distinct(across(c(5, 19, 20, 21)), .keep_all = TRUE) |> 
   select(OBJECTID, PRIM, SEC, TYPE_CS)
 # school_private <- read_sf("data/axe3/schools/PPS_Prive_Installation.shp") |>
 #   filter(ADULTE != 1, FORM_PRO != 1, ORDRE_ENS != "Préscolaire") |>
