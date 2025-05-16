@@ -53,3 +53,22 @@ data/
 bridget data/
 cache/
 .DS_Store
+
+# macOS metadata files
+._*
+.DS_Store
+.Rproj.user/
+.Rhistory
+.RData
+.RDataTmp*
+
+# RStudio / temp
+<local cache path>/
+
+# Bookdown build output
+_book/
+_output/
+_main_files/
+*.html
+*.pdf
+*.docx
