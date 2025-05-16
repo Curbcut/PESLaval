@@ -517,8 +517,8 @@ quebec_pop_change <- convert_pct(quebec_pop_change / 100)
 #insert data set from folder sourced from different census' years
 # pop_evolution <- read.csv("data/demography/Population Evolution.csv", skip = 3) |> 
 #   tibble::as_tibble()
-# pop_evolution_tidy <- pop_evolution[1:16, ]
-# names(pop_evolution_tidy)[1] <- "Année"
+#pop_evolution_tidy <- pop_evolution[1:16, ]
+#names(pop_evolution_tidy)[1] <- "Année"
 
 #Manually inputting data from https://web.archive.org/web/20131006173408/http://www.stat.gouv.qc.ca/donstat/societe/demographie/dons_regnl/regional/Tableau_top_10.htm
 pre_2001 <- tibble::tibble(
@@ -778,16 +778,17 @@ laval_birthrate_2009 <- laval_births |>
 ggplot2::ggsave(filename = here::here("output/0_demography/laval_births_graph.pdf"), 
                 plot = laval_births_graph, width = 6.5, height = 4)
 
-qs::qsavem(laval_population_ISQ_pretty, laval_population_2024_pretty,
+qs::qsavem(#laval_population_ISQ_pretty, laval_population_2024_pretty,
            laval_population_2025_pretty, laval_size_pretty, density_pretty,
            pop_density_plot, age_pyramid, age_moyen_pretty,
            age_moyen_prov_pretty, age_moyen_cma_pretty, moins_18_pretty, 
            moins_18_prov_pretty, sixtyfive_pretty, sixtyfive_prov_pretty, 
            homme_pct_pretty, femme_pct_pretty, ethnic_origins, groupe_ethniques_diff,
-           population_change, quebec_pop_change, pop_et_proj, naissances_laval,
-           naissances_laval_moyenne_5, laval_births_graph, laval_population_census_pretty,
+           population_change, quebec_pop_change, pop_et_proj, #naissances_laval,
+           #naissances_laval_moyenne_5, 
+           laval_births_graph, laval_population_census_pretty,
            laval_pop_2051, laval_pop_2025, laval_pop_growth, laval_avgbirths, laval_births_2022,
-           laval_births_2010,
+           laval_births_2010, laval_birthrate_2009, laval_birthrate_2022, laval_avgbirthrate,
            file = "data/demography/demo.qsm")
 
                                     
