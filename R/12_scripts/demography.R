@@ -581,17 +581,17 @@ laval_pop_growth <- pop_evolution |>
 
 pop_et_proj <-
   ggplot(data = pop_evolution, aes(x = Année, y = `Population`)) +
-  #geom_point(aes(color = `Type de données`), size = 5) +
+  #geom_point(aes(color = `Type de données`), size = 2) +
   geom_line(data = solid_data, aes(x = Année, y = `Population`, group = 1, color = `Type de données`), linetype = "solid",
-            linewidth = 2) +
-  geom_line(data = dotted_data, aes(x = Année, y = `Population`, group = 1, color = `Type de données`), linetype = "dashed",
-            linewidth = 2) +
+            linewidth = 1.5) +
+  geom_line(data = dotted_data, aes(x = Année, y = `Population`, group = 1, color = `Type de données`), linetype = "dotted",
+            linewidth = 1.5) +
   #ylim(0, max(pop_evolution$`Tous les âges`)) +
   scale_color_manual(values = c("Projection" = color_theme("pinkhealth"), "Estimation" = "black")) +
   labs(color = element_blank(), title = element_blank()) + 
   scale_y_continuous(labels = convert_number, limits = c(200000,500000)) +
   gg_cc_theme_no_sf +
-  xlab(NULL)
+  xlab("Année")
 
 
 
