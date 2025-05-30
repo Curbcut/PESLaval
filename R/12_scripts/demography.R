@@ -740,15 +740,19 @@ scale_factor <- max(laval_births$Naissances, na.rm = TRUE) / max(laval_births$`N
 laval_births_graph <- 
   ggplot(laval_births) + 
   geom_bar(aes(x = Year, y = Naissances, fill = "Naissances"), stat = "identity") + 
-  geom_line(aes(x = Year, y = `Naissances pour 1 000` * scale_factor, color = "Naissances pour 1 000"),
+  geom_line(aes(x = Year, y = `Naissances pour 1 000` * scale_factor, color = "Taux de natalité (pour 1000 personnes)"),
             linewidth = 1.5) +
   scale_y_continuous(
     name = "Naissances", 
     labels = convert_number,
-    sec.axis = sec_axis(~ . / scale_factor, name = "Naissances pour 1 000")
+    sec.axis = sec_axis(~ . / scale_factor, name = "Taux de natalité")
   ) +
   scale_fill_manual(values = c("Naissances" = color_theme("browndemographics"))) +
-  scale_color_manual(values = c("Naissances pour 1 000" = color_theme("purpletransport"))) +
+  scale_color_manual(values = c("Taux de natalité (pour 1000 personnes)" = color_theme("purpletransport"))) +
+  guides(
+    fill = guide_legend(order = 1),
+    color = guide_legend(order = 2)
+  ) +  # <- this plus sign was missing
   labs(fill = NULL, color = NULL) +
   theme(legend.position = "bottom") +
   gg_cc_theme_no_sf +
