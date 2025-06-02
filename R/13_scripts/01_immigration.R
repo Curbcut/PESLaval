@@ -147,8 +147,10 @@ imm_evol_graph <-
             vjust = -1.5, size = 3, color = "black") + 
   scale_y_continuous(labels = convert_pct) +
   labs(y = "Proportion de la population immigrante") +
-  scale_color_manual(values = c("Laval" = "#73AD80", "Montréal" = "#E08565",
-                                "Québec" = "#A3B0D1")) +
+  scale_color_manual(
+    values = c("Laval" = "#73AD80", "Montréal" = "#E08565", "Québec" = "#A3B0D1"),
+    labels = c("Laval" = "Laval", "Montréal" = "Montréal", "Québec" = "Ensemble du Québec")
+  )+
   gg_cc_theme_no_sf +
   theme(legend.position = "bottom", legend.box = "horizontal", axis.title.x = element_blank(),
         legend.title = element_blank(), text=element_text(family="KMR Apparat Regular"))
@@ -286,10 +288,15 @@ imm_table_data <- bind_rows(imm_table_lvl, imm_table_mtl, imm_table_qc) |>
 
 #Creating the table
 imm_table <- 
+  imm_table <- 
   gt(imm_table_data) |> 
+  text_transform(
+    locations = cells_body(columns = "Région"),
+    fn = function(x) ifelse(x == "Québec", "Ensemble du Québec", x)
+  ) |> 
   data_color(
     columns = c(4,6,8,10),
-    colors = scales::col_numeric(
+    fn = scales::col_numeric(
       palette = c("white", color_theme("purpletransport")),
       domain = NULL
     )
@@ -299,19 +306,19 @@ imm_table <-
   # Apply font style to the whole table
   tab_style(
     style = cell_text(
-      font = "KMR Apparat Regular"
+      font = "KMR-Apparat-Regular"
     ),
     locations = cells_body()
   ) |>
   tab_style(
     style = cell_text(
-      font = "KMR Apparat Regular"
+      font = "KMR-Apparat-Regular"
     ),
     locations = cells_column_labels()
   ) |>
   tab_style(
     style = cell_text(
-      font = "KMR Apparat Regular"
+      font = "KMR-Apparat-Regular"
     ),
     locations = cells_row_groups()
   ) |>
@@ -325,7 +332,7 @@ imm_table <-
     table.width = px(6 * 96),
   )
 
-gtsave(imm_table, "output/axe1/immigration/imm_table.pdf")
+gtsave(imm_table, "output/axe1/immigration/imm_table.png")
 
 
 # Immigrant Status --------------------------------------------------------
