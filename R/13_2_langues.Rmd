@@ -1,7 +1,6 @@
 ---
 title: "Les langues"
 author: "Curbcut"
-output: html_document
 output:
   bookdown::html_document2: default
   bookdown::pdf_document2: default
@@ -9,6 +8,16 @@ output:
 
 ```{r setup_langues, include=FALSE}
 knitr::opts_chunk$set(echo = FALSE, warning = FALSE)
+
+# Define convert_pct() directly
+convert_pct <- function(x) {
+  scales::percent(x, accuracy = 1)
+}
+
+convert_number <- function(x) {
+  scales::comma(x, accuracy = 1)
+}
+
 qs::qload(here::here("data/axe1/language.qsm"))
 ```
 

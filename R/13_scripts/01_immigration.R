@@ -658,15 +658,16 @@ imm_age_graph <- ggplot(data = age_21, aes(x = Age, y = prop, fill = gender)) +
   geom_text(aes(label = percentage), position = position_dodge(width = 0.9),
             vjust = 2.5, color = "black", size = 3) +
   scale_fill_manual(values = c("Homme" = "#A3B0D1", "Femme" = "#CD718C")) +
-  scale_y_continuous(labels = scales::label_number(big.mark = " ")) +
+  scale_y_continuous(labels = scales::percent_format(accuracy = 1)) +
   labs(x = "Groupe d'âge",
-       y = "Nombre d'individus",
-       fill = "Age Group") +
+       y = "Proportion d'immigrant·e·s",
+       fill = "Genre") +
   gg_cc_theme_no_sf +
-  theme(legend.position = "bottom",
-        plot.title = element_blank(),
-        legend.title = element_blank(),
-        text = element_text(family = "KMR-Apparat-Regular"))
+  theme(
+    legend.position = "bottom",
+    plot.title = element_blank(),
+    legend.title = element_blank(),
+    text = element_text(family = "KMR-Apparat-Regular"))
 
 ggplot2::ggsave(filename = here::here("output/axe1/immigration/imm_age_graph.pdf"), 
                 plot = imm_age_graph, width = 6.5, height = 4)
@@ -774,7 +775,7 @@ imm_origin_graph <- ggplot(data = imm_origin, aes(x = origin, y = proportion, fi
             vjust = -0.5, color = "black", size = 3) +
   scale_y_continuous(labels = convert_pct) +
   scale_fill_manual(values = c("Total" = "#A3B0D1", "Récent" = "#CD718C"),
-                    labels = c("Total" = "Total", "Récent" = "Immigrants récents")) +
+                    labels = c("Total" = "Total des immigrant·e·s", "Récent" = "Immigrant·e·s récents")) +
   scale_x_discrete(labels = function(x) gsub("L'Europe", "Europe", x)) +
   labs(x = "Lieu de naissance",
        y = "Proportion d'immigrants") +
@@ -902,21 +903,28 @@ vis_min <- get_census(dataset = "CA21",
          "Latino-Américain", "Asiatique du Sud-Est", "Asiatique occidental",
          "Coréen", "Japonais", "n.i.a.", "Multiples") |> 
   pivot_longer(cols = everything(), names_to = "type", values_to = "count") |> 
-  mutate(perc = convert_pct(count / vis_total),
-         type = fct_reorder(type, count, .desc = TRUE))
+  mutate(
+    percent = count / vis_total,
+    perc_label = convert_pct(percent),
+    type = fct_reorder(type, count, .desc = TRUE)
+  )
 
 #Graphing the data
-vis_min_graph <- ggplot(data = vis_min, aes(x = type, y = count, fill = type)) +
+vis_min_graph <- ggplot(data = vis_min, aes(x = type, y = percent, fill = type)) +
   geom_bar(stat = "identity", position = position_dodge(), fill = "#A3B0D1") +
-  geom_text(aes(label = perc), position = position_dodge(width = 0.9),
+  geom_text(aes(label = perc_label), position = position_dodge(width = 0.9),
             vjust = -0.5, color = "black", size = 3) +
-  scale_y_continuous(labels = convert_number) +
+  scale_y_continuous(labels = scales::percent_format(accuracy = 1)) +
   labs(x = "Catégories de minorités visibles",
-       y = "Individus") +
+       y = "Proportion de la population") +
   gg_cc_theme_no_sf +
-  theme(legend.position = "none", plot.title = element_blank(),
-        legend.title = element_blank(), text = element_text(family = "KMR Apparat Regular"),
-        axis.text.x = element_text(angle = 45, hjust = 1))
+  theme(
+    legend.position = "none",
+    plot.title = element_blank(),
+    legend.title = element_blank(),
+    text = element_text(family = "KMR-Apparat-Regular"),
+    axis.text.x = element_text(angle = 45, hjust = 1)
+  )
 
 ggplot2::ggsave(filename = here::here("output/axe1/immigration/vis_min_graph.pdf"), 
                 plot = vis_min_graph, width = 6.5, height = 5)

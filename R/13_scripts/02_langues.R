@@ -750,17 +750,34 @@ mother_tongue_plot <-
     "Français" = color_theme("blueexplorer"),
     "Anglais" = color_theme("pinkhealth"),
     "Autre" = color_theme("yellowclimate")
-  ), guide = "none") +  # Remove the color legend
+  ),
+  labels = c(
+    "Français" = "Français",
+    "Anglais" = "Anglais",
+    "Autre" = "Langue(s) non officielle(s)"
+  ),
+ guide = "none") +  # Remove the color legend
   # Define alpha levels for "Type"
-  scale_alpha_manual(values = c(
-    "Seulement" = 1,                       # Fully opaque
-    "Avec autre(s) language(s)" = 0.4      # Semi-transparent
-  )) +
+  scale_alpha_manual(
+    values = c(
+      "Seulement" = 1,
+      "Avec autre(s) language(s)" = 0.4
+    ),
+    labels = c(
+      "Seulement" = "Seulement",
+      "Avec autre(s) language(s)" = "Avec autre(s) langue(s)"
+    )
+  ) +
   # Add color to the "Type" legend for reference
   guides(alpha = guide_legend(override.aes = list(
     fill = color_theme("blueexplorer")  # Use the French color as a reference
   ))) +
   scale_y_continuous(labels = convert_number) +
+  scale_x_discrete(labels = c(
+    "Français" = "Français",
+    "Anglais" = "Anglais",
+    "Autre" = "Langue(s) non officielle(s)"
+  )) +
   geom_text(aes(label = convert_number(Value)),
             position = position_stack(vjust = 0.5), # Center text on blocks
             size = 3,                              # Adjust text size for better visibility
@@ -905,7 +922,7 @@ table_long$Valeur[table_long$Année == 1996 & table_long$Type == "Français et a
 
 
 
-qs::qsavem(knowledge_official, bilingual_1996, bilingual_2021,
+qs::qsavem(knowledge_official, bilingual_1996, bilingual_2021, french_over_time,
            no_official_1996, no_official_2021, know_official_laval_qc_diff,
            know_fr_qc, know_fr_laval, know_bilingual_laval, know_bilingual_qc,
            know_only_fr_laval, know_only_fr_qc, know_only_en_laval,
