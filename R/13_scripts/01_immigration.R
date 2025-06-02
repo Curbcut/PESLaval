@@ -471,11 +471,14 @@ period_imm_graph <- ggplot(data = combined_decade_data, aes(x = name, y = value,
   geom_text(aes(label = percentage), position = position_dodge(width = 0.9),
             vjust = 2.5, color = "black", size = 3) +
   labs(x = "Decade", y = "Proportion de la population immigrante", title = "Period of Immigration: Laval vs. Quebec") +
-  scale_fill_manual(values = c("Laval" = color_theme("greenecology"), "Québec" = color_theme("blueexplorer"))) +
+  scale_fill_manual(
+    values = c("Laval" = color_theme("greenecology"), "Québec" = color_theme("blueexplorer")),
+    labels = c("Laval" = "Laval", "Québec" = "Ensemble du Québec")
+  ) +
   scale_y_continuous(labels = convert_pct) +
   gg_cc_theme_no_sf +
   theme(legend.position = "bottom", plot.title = element_blank(), axis.title.x = element_blank(),
-        legend.title = element_blank(), text = element_text(family = "KMR Apparat Regular"))
+        legend.title = element_blank(), text = element_text(family = "KMR-Apparat-Regular"))
 
 ggplot2::ggsave(filename = here::here("output/axe1/immigration/period_imm_graph.pdf"), 
                 plot = period_imm_graph, width = 6.5, height = 4)
@@ -533,11 +536,20 @@ ad_cat_graph <- ggplot(data = admission_cat_combined, aes(x = Type, y = Percent,
             aes(label = perc), position = position_dodge(width = 0.9),
             vjust = -0.5, color = "black", size = 3) +
   scale_y_continuous(labels = convert_pct) +
-  scale_fill_manual(values = c("Laval" = color_theme("greenecology"), "Québec" = color_theme("blueexplorer"))) +
+  scale_x_discrete(labels = c(
+    "Économique" = "Immigrant·e·s économique",
+    "Famille" = "Immigrant·e·s parrainés",
+    "Réfugiés" = "Réfugié·es",
+    "Autres" = "Autres immigrant·e·s"
+  )) +
+  scale_fill_manual(
+    values = c("Laval" = color_theme("greenecology"), "Québec" = color_theme("blueexplorer")),
+    labels = c("Laval" = "Laval", "Québec" = "Ensemble du Québec")
+  ) +
   labs(y = "Proportion d'immigrants", x = "Catégorie d'admission") +
   gg_cc_theme_no_sf +
   theme(legend.position = "bottom", plot.title = element_blank(),
-        legend.title = element_blank(), text = element_text(family = "KMR Apparat Regular"))
+        legend.title = element_blank(), text = element_text(family = "KMR-Apparat-Regular"))
 
 ggplot2::ggsave(filename = here::here("output/axe1/immigration/ad_cat_graph.pdf"), 
                 plot = ad_cat_graph, width = 6.5, height = 4)
