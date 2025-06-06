@@ -389,15 +389,22 @@ ordered_levels <- c("Santé physique et bien-être",
 combined_child_vulnerability$name <- factor(combined_child_vulnerability$name, levels = ordered_levels)
 
 children_vulnerability_plot <- 
-ggplot(data = combined_child_vulnerability, aes(x = name, y = value, fill = Region))+
+  ggplot(data = combined_child_vulnerability, aes(x = name, y = value, fill = Region)) +
   geom_bar(stat = "identity", position = "dodge") +
   labs(title = NULL, x = "Domaine de vulnérabilité", y = "Enfants (%)") + 
   gg_cc_theme_no_sf +
-  geom_text(aes(label = convert_pct(value / 100)),
-            position = position_dodge(width = 0.9),
-            vjust = 2, color = "black", size = 3) +
+  geom_text(
+    aes(label = convert_pct(value / 100)),
+    position = position_dodge(width = 0.9),
+    vjust = 2,
+    color = "black",
+    size = 3
+  ) +
   scale_x_discrete(labels = function(x) str_wrap(x, width = 16)) +
-  scale_fill_manual(values = c("Laval" = color_theme("greenecology"), "Québec" = color_theme("blueexplorer"))) +
+  scale_fill_manual(
+    values = c("Laval" = color_theme("greenecology"), "Québec" = color_theme("blueexplorer")),
+    labels = c("Laval" = "Laval", "Québec" = "Ensemble du Québec")
+  ) +
   theme(legend.title = element_blank())
 
 ggplot2::ggsave(filename = here::here("output/axe1/children/children_vulnerability_plot.pdf"), 
