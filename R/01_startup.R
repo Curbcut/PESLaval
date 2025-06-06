@@ -15,7 +15,7 @@ library(gt)
 font_add(family = "KMR-Apparat-Regular", regular = "data/fonts/KMR-Apparat-Regular.ttf")
 showtext_auto()
 
-source("R/utils/tt_fun.R")
+source(here::here("R", "utils", "tt_fun.R"))
 
 # Addition of colors ------------------------------------------------------
 
@@ -36,7 +36,7 @@ lvl <- cancensus::get_census("CA21", regions = list(CSD = 2465005),
                                   level = "CSD",
                                   geo_format = "sf")
 lvlbbox <- sf::st_bbox(lvl)
-laval_sectors <- qs::qread("data/geom_context/secteur.qs")
+laval_sectors <- qs::qread(here::here("data", "geom_context", "secteur.qs"))
 laval_sectors$old_name <- laval_sectors$name
 laval_sectors$name <- c("Secteur 1 : Duvernay, Saint-François et Saint-Vincent-de-Paul",
                         "Secteur 6 : Vimont et Auteuil",

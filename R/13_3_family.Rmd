@@ -1,7 +1,6 @@
 ---
 title: "Familles et ménages"
 author: "Curbcut"
-output: html_document
 output:
   bookdown::html_document2: default
   bookdown::pdf_document2: default
@@ -9,7 +8,20 @@ output:
 
 ```{r setup_familles, include=FALSE}
 knitr::opts_chunk$set(echo = FALSE, warning = FALSE)
-qs::qload("data/axe1/family.qsm")
+library(here)
+library(qs)
+
+# Create folder if missing
+dir.create(here("data", "axe1"), recursive = TRUE, showWarnings = FALSE)
+
+# Test saving a simple object (this will help debug write permission errors)
+qs::qsave(mtcars, here("data", "axe1", "test_output.qsm"))
+
+# Try loading your existing data
+qs::qload(here("data", "axe1", "family.qsm"))
+
+# Source your script
+source(here("R", "13_scripts", "03_famille.R"))
 ```
 
 ## Familles et ménages

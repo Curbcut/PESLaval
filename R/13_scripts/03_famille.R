@@ -1,5 +1,5 @@
 ### FAMILLES ###################################################################
-source("R/01_startup.R")
+source(here::here("R", "01_startup.R"))
 
 CT <- get_census(dataset = "CA21", 
                  regions = list(CSD = 2465005), 
@@ -524,7 +524,7 @@ famille_monop_f <- convert_pct(famille_monop_census$women_pct)
 famille_monop_m <- convert_pct(famille_monop_census$men_pct)
 famille_monop <- convert_pct(famille_monop_census$total / famille_monop_census$household_total)
 
-monop_inc <- read.csv("data/axe1/monoparental_income.csv") |> 
+monop_inc <- read.csv(here::here("data", "axe1", "monoparental_income.csv")) |> 
   tibble::as_tibble()
 names(monop_inc) <- c("GeoUID", "households", "monop", "monop_m", "monop_f",
                       "lowinc", "monop_lowinc", "monop_m_lowinc", "monop_f_lowinc")
@@ -858,4 +858,4 @@ qs::qsavem(family_size_graph, familles_nombreuse_pct, familles_nombreuse_qc_pct,
            famille_nb_menages_aug_pct, famille_nb_menages_aug,
            famille_taille_menage, famille_taille_menage_qc,
            monop_m_lowinc, monop_f_lowinc, monop_m_lowinc_pct, monop_f_lowinc_pct,
-           famille_monop_f, famille_monop_m, file = "data/axe1/family.qsm")
+           famille_monop_f, famille_monop_m,  file = here::here("data", "axe1", "family.qsm"))
