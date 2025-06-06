@@ -332,7 +332,7 @@ imm_table <-
     table.width = px(6 * 96),
   )
 
-gtsave(imm_table, "output/axe1/immigration/imm_table.png")
+gtsave(imm_table, "output/axe1/immigration/imm_table.png", zoom = 3)
 
 
 # Immigrant Status --------------------------------------------------------

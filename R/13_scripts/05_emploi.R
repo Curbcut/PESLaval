@@ -516,9 +516,21 @@ noc_occupation_table16 <- noc_occupation16 |>
   mutate(Type = factor(Type, levels = c("Total", "Men", "Women"))) |> 
   mutate(category = factor(category, levels = c("na", "0", "1", "2", "3", "4", "5", "6", "7", "8", "9")))
 
+library(dplyr)
+
+# Total per Type (across all categories)
+total_by_type <- noc_occupation_table |>
+  group_by(Type) |>
+  summarise(total_type = sum(count), .groups = "drop")
+
+# Join and calculate percent
+noc_occupation_pct <- noc_occupation_table |>
+  left_join(total_by_type, by = "Type") |>
+  mutate(percent = count / total_type * 100)
+
 #Creating the grouped bar graph
 emploi_catpro <- 
-  ggplot(noc_occupation_table, aes(x = category, y = count, fill = Type)) +
+  ggplot(noc_occupation_pct, aes(x = category, y = percent, fill = Type)) +
   geom_bar(stat = "identity", position = "dodge", width = 0.7) +
   scale_x_discrete(labels = function(x) str_wrap(c("Sans objet",
                                                    "Membres des corps législatifs et cadres supérieurs",
@@ -531,14 +543,19 @@ emploi_catpro <-
                                                    "Métiers, transport, machinerie et domaines apparentés",
                                                    "Ressources naturelles, agriculture et production connexe",
                                                    "Fabrication et services d'utilité publique"), width = 16)) +
-  labs(title = NULL, x = "Catégories des professions", y = "Individus") +
+  labs(title = NULL, x = "Catégories des professions", y = "Proportion de la population (%)") +
   scale_fill_manual(values = c("Total" = "#73AD80", 
                                "Men" = color_theme("blueexplorer"), 
                                "Women" = color_theme("pinkhealth")),
                     name = NULL,
                     labels = c("Total" = "Total", "Men" = "Hommes", "Women" = "Femmes")) +
-  scale_y_continuous(labels = function(x) format(x, big.mark = " ", scientific = FALSE)) +
+  scale_y_continuous(
+    limits = c(0, 50),
+    expand = c(0, 0),
+    labels = function(x) paste0(x, " %")
+  ) +
   gg_cc_theme_no_sf
+
 
 ggplot2::ggsave(filename = here::here("output/axe1/employment/emploi_catpro.pdf"), 
                 plot = emploi_catpro, width = 9, height = 5.5)
