@@ -2158,8 +2158,8 @@ core_need_QC$percentage <- core_need_QC$value / {
     pull(value)
 }
 
-core_need_tenant <- convert_pct(core_need$percentage[core_need$tenure_status == "Locataire"])
-core_need_tenant_QC <- convert_pct(core_need_QC$percentage[core_need_QC$tenure_status == "Locataire"])
+# core_need_tenant <- convert_pct(core_need$percentage[core_need$tenure_status == "Locataire"])
+# core_need_tenant_QC <- convert_pct(core_need_QC$percentage[core_need_QC$tenure_status == "Locataire"])
 
 
 core_need_time <- get_cmhc(survey = "Core Housing Need", 
@@ -2205,9 +2205,17 @@ core_need_time <- rbind(core_need_time, core_need_time_total_QC)
 core_need_time <- core_need_time[names(core_need_time) != "type"]
 
 
+core_need_tenant <- get_census("CA21", regions = list(CSD = 2465005),
+                               level = "CSD",
+                               vectors = c(need = "v_CA21_4316")) |> 
+  mutate(percent = convert_pct(need / 100)) |> 
+  pull()
 
-
-
+core_need_tenant_QC <- get_census("CA21", regions = list(PR = 24),
+                               level = "PR",
+                               vectors = c(need = "v_CA21_4316")) |> 
+  mutate(percent = convert_pct(need / 100)) |> 
+  pull()
 
 names(core_need_time) <- c("Région", "Année", "Besoins impérieux (n)", "Besoins impérieux (%)")
 core_need_wide <- core_need_time %>%
@@ -2293,22 +2301,6 @@ get_census("CA21", regions = list(CSD = 2465005),
            level = "CSD",
            vectors = c(tenant = "v_CA21_4316", owner = "v_CA21_4308")
 ) |> View()
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
