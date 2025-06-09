@@ -1938,6 +1938,70 @@ acceptable_housing <- Reduce(rbind, acceptable_housing)
 acceptable_housing <- pivot_wider(acceptable_housing, names_from = location, 
                                   values_from = c(`Ménages propriétaires`, `Ménages locataires`, 
                                                   `Tous les ménages`))
+
+core_laval <- read.csv("data/axe1/9810024601_donneesselectionnees.csv", sep = ";") |> 
+  select(8, 9, 16) |> 
+  mutate(across(2, ~ if_else(str_detect(.x, "Total"), "Total", .x))) |> 
+  rename(Need = 1, Type = 2, Value = 3) |> 
+  pivot_wider(names_from = Need, values_from = Value) |> 
+  mutate("Inférieur au seuil d'abordabilité (n)" = `Inférieur au seuil d'abordabilité seulement` + `Inférieur aux seuils d'abordabilité et de taille convenable seulement` +
+           `Inférieur aux seuils d'abordabilité et de qualité convenable seulement` + `Inférieur aux seuils d'abordabilité, de taille et de qualité convenable`,
+         "Inférieur au seuil de taille convenable (n)" = `Inférieur au seuil de taille convenable seulement` + `Inférieur aux seuils d'abordabilité et de taille convenable seulement` +
+           `Inférieur aux seuils de taille et qualité convenable` + `Inférieur aux seuils d'abordabilité, de taille et de qualité convenable`,
+         "Inférieur au seuil de qualité convenable (n)" = `Inférieur au seuil de qualité convenable seulement` + `Inférieur aux seuils de taille et qualité convenable` +
+           `Inférieur aux seuils d'abordabilité et de qualité convenable seulement` + `Inférieur aux seuils d'abordabilité, de taille et de qualité convenable`) |> 
+  select(Type, `Total - Logement acceptable`, "Inférieur au seuil d'abordabilité (n)", "Inférieur au seuil de taille convenable (n)",
+         "Inférieur au seuil de qualité convenable (n)", Acceptable) |> 
+  pivot_longer(cols = -Type, values_to = "Value") |> 
+  pivot_wider(names_from = Type, values_from = Value) |> 
+  rename("Tous les ménages (n)" = Total,
+         "Ménages locataires (n)" = Locataire,
+         "Ménages propriétaires (n)" = Propriétaire) |> 
+  mutate(across(ends_with("(n)"), as.numeric)) |> 
+  mutate(
+    Total = `Tous les ménages (n)`[1],
+    Owner = `Ménages propriétaires (n)`[1],
+    Renter = `Ménages locataires (n)`[1]) |> 
+  mutate(`Tous les ménages (%)` = `Tous les ménages (n)` / Total,
+         `Ménages propriétaires (%)` = `Ménages propriétaires (n)` / Owner,
+         `Ménages locataires (%)` = `Ménages locataires (n)` / Renter) |> 
+  select(name, `Ménages propriétaires (n)`, `Ménages propriétaires (%)`, 
+         `Ménages locataires (n)`, `Ménages locataires (%)`, 
+         `Tous les ménages (n)`, `Tous les ménages (%)`) |> 
+  slice(-1)
+
+core_qc <- read.csv("data/axe1/9810024601_donneesselectionnees_QC.csv", sep = ";") |> 
+  select(8, 9, 16) |> 
+  mutate(across(2, ~ if_else(str_detect(.x, "Total"), "Total", .x))) |> 
+  slice(-4, -11, -15, -25, -32) |> 
+  rename(Need = 1, Type = 2, Value = 3) |> 
+  pivot_wider(names_from = Need, values_from = Value) |> 
+  mutate("Inférieur au seuil d'abordabilité (n)" = `Inférieur au seuil d'abordabilité seulement` + `Inférieur aux seuils d'abordabilité et de taille convenable seulement` +
+           `Inférieur aux seuils d'abordabilité et de qualité convenable seulement` + `Inférieur aux seuils d'abordabilité, de taille et de qualité convenable`,
+         "Inférieur au seuil de taille convenable (n)" = `Inférieur au seuil de taille convenable seulement` + `Inférieur aux seuils d'abordabilité et de taille convenable seulement` +
+           `Inférieur aux seuils de taille et qualité convenable` + `Inférieur aux seuils d'abordabilité, de taille et de qualité convenable`,
+         "Inférieur au seuil de qualité convenable (n)" = `Inférieur au seuil de qualité convenable seulement` + `Inférieur aux seuils de taille et qualité convenable` +
+           `Inférieur aux seuils d'abordabilité et de qualité convenable seulement` + `Inférieur aux seuils d'abordabilité, de taille et de qualité convenable`) |> 
+  select(Type, `Total - Logement acceptable`, "Inférieur au seuil d'abordabilité (n)", "Inférieur au seuil de taille convenable (n)",
+         "Inférieur au seuil de qualité convenable (n)", Acceptable) |> 
+  pivot_longer(cols = -Type, values_to = "Value") |> 
+  pivot_wider(names_from = Type, values_from = Value) |> 
+  rename("Tous les ménages (n)" = Total,
+         "Ménages locataires (n)" = Locataire,
+         "Ménages propriétaires (n)" = Propriétaire) |> 
+  mutate(across(ends_with("(n)"), as.numeric)) |> 
+  mutate(
+    Total = `Tous les ménages (n)`[1],
+    Owner = `Ménages propriétaires (n)`[1],
+    Renter = `Ménages locataires (n)`[1]) |> 
+  mutate(`Tous les ménages (%)` = `Tous les ménages (n)` / Total,
+         `Ménages propriétaires (%)` = `Ménages propriétaires (n)` / Owner,
+         `Ménages locataires (%)` = `Ménages locataires (n)` / Renter) |> 
+  select(name, `Ménages propriétaires (n)`, `Ménages propriétaires (%)`, 
+         `Ménages locataires (n)`, `Ménages locataires (%)`, 
+         `Tous les ménages (n)`, `Tous les ménages (%)`) |> 
+  slice(-1)
+  
 acceptable_housing_table <-
 gt(acceptable_housing) |> 
   data_color(
@@ -2006,6 +2070,52 @@ gt(acceptable_housing) |>
     row_group.font.size = 12,
     table.width = px(6 * 96)
   )
+
+acceptable_laval_table <- gt(core_laval) |> 
+  cols_label(name = "") |> 
+  data_color(columns = 2:ncol(core_laval),
+             fn = scales::col_numeric(palette = c("white", color_theme("purpletransport")),
+                                      domain = NULL)) |> 
+  fmt(columns = c(3, 5, 7), fns = convert_pct) |> 
+  fmt(columns = c(2, 4, 6), fns = convert_number) |> 
+  tab_style(style = cell_borders(sides = "top",
+                                 color = "transparent",
+                                 weight = px(10)),
+            locations = cells_body(rows = 4)) |> 
+  tab_style(style = cell_text(font = "KMR-Apparat-Regular"),
+            locations = cells_body()) |>
+  tab_style(style = cell_text(font = "KMR-Apparat-Regular"),
+            locations = cells_column_labels()) |>
+  tab_style(style = cell_text(font = "KMR-Apparat-Regular"),
+            locations = cells_row_groups()) |>
+  tab_style(style = cell_fill(color = "#F0F0F0"),
+            locations = cells_row_groups()) |> 
+  tab_options(table.font.size = 12,
+              row_group.font.size = 12,
+              table.width = px(6 * 104))
+
+acceptable_qc_table <- gt(core_qc) |> 
+  cols_label(name = "") |> 
+  data_color(columns = 2:ncol(core_qc),
+             fn = scales::col_numeric(palette = c("white", color_theme("purpletransport")),
+                                      domain = NULL)) |> 
+  fmt(columns = c(3, 5, 7), fns = convert_pct) |> 
+  fmt(columns = c(2, 4, 6), fns = convert_number) |> 
+  tab_style(style = cell_borders(sides = "top",
+                                 color = "transparent",
+                                 weight = px(10)),
+            locations = cells_body(rows = 4)) |> 
+  tab_style(style = cell_text(font = "KMR-Apparat-Regular"),
+            locations = cells_body()) |>
+  tab_style(style = cell_text(font = "KMR-Apparat-Regular"),
+            locations = cells_column_labels()) |>
+  tab_style(style = cell_text(font = "KMR-Apparat-Regular"),
+            locations = cells_row_groups()) |>
+  tab_style(style = cell_fill(color = "#F0F0F0"),
+            locations = cells_row_groups()) |> 
+  tab_options(table.font.size = 12,
+              row_group.font.size = 12,
+              table.width = px(6 * 104))
 
 gtsave(acceptable_housing_table, "output/axe1/housing/acceptable_housing_table.png", zoom = 3)
 
@@ -2231,6 +2341,7 @@ qs::qsavem(housing_owner_2016, housing_owner_2021,
            housing_owner_2021_pct, housing_owner_2001_pct, owner_2016_2021,
            hous2010_lvl_2bd, hous2010_qc_2bd, highest_med_rent, chomedey_rent,
            loyer_med_table_complete, med_own_table_complete, new_taux_efforts_table,
+           acceptable_laval_table, acceptable_qc_table,
            acceptable_housing_table, file = "data/axe1/housing.qsm")
 
 

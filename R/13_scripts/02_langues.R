@@ -917,7 +917,147 @@ table_long$Valeur[table_long$Année == 2021 & table_long$Type == "Français et a
 table_long$Valeur[table_long$Année == 1996 & table_long$Type == "Français et autre(s)"] /
   table_long$Valeur[table_long$Année == 1996 & table_long$Type == "Population"]
 
+#mother tongue v2
+mother_21 <- get_census(dataset = "CA21",
+                        regions = list(CSD = 2465005),
+                        level = "CSD",
+                        vectors = c(total = "v_CA21_1174",
+                                    fr_only = "v_CA21_1186",
+                                    en_only = "v_CA21_1183",
+                                    nof_only = "v_CA21_1189",
+                                    en_fr = "v_CA21_2152",
+                                    en_nof = "v_CA21_2155",
+                                    fr_nof = "v_CA21_2158",
+                                    en_fr_nof = "v_CA21_2161",
+                                    nof_s = "v_CA21_2164")) |> 
+  mutate(year = 2021,
+         french = fr_only + en_fr + fr_nof + en_fr_nof,
+         english = en_only + en_fr + en_nof + en_fr_nof,
+         non_official = nof_only + en_nof + fr_nof + en_fr_nof + nof_s) |> 
+  select(year, total, french, english, non_official)
 
+mother_16 <- get_census(dataset = "CA16",
+                        regions = list(CSD = 2465005),
+                        level = "CSD",
+                        vectors = c(total = "v_CA16_548",
+                                    fr_only = "v_CA16_560",
+                                    en_only = "v_CA16_557",
+                                    nof_only = "v_CA16_563",
+                                    en_fr = "v_CA16_1343",
+                                    en_nof = "v_CA16_1346",
+                                    fr_nof = "v_CA16_1349",
+                                    en_fr_nof = "v_CA16_1352")) |> 
+  mutate(year = 2016,
+         french = fr_only + en_fr + fr_nof + en_fr_nof,
+         english = en_only + en_fr + en_nof + en_fr_nof,
+         non_official = nof_only + en_nof + fr_nof + en_fr_nof) |> 
+  select(year, total, french, english, non_official)
+
+mother_11 <- get_census(dataset = "CA11",
+                        regions = list(CSD = 2465005),
+                        level = "CSD",
+                        vectors = c(total = "v_CA11F_218",
+                                    fr_only = "v_CA11F_227",
+                                    en_only = "v_CA11F_224",
+                                    nof_only = "v_CA11F_230",
+                                    en_fr = "v_CA11F_539",
+                                    en_nof = "v_CA11F_542",
+                                    fr_nof = "v_CA11F_545",
+                                    en_fr_nof = "v_CA11F_548")) |>
+  mutate(year = 2011,
+         french = fr_only + en_fr + fr_nof + en_fr_nof,
+         english = en_only + en_fr + en_nof + en_fr_nof,
+         non_official = nof_only + en_nof + fr_nof + en_fr_nof) |> 
+  select(year, total, french, english, non_official)
+
+mother_06 <- get_census(dataset = "CA06",
+                        regions = list(CSD = 2465005),
+                        level = "CSD",
+                        vectors = c(total = "v_CA06_140",
+                                    fr_only = "v_CA06_143",
+                                    en_only = "v_CA06_142",
+                                    nof_only = "v_CA06_144",
+                                    en_fr = "v_CA06_239",
+                                    en_nof = "v_CA06_240",
+                                    fr_nof = "v_CA06_241",
+                                    en_fr_nof = "v_CA06_242")) |>
+  mutate(year = 2006,
+         french = fr_only + en_fr + fr_nof + en_fr_nof,
+         english = en_only + en_fr + en_nof + en_fr_nof,
+         non_official = nof_only + en_nof + fr_nof + en_fr_nof) |> 
+  select(year, total, french, english, non_official)
+
+mother_01 <- get_census(dataset = "CA01",
+                        regions = list(CSD = 2465005),
+                        level = "CSD",
+                        vectors = c(total = "v_CA01_133",
+                                    fr_only = "v_CA01_136",
+                                    en_only = "v_CA01_135",
+                                    nof_only = "v_CA01_137",
+                                    en_fr = "v_CA01_209",
+                                    en_nof = "v_CA01_210",
+                                    fr_nof = "v_CA01_211",
+                                    en_fr_nof = "v_CA01_212")) |>
+  mutate(year = 2001,
+         french = fr_only + en_fr + fr_nof + en_fr_nof,
+         english = en_only + en_fr + en_nof + en_fr_nof,
+         non_official = nof_only + en_nof + fr_nof + en_fr_nof) |> 
+  select(year, total, french, english, non_official)
+
+mother_96 <- get_census(dataset = "CA1996",
+                        regions = list(CSD = 2465005),
+                        level = "CSD",
+                        vectors = c(total = "v_CA1996_233",
+                                    fr_only = "v_CA1996_236",
+                                    en_only = "v_CA1996_235",
+                                    nof_only = "v_CA1996_237",
+                                    en_fr = "v_CA1996_306",
+                                    en_nof = "v_CA1996_307",
+                                    fr_nof = "v_CA1996_308",
+                                    en_fr_nof = "v_CA1996_309")) |>
+  mutate(year = 1996,
+         french = fr_only + en_fr + fr_nof + en_fr_nof,
+         english = en_only + en_fr + en_nof + en_fr_nof,
+         non_official = nof_only + en_nof + fr_nof + en_fr_nof) |> 
+  select(year, total, french, english, non_official)
+
+mother_table <- mother_21 |> 
+  bind_rows(mother_16, mother_11, mother_06, mother_01, mother_96) |> 
+  mutate("Anglais %" =  english / total,
+         "Français %" = french / total,
+         "Autre %" = non_official / total,
+         Année = year) |> 
+  select(Année, "Anglais %", "Français %", "Autre %") |> 
+  pivot_longer(cols = c("Anglais %", "Français %", "Autre %"),
+               names_to = "Type",
+               values_to = "Valeur")
+
+line_colors <- c(
+  "Autre %" = scales::alpha(color_theme("yellowclimate"), 1),
+  "Anglais %" = scales::alpha(color_theme("redhousing"), 1),
+  "Français %" = scales::alpha(color_theme("blueexplorer"), 1)
+)
+
+mother_over_time <-
+  ggplot(data = mother_table, aes(x = Année, y = Valeur, color = Type, group = Type)) +
+  geom_line(size = 1.2) +  # Line thickness
+  geom_point(size = 2) +   # Add points for emphasis
+  scale_color_manual(values = line_colors) +  # Apply custom colors
+  scale_x_continuous(
+    breaks = seq(1996, 2021, by = 5),
+    limits = c(1996, 2021)
+  )  +
+  labs(
+    title = NULL,
+    x = NULL,
+    y = "Pourcentage de la population (%)",
+    color = "Type"
+  ) +
+  scale_y_continuous(labels = convert_pct, limits = c(0,1)) +
+  gg_cc_theme_no_sf +
+  theme(
+    legend.title = element_blank()
+  )
 
 
 

@@ -175,8 +175,16 @@ En 2021, plus d'un ménage lavallois sur 20 (`r taille_all`) occupait un logemen
 
 Cette tendance se poursuit si l'on examine la proportion de logements jugés acceptables. À Laval, seulement `r acceptable_tenant` des ménages locataires occupent un logement acceptable, ce qui est nettement inférieur au `r acceptable_owner` observé chez les propriétaires. Cela souligne les défis plus prononcés auxquels font face les locataires en matière de qualité et de taille de logement, en plus des contraintes d'abordabilité déjà mentionnées.
 
-```{r acceptableHousingTable, include=TRUE, tab.cap="Logement acceptable par mode d'occupation (2021). Source: Statistique Canada."}
+<!--```{r acceptableHousingTable, include=TRUE, tab.cap="Logement acceptable par mode d'occupation (2021). Source: Statistique Canada."}
 acceptable_housing_table
+```-->
+
+```{r acceptable_laval_table, include=TRUE, tab.cap="Logement acceptable par mode d'occupation à Laval (2021). Source: Statistique Canada."}
+acceptable_laval_table
+```
+
+```{r acceptable_qc_table, include=TRUE, tab.cap="Logement acceptable par mode d'occupation dans l'ensemble du Québec (2021). Source: Statistique Canada."}
+acceptable_qc_table
 ```
 
 ### Besoins impérieux en matière de logement

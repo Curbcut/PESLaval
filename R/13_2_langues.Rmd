@@ -63,8 +63,11 @@ Graphique 2.8 montre l’évolution de la population totale de Laval ainsi que d
 
 Les deux courbes bleues représentent les déclarations liées au français comme langue maternelle. Bien que le total des déclarations incluant le français (« Français et autre(s) ») demeure relativement stable autour de 250 000, la proportion d’individus déclarant le français comme langue maternelle diminue rapidement lorsque mise en perspective avec l’augmentation constante de la population totale, passant de 75,78% en 1996 à 57,22 % en 2021.
 
-```{r french_over_time, include=TRUE, fig.cap="Évolution des langues maternelles chez la population lavalloise entre 1996 et 2021", fig.align = 'center'}
+<!--```{r french_over_time, include=TRUE, fig.cap="Évolution des langues maternelles chez la population lavalloise entre 1996 et 2021", fig.align = 'center'}
 french_over_time
+``` -->
+```{r mother_over_time, include=TRUE, fig.cap="Répartition de la population lavalloise selon la langue maternelle à Laval entre 1996 et 2021", fig.align = 'center'}
+mother_over_time
 ```
 
 <!-- ### Population d'expression de langue anglaise
