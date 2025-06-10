@@ -2129,6 +2129,10 @@ acceptable_all <- convert_pct(acceptable_housing$`Tous les ménages_Laval`[accep
 acceptable_owner <- convert_pct(acceptable_housing$`Ménages propriétaires_Laval`[acceptable_housing$` ` == acceptable])
 acceptable_tenant <- convert_pct(acceptable_housing$`Ménages locataires_Laval`[acceptable_housing$` ` == acceptable])
 
+taille_lvl_number <- convert_number(core_laval$`Tous les ménages (n)`[core_laval$name == "Inférieur au seuil de taille convenable (n)"])
+taille_lvl_tenant <- convert_number(core_laval$`Ménages locataires (n)`[core_laval$name == "Inférieur au seuil de taille convenable (n)"])
+taille_lvl_owner <- convert_number(core_laval$`Ménages propriétaires (n)`[core_laval$name == "Inférieur au seuil de taille convenable (n)"])
+
 
 # Core Housing Need --------------------------------------------
 
@@ -2214,6 +2218,18 @@ core_need_tenant <- get_census("CA21", regions = list(CSD = 2465005),
 core_need_tenant_QC <- get_census("CA21", regions = list(PR = 24),
                                level = "PR",
                                vectors = c(need = "v_CA21_4316")) |> 
+  mutate(percent = convert_pct(need / 100)) |> 
+  pull()
+
+core_need_owner <- get_census("CA21", regions = list(CSD = 2465005),
+                               level = "CSD",
+                               vectors = c(need = "v_CA21_4308")) |> 
+  mutate(percent = convert_pct(need / 100)) |> 
+  pull()
+
+core_need_owner_QC <- get_census("CA21", regions = list(PR = 24),
+                                  level = "PR",
+                                  vectors = c(need = "v_CA21_4308")) |> 
   mutate(percent = convert_pct(need / 100)) |> 
   pull()
 
@@ -2333,7 +2349,8 @@ qs::qsavem(housing_owner_2016, housing_owner_2021,
            housing_owner_2021_pct, housing_owner_2001_pct, owner_2016_2021,
            hous2010_lvl_2bd, hous2010_qc_2bd, highest_med_rent, chomedey_rent,
            loyer_med_table_complete, med_own_table_complete, new_taux_efforts_table,
-           acceptable_laval_table, acceptable_qc_table,
+           acceptable_laval_table, acceptable_qc_table, taille_lvl_number,
+           taille_lvl_tenant, taille_lvl_owner, core_need_owner, core_need_owner_QC,
            acceptable_housing_table, file = "data/axe1/housing.qsm")
 
 
