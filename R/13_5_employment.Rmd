@@ -1,7 +1,6 @@
 ---
 title: "Emploi et chômage"
 author: "Curbcut"
-output: html_document
 output:
   bookdown::html_document2: default
   bookdown::pdf_document2: default
