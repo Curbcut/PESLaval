@@ -699,8 +699,8 @@ housing_median_rent_plot <-
   ) +
   gg_cc_theme
 
-ggplot2::ggsave(filename = here::here("output/axe1/housing/housing_median_rent_plot.pdf"),
-                plot = housing_median_rent_plot, width = 6.5, height = 4)
+#ggplot2::ggsave(filename = here::here("output/axe1/housing/housing_median_rent_plot.pdf"),
+                #plot = housing_median_rent_plot, width = 6.5, height = 4)
 
 
 # Tableau des loyers médians par secteurs
@@ -1307,8 +1307,8 @@ housing_median_cost_plot <-
   ) +
   gg_cc_theme
 
-ggplot2::ggsave(filename = here::here("output/axe1/housing/housing_median_cost_plot.pdf"),
-                plot = housing_median_cost_plot, width = 6.5, height = 4)
+#ggplot2::ggsave(filename = here::here("output/axe1/housing/housing_median_cost_plot.pdf"),
+                #plot = housing_median_cost_plot, width = 6.5, height = 4)
 
 housing_cost_med_table <-
   gt(owner_tenant[1:6, c(1,3)]) |> 
