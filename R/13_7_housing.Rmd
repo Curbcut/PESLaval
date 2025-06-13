@@ -8,7 +8,7 @@ output:
 
 ```{r setupHousing, include=FALSE}
 knitr::opts_chunk$set(echo = FALSE, warning = FALSE)
-qs::qread(here::here("data/axe1/housing.qsm"))
+qs::qload(here::here("data/axe1/housing.qsm"))
 ```
 
 ## Logement et habitation

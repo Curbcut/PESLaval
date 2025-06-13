@@ -839,6 +839,8 @@ loyer_med_table_complete <-
               row_group.font.size = 12,
               table.width = px(6 * 96))
 
+gtsave(loyer_med_table_complete, "output/axe1/housing/loyer_med_table_complete.png", zoom = 3)
+
 median_owner <- data_25 |>
   select(1, which(str_detect(names(data_25), "4367"))) |>
   mutate(across(1:2, as.character)) |> 
@@ -873,7 +875,7 @@ med_own_16_lvl <- get_census(dataset = "CA16",
 med_own_16_qc <- get_census(dataset = "CA16",
                              regions = list(CSD = 24),
                              level = "PR",
-                             vectors = c(`Frais de logement mensuels médians (2021)` = "v_CA16_4893")) |> 
+                             vectors = c(`Frais de logement mensuels médians (2016)` = "v_CA16_4893")) |> 
   mutate(Name = "Ensemble du Québec") |> 
   select(Name, `Frais de logement mensuels médians (2016)`)
 
@@ -927,6 +929,8 @@ med_own_table_complete <-
   tab_options(table.font.size = 12,
               row_group.font.size = 12,
               table.width = px(6 * 96))
+
+gtsave(med_own_table_complete, "output/axe1/housing/med_own_table_complete.png", zoom = 3)
 
 # housing_loyer_med_table <-
 #   gt(med_rent_table) |> 
