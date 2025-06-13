@@ -137,7 +137,7 @@ g1 <- ggplot(pto_graph, aes(x = Year, y = Households, fill = Type)) +
   theme(legend.title = element_blank())
 
 # Graphique pour la proportion des ménages
-g2 <- ggplot(pto_graph, aes(x = Year, y = Proportion, fill = Type)) +
+proportion_logement_statutoccupation <- ggplot(pto_graph, aes(x = Year, y = Proportion, fill = Type)) +
   geom_bar(stat = "identity", position = "fill") +
   geom_text(aes(label = ProportionLabel, group = Type),
             vjust = 2, color = "black", size = 2.75) +
@@ -148,6 +148,9 @@ g2 <- ggplot(pto_graph, aes(x = Year, y = Proportion, fill = Type)) +
   scale_y_continuous(labels = convert_pct) +
   gg_cc_theme_no_sf +
   theme(legend.title = element_blank())
+
+ggplot2::ggsave(filename = here::here("output/axe1/housing/proportion_logement_statutoccupation.pdf"),
+                plot = proportion_logement_statutoccupation, width = 6.5, height = 3.5)
 
 # Combinaison des deux graphiques avec facet_wrap et partage de la légende
 library(patchwork)
@@ -2355,7 +2358,8 @@ qs::qsavem(housing_owner_2016, housing_owner_2021,
            loyer_med_table_complete, med_own_table_complete, new_taux_efforts_table,
            acceptable_laval_table, acceptable_qc_table, taille_lvl_number,
            taille_lvl_tenant, taille_lvl_owner, core_need_owner, core_need_owner_QC,
-           acceptable_housing_table, file = "data/axe1/housing.qsm")
+           acceptable_housing_table, housing_te_QC, mobility_status_ldr,
+           mobility_status_CSD,proportion_logement_statutoccupation, file = "data/axe1/housing.qsm")
 
 
 
