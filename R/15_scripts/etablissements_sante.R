@@ -137,113 +137,171 @@ sum(rowSums(sante_laval) > 0 )
 
 # Values ------------------------------------------------------------------
 
+# Table with vulnerable populations
+# sante_pop <- merge(DBs[c("GeoUID", "Population")], 
+#                    sf::st_drop_geometry(access_sante),
+#                    by.x = "GeoUID", by.y = "from")
+# 
+# sante_pop <- 
+#   sante_pop |> 
+#   sf::st_drop_geometry() |> 
+#   group_by(binned_variable) |> 
+#   summarize(pop = sum(Population))
+# 
+# # Make sure to use the same numbers as in the table shown!!!!
+# less15 <- sum(sante_pop$pop[sante_pop$binned_variable %in% c("0-15")])
+# less15 / lvl$Population
+# less30 <- sum(sante_pop$pop[sante_pop$binned_variable %in% c("0-15", "15-30")])
+# less30 / lvl$Population
+# 
+# # Look for more vulnerable population. Children and old age?
+# DAs <- cancensus::get_census("CA21", regions = list(CSD = 2465005), level = "DA",
+#                              vectors = c(children = "v_CA21_11",
+#                                          elderly = "v_CA21_251"),
+#                              geo_format = "sf")
+# 
+# DAs <- DAs[c("GeoUID", "Population", "children", "elderly")]
+# names(DAs) <- c("DA_UID", "DA_pop", "children", "elderly", "geometry")
+# DB_children <- cc.buildr::merge(DBs[c("GeoUID", "DA_UID", "Population")], 
+#                                 sf::st_drop_geometry(DAs), by = "DA_UID")
+# DB_children <- sf::st_drop_geometry(DB_children)
+# DB_children$pop_ratio <- DB_children$Population / DB_children$DA_pop
+# DB_children$children <- DB_children$children * DB_children$pop_ratio
+# DB_children$elderly <- DB_children$elderly * DB_children$pop_ratio
+# DB_children <- DB_children[c("GeoUID", "children", "elderly")]
+# 
+# sante_age <- merge(DB_children, 
+#                    sf::st_drop_geometry(access_sante),
+#                    by.x = "GeoUID", by.y = "from")
+# 
+# sante_age <- 
+#   sante_age |> 
+#   sf::st_drop_geometry() |> 
+#   group_by(binned_variable) |> 
+#   summarize(children = sum(children, na.rm = TRUE),
+#             elderly = sum(elderly, na.rm = TRUE)) |> 
+#   mutate(children_pct = children / sum(children), 
+#          elderly_pct = elderly / sum(elderly))
+# 
+# sante_age[c(0,1,4,3,5)]
+# 
+# less30 <- sum(sante_age$children[sante_age$binned_variable %in% c("0-15", "15-30")])
+# 
+# sante_age$children <- curbcut::convert_unit(x = sante_age$children)
+# sante_age$elderly <- curbcut::convert_unit(x = sante_age$elderly)
+# sante_age$children_pct <- curbcut:::convert_unit.pct(x = sante_age$children_pct, decimal = 0)
+# sante_age$elderly_pct <- curbcut:::convert_unit.pct(x = sante_age$elderly_pct, decimal = 0)
+# sante_age$binned_variable <- paste0(sante_age$binned_variable, " minutes")
+# sante_age$binned_variable <- gsub("-", " à ", sante_age$binned_variable)
+# 
+# names(sante_age) <- c("Temps de marche", "0 à 14 ans (n)", "65 ans et plus (n)",
+#                       "0 à 14 ans (%)", "65 ans et plus (%)")
+# sante_age <- sante_age[c(1,2,4,3,5)]
+# 
+# # Add general population
+# sante_age$`Population (n)` <- curbcut::convert_unit(x = sante_pop$pop)
+# sante_age$`Population (%)` <- curbcut:::convert_unit.pct(x = sante_pop$pop / sum(sante_pop$pop), decimal = 0)
+# 
+# # Format for the table
+# sante_age$`0 à 14 ans (%)` <- gsub("%", "", sante_age$`0 à 14 ans (%)`) |> as.numeric()
+# sante_age$`65 ans et plus (%)` <- gsub("%", "", sante_age$`65 ans et plus (%)`) |> as.numeric()
+# sante_age$`Population (%)` <- gsub("%", "", sante_age$`Population (%)`) |> as.numeric()
+# 
+# sante_age_modified_columns <- c("0 à 14 ans (n)", "65 ans et plus (n)", "Population (n)")
+# sante_age <- sante_age |> mutate(across(all_of(sante_age_modified_columns), ~ gsub(",", " ", .)))
+# 
+# healthcare_table <- sante_age |> 
+#   gt() |> 
+#   data_color(
+#     columns = vars(`0 à 14 ans (%)`, `65 ans et plus (%)`, `Population (%)`),
+#     colors = scales::col_numeric(
+#       palette = c("white", color_theme("purpletransport")),
+#       domain = NULL
+#     )
+#   ) |> 
+#   fmt(
+#     columns = ends_with("%)"),
+#     fns = function(x) {
+#       formatted <- sprintf("%.1f %%", x)
+#       gsub("\\.", ",", formatted)
+#     }
+#   ) |> 
+#   # Appliquer le style de la police à toute la table
+#   tab_style(
+#     style = cell_text(
+#       font = "KMR Apparat Regular"
+#     ),
+#     locations = cells_body()
+#   ) |> 
+#   tab_style(
+#     style = cell_text(
+#       font = "KMR Apparat Regular"
+#     ),
+#     locations = cells_column_labels()
+#   ) |> 
+#   # Options générales pour la table
+#   tab_options(
+#     table.font.size = 12,
+#     row_group.font.size = 12,
+#     table.width = px(6 * 96)
+#   )
+
+#healthcare_table with only total population 
+
+# 1. Merge population with accessibility bins
 sante_pop <- merge(DBs[c("GeoUID", "Population")], 
                    sf::st_drop_geometry(access_sante),
                    by.x = "GeoUID", by.y = "from")
 
-sante_pop <- 
-  sante_pop |> 
-  sf::st_drop_geometry() |> 
+# 2. Summarize population by walking time category
+sante_pop_summary <- 
+  sante_pop |>
   group_by(binned_variable) |> 
-  summarize(pop = sum(Population))
+  summarize(`Population (n)` = sum(Population), .groups = "drop") |>
+  mutate(`Population (%)` = `Population (n)` / sum(`Population (n)`))
 
-# Make sure to use the same numbers as in the table shown!!!!
-less15 <- sum(sante_pop$pop[sante_pop$binned_variable %in% c("0-15")])
-less15 / lvl$Population
-less30 <- sum(sante_pop$pop[sante_pop$binned_variable %in% c("0-15", "15-30")])
-less30 / lvl$Population
+# 3. Format the walking time labels
+sante_pop_summary <- sante_pop_summary |>
+  mutate(`Temps de marche` = paste0(gsub("-", " à ", binned_variable), " minutes")) |>
+  select(`Temps de marche`, `Population (n)`, `Population (%)`)
 
-# Look for more vulnerable population. Children and old age?
-DAs <- cancensus::get_census("CA21", regions = list(CSD = 2465005), level = "DA",
-                             vectors = c(children = "v_CA21_11",
-                                         elderly = "v_CA21_251"),
-                             geo_format = "sf")
+# 4. Format numbers
+sante_pop_summary$`Population (n)` <- curbcut::convert_unit(sante_pop_summary$`Population (n)`)
+sante_pop_summary$`Population (%)` <- curbcut:::convert_unit.pct(sante_pop_summary$`Population (%)`, decimal = 0)
+sante_pop_summary$`Population (%)` <- gsub("%", "", sante_pop_summary$`Population (%)`) |> as.numeric()
+sante_pop_summary$`Population (n)` <- gsub(",", " ", sante_pop_summary$`Population (n)`)
 
-DAs <- DAs[c("GeoUID", "Population", "children", "elderly")]
-names(DAs) <- c("DA_UID", "DA_pop", "children", "elderly", "geometry")
-DB_children <- cc.buildr::merge(DBs[c("GeoUID", "DA_UID", "Population")], 
-                                sf::st_drop_geometry(DAs), by = "DA_UID")
-DB_children <- sf::st_drop_geometry(DB_children)
-DB_children$pop_ratio <- DB_children$Population / DB_children$DA_pop
-DB_children$children <- DB_children$children * DB_children$pop_ratio
-DB_children$elderly <- DB_children$elderly * DB_children$pop_ratio
-DB_children <- DB_children[c("GeoUID", "children", "elderly")]
-
-sante_age <- merge(DB_children, 
-                   sf::st_drop_geometry(access_sante),
-                   by.x = "GeoUID", by.y = "from")
-
-sante_age <- 
-  sante_age |> 
-  sf::st_drop_geometry() |> 
-  group_by(binned_variable) |> 
-  summarize(children = sum(children, na.rm = TRUE),
-            elderly = sum(elderly, na.rm = TRUE)) |> 
-  mutate(children_pct = children / sum(children), 
-         elderly_pct = elderly / sum(elderly))
-
-sante_age[c(0,1,4,3,5)]
-
-less30 <- sum(sante_age$children[sante_age$binned_variable %in% c("0-15", "15-30")])
-
-sante_age$children <- curbcut::convert_unit(x = sante_age$children)
-sante_age$elderly <- curbcut::convert_unit(x = sante_age$elderly)
-sante_age$children_pct <- curbcut:::convert_unit.pct(x = sante_age$children_pct, decimal = 0)
-sante_age$elderly_pct <- curbcut:::convert_unit.pct(x = sante_age$elderly_pct, decimal = 0)
-sante_age$binned_variable <- paste0(sante_age$binned_variable, " minutes")
-sante_age$binned_variable <- gsub("-", " à ", sante_age$binned_variable)
-
-names(sante_age) <- c("Temps de marche", "0 à 14 ans (n)", "65 ans et plus (n)",
-                      "0 à 14 ans (%)", "65 ans et plus (%)")
-sante_age <- sante_age[c(1,2,4,3,5)]
-
-# Add general population
-sante_age$`Population (n)` <- curbcut::convert_unit(x = sante_pop$pop)
-sante_age$`Population (%)` <- curbcut:::convert_unit.pct(x = sante_pop$pop / sum(sante_pop$pop), decimal = 0)
-
-# Format for the table
-sante_age$`0 à 14 ans (%)` <- gsub("%", "", sante_age$`0 à 14 ans (%)`) |> as.numeric()
-sante_age$`65 ans et plus (%)` <- gsub("%", "", sante_age$`65 ans et plus (%)`) |> as.numeric()
-sante_age$`Population (%)` <- gsub("%", "", sante_age$`Population (%)`) |> as.numeric()
-
-sante_age_modified_columns <- c("0 à 14 ans (n)", "65 ans et plus (n)", "Population (n)")
-sante_age <- sante_age |> mutate(across(all_of(sante_age_modified_columns), ~ gsub(",", " ", .)))
-
-healthcare_table <- sante_age |> 
+# 5. Create the table
+healthcare_table <- sante_pop_summary |> 
   gt() |> 
   data_color(
-    columns = vars(`0 à 14 ans (%)`, `65 ans et plus (%)`, `Population (%)`),
+    columns = vars(`Population (%)`),
     colors = scales::col_numeric(
       palette = c("white", color_theme("purpletransport")),
       domain = NULL
     )
   ) |> 
   fmt(
-    columns = ends_with("%)"),
+    columns = `Population (%)`,
     fns = function(x) {
       formatted <- sprintf("%.1f %%", x)
       gsub("\\.", ",", formatted)
     }
   ) |> 
-  # Appliquer le style de la police à toute la table
   tab_style(
-    style = cell_text(
-      font = "KMR Apparat Regular"
-    ),
+    style = cell_text(font = "KMR Apparat Regular"),
     locations = cells_body()
   ) |> 
   tab_style(
-    style = cell_text(
-      font = "KMR Apparat Regular"
-    ),
+    style = cell_text(font = "KMR Apparat Regular"),
     locations = cells_column_labels()
   ) |> 
-  # Options générales pour la table
   tab_options(
     table.font.size = 12,
     row_group.font.size = 12,
     table.width = px(6 * 96)
   )
+
 
 gt::gtsave(healthcare_table, "output/axe3/healthcare_table.png", zoom = 3)
 
