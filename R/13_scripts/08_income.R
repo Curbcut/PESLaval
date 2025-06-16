@@ -97,7 +97,7 @@ mhh_graph <- mhh_graph %>%
               values_from = c(`Revenu médian des ménages`)) %>%
   (\(.) { .[3, 2:3] <- list(29893, 29034); . })()
 
-names(mhh_graph) <- c("Année", "Ville de Laval", "Ensemble du Québec")
+names(mhh_graph) <- c("Année", "Laval", "Ensemble du Québec")
 
 mhh_plot <-
   gt(mhh_graph) |> 
@@ -109,23 +109,16 @@ mhh_plot <-
     )
   ) |> 
   fmt(columns = 2:3, fns = \(x) paste(convert_number(x), "$")) |> 
-  # Apply font style to the whole table
   tab_style(
-    style = cell_text(
-      font = "KMR-Apparat-Regular"
-    ),
+    style = cell_text(font = "KMR-Apparat-Regular"),
     locations = cells_body()
   ) |>
   tab_style(
-    style = cell_text(
-      font = "KMR-Apparat-Regular"
-    ),
+    style = cell_text(font = "KMR-Apparat-Regular"),
     locations = cells_column_labels()
   ) |>
   tab_style(
-    style = cell_text(
-      font = "KMR-Apparat-Regular"
-    ),
+    style = cell_text(font = "KMR-Apparat-Regular"),
     locations = cells_row_groups()
   ) |>
   tab_style(
@@ -134,13 +127,14 @@ mhh_plot <-
   ) |> 
   tab_spanner(
     label = "Revenu médian des ménages",
-    columns = c("Ville de Laval", "Ensemble du Québec")
+    columns = c("Laval", "Ensemble du Québec")
   ) |> 
   tab_options(
     table.font.size = 12,
     row_group.font.size = 12,
     table.width = px(6 * 96)
   )
+
 
 gtsave(mhh_plot, "output/axe1/income/mhh_plot.png", zoom = 3)
 
@@ -197,7 +191,7 @@ ggplot2::ggsave(filename = here::here("output/axe1/income/median_income_sf_plot.
                 plot = median_income_sf_plot, width = 6.5, height = 4)
 
 
-# Tableau des loyers médians par secteurs
+# Tableau des revenus médians par secteurs
 median_income_sf_2021 <- median_income_sf
 z <- sf::st_intersects(sf::st_centroid(median_income_sf_2021), laval_sectors)
 median_income_sf_2021$secteur <- sapply(z, \(x) {
@@ -234,13 +228,13 @@ median_income_table <-
   ) |> 
   tab_style(
     style = cell_text(
-      font = "KMR Apparat Regular"
+      font = "KMR-Apparat-Regular"
     ),
     locations = cells_body()
   ) |> 
   tab_style(
     style = cell_text(
-      font = "KMR Apparat Regular"
+      font = "KMR-Apparat-Regular"
     ),
     locations = cells_column_labels()
   ) |> 
@@ -611,7 +605,7 @@ mii_graph <- mii_graph %>%
               values_from = c(`Revenu médian des ménages`)) |> 
   (\(.) { .[3, 2:3] <- list(29893, 29034); . })()
 
-names(mii_graph) <- c("Année", "Ville de Laval", "Ensemble du Québec")
+names(mii_graph) <- c("Année", "Laval", "Ensemble du Québec")
 
 mii_plot <-
   gt(mii_graph) |> 
@@ -648,17 +642,17 @@ mii_plot <-
   ) |> 
   tab_spanner(
     label = "Revenu médian des individus",
-    columns = c("Ville de Laval", "Ensemble du Québec")
+    columns = c("Laval", "Ensemble du Québec")
   ) |> 
   tab_style(
     style = cell_text(
-      font = "KMR Apparat Regular"
+      font = "KMR-Apparat-Regular"
     ),
     locations = cells_body()
   ) |> 
   tab_style(
     style = cell_text(
-      font = "KMR Apparat Regular"
+      font = "KMR-Apparat-Regular"
     ),
     locations = cells_column_labels()
   ) |> 
@@ -1884,7 +1878,7 @@ qs::qsavem(rev_med, rev_med_2015, rev_med_aug, rev_med_aug_QC, mhh_plot,
            frev_pct_2015, frev_wide_table, frev_total, frev_total_QC, 
            frev_total_old, frev_total_old_QC, frev_sf_plot, frev_sector_table,
            rev_mid_ind_2015, rev_mid_ind, rev_mid_ind_aug, rev_mid_ind_QC, 
-           rev_mid_ind_2015_QC, rev_mid_ind_aug_QC,
+           rev_mid_ind_2015_QC, rev_mid_ind_aug_QC,inc_ind_20k_pct,
            file = "data/axe1/income.qsm")
 
 
