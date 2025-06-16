@@ -702,8 +702,8 @@ housing_median_rent_plot <-
   ) +
   gg_cc_theme
 
-#ggplot2::ggsave(filename = here::here("output/axe1/housing/housing_median_rent_plot.pdf"),
-                #plot = housing_median_rent_plot, width = 6.5, height = 4)
+ggplot2::ggsave(filename = here::here("output/axe1/housing/housing_median_rent_plot.pdf"),
+                plot = housing_median_rent_plot, width = 6.5, height = 4)
 
 
 # Tableau des loyers médians par secteurs
@@ -804,7 +804,8 @@ med_rent_table_complete <- med_rent_qc |>
   mutate(`Augmentation du loyer mensuel médian (2016 - 2021)` = 
            (`Loyer médian mensuel (2021)` / `Loyer médian mensuel (2016)`)-1) |> 
   select(Name, `Loyer médian mensuel (2016)`, `Loyer médian mensuel (2021)`, `Augmentation du loyer mensuel médian (2016 - 2021)`) |> 
-  rename("Région" = Name)
+  rename("Région" = Name,
+         "Évolution du loyer mensuel médian (2016 - 2021)" = `Augmentation du loyer mensuel médian (2016 - 2021)`)
   
 
 loyer_med_table_complete <- 
@@ -896,7 +897,8 @@ med_own_table <- med_own_qc |>
   mutate(`Augmentation du logement mensuels médians (2016 - 2021)` = 
            (`Frais de logement mensuels médians (2021)` / `Frais de logement mensuels médians (2016)`)-1) |> 
   select(Name, `Frais de logement mensuels médians (2016)`, `Frais de logement mensuels médians (2021)`, `Augmentation du logement mensuels médians (2016 - 2021)`) |> 
-  rename("Région" = Name)
+  rename("Région" = Name,
+         "Évolution des frais de logement mensuels médians (2016 - 2021)" = `Augmentation du logement mensuels médians (2016 - 2021)` )
 
 med_own_table_complete <- 
   gt(med_own_table) |> 
@@ -928,85 +930,85 @@ med_own_table_complete <-
 
 gtsave(med_own_table_complete, "output/axe1/housing/med_own_table_complete.png", zoom = 3)
 
-# housing_loyer_med_table <-
-#   gt(med_rent_table) |> 
+ housing_loyer_med_table <-
+   gt(med_rent_table) |>
 #   # Appliquer une mise en couleur sur les colonnes médianes
-#   data_color(
-#     columns = 2,
-#     colors = scales::col_numeric(
-#       palette = c("white", color_theme("purpletransport")),
-#       domain = NULL
-#     )
-#   ) |> 
-#   fmt(columns = 2, fns = \(x) paste(convert_number_tens(x), "$")) |> 
-#   # Ajouter des bordures en haut de chaque groupe de ligne
-#   tab_style(
-#     style = cell_borders(
-#       sides = c("top"),
-#       color = "white",
-#       weight = px(10)
-#     ),
-#     locations = cells_row_groups()
-#   ) |> 
-#   # Appliquer le style de la police à toute la table
-#   tab_style(
-#     style = cell_text(
-#       font = "KMR-Apparat-Regular"
-#     ),
-#     locations = cells_body()
-#   ) |> 
-#   tab_style(
-#     style = cell_text(
-#       font = "KMR-Apparat-Regular"
-#     ),
-#     locations = cells_column_labels()
-#   ) |> 
-#   # Options générales pour la table
-#   tab_options(
-#     table.font.size = 12,
-#     row_group.font.size = 12,
-#     table.width = px(6 * 96)
-#   )
+   data_color(
+     columns = 2,
+     colors = scales::col_numeric(
+       palette = c("white", color_theme("purpletransport")),
+       domain = NULL
+     )
+   ) |>
+   fmt(columns = 2, fns = \(x) paste(convert_number_tens(x), "$")) |>
+   # Ajouter des bordures en haut de chaque groupe de ligne
+   tab_style(
+     style = cell_borders(
+       sides = c("top"),
+       color = "white",
+       weight = px(10)
+     ),
+     locations = cells_row_groups()
+   ) |>
+   # Appliquer le style de la police à toute la table
+   tab_style(
+     style = cell_text(
+       font = "KMR-Apparat-Regular"
+     ),
+     locations = cells_body()
+   ) |>
+   tab_style(
+     style = cell_text(
+       font = "KMR-Apparat-Regular"
+     ),
+     locations = cells_column_labels()
+   ) |>
+   # Options générales pour la table
+   tab_options(
+     table.font.size = 12,
+     row_group.font.size = 12,
+     table.width = px(6 * 96)
+   )
 
-# housing_loyer_med_table <-
-#   gt(owner_tenant[1:6, 1:2]) |> 
-#   # Appliquer une mise en couleur sur les colonnes médianes
-#   data_color(
-#     columns = 2,
-#     colors = scales::col_numeric(
-#       palette = c("white", color_theme("purpletransport")),
-#       domain = NULL
-#     )
-#   ) |> 
-#   fmt(columns = 2, fns = \(x) paste(convert_number_tens(x), "$")) |> 
+ housing_loyer_med_table <-
+   gt(owner_tenant[1:6, 1:2]) |>
+   # Appliquer une mise en couleur sur les colonnes médianes
+   data_color(
+     columns = 2,
+     colors = scales::col_numeric(
+       palette = c("white", color_theme("purpletransport")),
+       domain = NULL
+     )
+   ) |>
+   fmt(columns = 2, fns = \(x) paste(convert_number_tens(x), "$")) |>
 #   # Ajouter des bordures en haut de chaque groupe de ligne
-#   tab_style(
-#     style = cell_borders(
-#       sides = c("top"),
-#       color = "white",
-#       weight = px(10)
-#     ),
-#     locations = cells_row_groups()
-#   ) |> 
+   tab_style(
+     style = cell_borders(
+       sides = c("top"),
+       color = "white",
+       weight = px(10)
+     ),
+     locations = cells_row_groups()
+   ) |>
 #   # Appliquer le style de la police à toute la table
-#   tab_style(
-#     style = cell_text(
-#       font = "KMR-Apparat-Regular"
-#     ),
-#     locations = cells_body()
-#   ) |> 
-#   tab_style(
-#     style = cell_text(
-#       font = "KMR-Apparat-Regular"
-#     ),
-#     locations = cells_column_labels()
-#   ) |> 
-#   # Options générales pour la table
-#   tab_options(
-#     table.font.size = 12,
-#     row_group.font.size = 12,
-#     table.width = px(6 * 96)
-#   )
+   tab_style(
+     style = cell_text(
+       font = "KMR-Apparat-Regular"
+     ),
+     locations = cells_body()
+   ) |>
+   tab_style(
+     style = cell_text(
+       font = "KMR-Apparat-Regular"
+     ),
+     locations = cells_column_labels()
+   ) |>
+   # Options générales pour la table
+   tab_options(
+     table.font.size = 12,
+     row_group.font.size = 12,
+     table.width = px(6 * 96)
+   )
 
 gtsave(housing_loyer_med_table, "output/axe1/housing/housing_loyer_med_table.png", zoom = 3)
 
@@ -2251,7 +2253,7 @@ core_need_table <-
     `Besoins impérieux (%)_Ensemble du Québec` = "Besoins impérieux (%)"
   ) %>%
   tab_spanner(
-    label = "Ville de Laval",
+    label = "Laval",
     columns = c(`Besoins impérieux (n)_Ville de Laval`, `Besoins impérieux (%)_Ville de Laval`)
   ) %>%
   tab_spanner(
