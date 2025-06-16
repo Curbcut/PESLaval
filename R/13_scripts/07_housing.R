@@ -729,16 +729,9 @@ bd2_rent <- read.csv("data/new/TableExport.csv", fileEncoding = "latin1", skip =
                            "Chomedey/Sainte-Dorothée", "Laval-Ouest/Fabreville/Ste-Rose", "Vimont/Auteuil"))
 
 
-med_rent_table <- med_rent |> 
+med_rent_table <- bd2_rent |> 
   mutate(across(1:2, as.character)) |> 
-  mutate(
-    across(1, ~replace(., 1, "Secteur")),
-    across(2, ~replace(., 1, "Loyer médian mensuel (2021)"))
-  ) |> 
-  (\(df) {
-    colnames(df) <- df[1, ]
-    df |> slice(-1)
-  })() |> 
+  setNames(c("Secteur", "Loyer médian mensuel (2021)")) |> 
   mutate(`Secteur` = replace(`Secteur`, 1, "Secteur 3 : Chomedey"),
          `Secteur` = replace(`Secteur`, 2, "Secteur 1 : Duvernay, Saint-François et Saint-Vincent-de-Paul"),
          `Secteur` = replace(`Secteur`, 3, "Secteur 2 : Pont-Viau, Renaud-Coursol et Laval-des-Rapides"),
@@ -1222,17 +1215,17 @@ loyer_med_var_table <-
 
 gtsave(loyer_med_var_table, "output/axe1/housing/loyer_med_var_table.png", zoom = 3)
 
-losd <- "Laval-Ouest, Sainte-Dorothée, Laval-sur-le-Lac"
-housing_rent_losd <- owner_tenant_sf_var$med_tenant[owner_tenant_sf_var == losd]
-housing_rent_losd <- convert_number_tens(housing_rent_losd)
-housing_rent_losd_2016 <- owner_tenant_sf_var$med_tenant_2016[owner_tenant_sf_var == losd]
-housing_rent_losd_2016 <- convert_number_tens(housing_rent_losd_2016)
+losd <- "Secteur 4 : Sainte-Dorothée, Laval-Ouest, Les Îles-Laval, Fabreville-Ouest et Laval-sur-le-Lac"
+housing_rent_losd <- owner_tenant_sf_var$med_tenant[owner_tenant_sf_var == losd] |> 
+  convert_number()
+housing_rent_losd_2016 <- owner_tenant_sf_var$med_tenant_2016[owner_tenant_sf_var == losd] |> 
+  convert_number()
 
 housing_rent_var_losd <- owner_tenant_sf_var_table$`Augmentation du loyer mensuel médian (2016 - 2021)`[
   owner_tenant_sf_var_table$` ` == losd
 ] |> convert_pct()
 
-srfb <- "Chomedey"
+srfb <- "Secteur 3 : Chomedey"
 housing_rent_srfb <- owner_tenant_sf_var$med_tenant[owner_tenant_sf_var == srfb]
 housing_rent_srfb <- convert_number_tens(housing_rent_srfb)
 housing_rent_srfb_2016 <- owner_tenant_sf_var$med_tenant_2016[owner_tenant_sf_var == srfb]
@@ -1241,7 +1234,7 @@ housing_rent_var_srfb <- owner_tenant_sf_var_table$`Augmentation du loyer mensue
   owner_tenant_sf_var_table$` ` == srfb
 ] |> convert_pct()
 
-svpsf <- "Duvernay, Saint-Vincent-de-Paul, Saint-François"
+svpsf <- "Secteur 1 : Duvernay, Saint-François et Saint-Vincent-de-Paul"
 housing_rent_svpsf <- owner_tenant_sf_var$med_tenant[owner_tenant_sf_var == svpsf]
 housing_rent_svpsf <- convert_number_tens(housing_rent_svpsf)
 housing_rent_svpsf_2016 <- owner_tenant_sf_var$med_tenant_2016[owner_tenant_sf_var == svpsf]
