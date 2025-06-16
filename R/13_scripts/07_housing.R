@@ -1028,14 +1028,16 @@ mobility_status$secteur <- sapply(z, \(x) {
   if (length(x) == 0) return(NA)
   laval_sectors$name[x]
 })
+
 mobility_status <-
   mobility_status |>
   group_by(secteur) |>
   summarize(mobility_5 = sum(mobility_5, na.rm = TRUE) / sum(total, na.rm = TRUE))
-mobility_status <- mobility_status[1:6, ]
-mobility_status_chomedey <- convert_pct(mobility_status$mobility_5[mobility_status$secteur == "Chomedey"])
 
-mobility_status_ldr <- convert_pct(mobility_status$mobility_5[mobility_status$secteur == "Laval-des-Rapides, Pont-Viau"])
+mobility_status <- mobility_status[1:6, ]
+mobility_status_chomedey <- convert_pct(mobility_status$mobility_5[mobility_status$secteur == "Secteur 3 : Chomedey"])
+
+mobility_status_ldr <- convert_pct(mobility_status$mobility_5[mobility_status$secteur == "Secteur 2 : Pont-Viau, Renaud-Coursol et Laval-des-Rapides"])
 
 
 mobility_status_CSD <- get_census(dataset = "CA21",
