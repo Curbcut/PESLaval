@@ -170,13 +170,13 @@ table_sf <- sf::st_drop_geometry(table_sf)
 table_sf$pop_ratio <- table_sf$Population / table_sf$Pop_DA
 table_sf$low <- as.numeric(table_sf$low) * table_sf$pop_ratio
 
-# Keep only Population and Low Income
-DA_demo <- table_sf[c("GeoUID", "Population", "low")]
+# Keep only Population 
+DA_demo <- table_sf[c("GeoUID", "Population")]
 
 # Join with equipment data
 equipment_demo_j <- left_join(DA_demo, sf::st_drop_geometry(equipment_count), by = c("GeoUID" = "to"))
 
-# Remove immigrant calculations
+# Remove immigrant and low income calculations
 equipment_demo <- 
   equipment_demo_j |> 
   mutate(`Lieux et édifices municipaux accessibles (n)` = 
@@ -187,17 +187,15 @@ equipment_demo <-
                      n > 10 ~ "> 10")) |> 
   group_by(`Lieux et édifices municipaux accessibles (n)`) |> 
   summarize(`Population (n)` = sum(Population, na.rm = TRUE),
-            `Population (%)` = `Population (n)` / sum(DA_demo$Population, na.rm = TRUE),
-            `Faible revenu (n)` = sum(low, na.rm = TRUE),
-            `Faible revenu (%)` = `Faible revenu (n)` / sum(DA_demo$low, na.rm = TRUE))
+            `Population (%)` = `Population (n)` / sum(DA_demo$Population, na.rm = TRUE))
 
 # Generate the final table without immigrant columns
 municipal_table <- equipment_demo |> 
   gt() |> 
-  fmt(columns = c(2,4), fns = convert_number_tens) |>  # Removed immigrant columns (was 3,5,7)
-  fmt(columns = c(3,5), fns = convert_pct) |> 
+  fmt(columns = `Population (n)`, fns = convert_number_tens) |>  
+  fmt(columns = `Population (%)`, fns = convert_pct) |> 
   data_color(
-    columns = c(3,5),
+    columns = `Population (%)`,
     colors = scales::col_numeric(
       palette = c("white", color_theme("purpletransport")),
       domain = NULL
