@@ -29,7 +29,7 @@ mhh_census_grabber_20 <- function(region, geolevel, geoname, filter_v){
   get_census(dataset = "CA21",
              regions = regions_list,
              level = geolevel,
-             vectors = "v_CA21_560"
+             vectors = "v_CA21_906"
   ) |> 
     select(-filter_v) |> 
     mutate(Geography = geoname, .before = 1)
@@ -49,25 +49,25 @@ mhh_census_grabber <- function(cyear, region, geolevel, vectorid, filter_v, ryea
     rename(!!ryear := last_col())
 }
 
-#Grabbing median individual income for Laval for years 2000-2020
+#Grabbing median household income for Laval for years 2000-2020
 mhh_inc20_lvl <- mhh_census_grabber_20("2465005", "CSD", "Laval", (1:10)) |> 
   rename("2020" := last_col())
-mhh_inc15_lvl <- mhh_census_grabber("CA16","2465005", "CSD", "v_CA16_2207", (1:10), "2015")
-mhh_inc10_lvl <- mhh_census_grabber("CA11", "2465005", "CSD", "v_CA11N_2341", (1:10), "2010") |> 
+mhh_inc15_lvl <- mhh_census_grabber("CA16","2465005", "CSD", "v_CA16_2397", (1:10), "2015")
+mhh_inc10_lvl <- mhh_census_grabber("CA11", "2465005", "CSD", "v_CA11N_2562", (1:10), "2010") |> 
   select(-1)
-mhh_inc05_lvl <- mhh_census_grabber("CA06", "2465005", "CSD", "v_CA06_1583", (1:10), "2005")
-mhh_inc00_lvl <- mhh_census_grabber("CA01", "2465005", "CSD", "v_CA01_1449", (1:10), "2000")
+mhh_inc05_lvl <- mhh_census_grabber("CA06", "2465005", "CSD", "v_CA06_2000", (1:10), "2005")
+mhh_inc00_lvl <- mhh_census_grabber("CA01", "2465005", "CSD", "v_CA01_1634", (1:10), "2000")
 #Binding the tables together
 mhh_lvl_graph <- bind_cols(mhh_inc20_lvl, mhh_inc15_lvl, mhh_inc10_lvl, mhh_inc05_lvl, mhh_inc00_lvl)
 
-#Grabbing median individual income for Quebec for years 2000-2020
+#Grabbing median household income for Quebec for years 2000-2020
 mhh_inc20_qc <- mhh_census_grabber_20("24", "PR", "Quebec", (1:8)) |> 
   rename("2020" := last_col())
-mhh_inc15_qc <- mhh_census_grabber("CA16", "24", "PR", "v_CA16_2207", (1:8), "2015")
-mhh_inc10_qc <- mhh_census_grabber("CA11", "24", "PR", "v_CA11N_2341", (1:8), "2010") |> 
+mhh_inc15_qc <- mhh_census_grabber("CA16", "24", "PR", "v_CA16_2397", (1:8), "2015")
+mhh_inc10_qc <- mhh_census_grabber("CA11", "24", "PR", "v_CA11N_2562", (1:8), "2010") |> 
   select(-1)
-mhh_inc05_qc <- mhh_census_grabber("CA06", "24", "PR", "v_CA06_1583", (1:8), "2005")
-mhh_inc00_qc <- mhh_census_grabber("CA01", "24", "PR", "v_CA01_1449", (1:8), "2000")
+mhh_inc05_qc <- mhh_census_grabber("CA06", "24", "PR", "v_CA06_2000", (1:8), "2005")
+mhh_inc00_qc <- mhh_census_grabber("CA01", "24", "PR", "v_CA01_1634", (1:8), "2000")
 #Bind the tables together
 mhh_qc_graph <- bind_cols(mhh_inc20_qc, mhh_inc15_qc, mhh_inc10_qc, mhh_inc05_qc, mhh_inc00_qc)
 
@@ -94,8 +94,8 @@ rev_med_aug_QC <- convert_pct((rev_med_QC - rev_med_2015_QC) / rev_med_2015_QC)
 names(mhh_graph) <- c("Région", "Année", "Revenu médian des ménages")
 mhh_graph <- mhh_graph %>%
   pivot_wider(names_from = Région, 
-              values_from = c(`Revenu médian des ménages`)) %>%
-  (\(.) { .[3, 2:3] <- list(29893, 29034); . })()
+              values_from = c(`Revenu médian des ménages`))# %>%
+  #(\(.) { .[3, 2:3] <- list(29893, 29034); . })()
 
 names(mhh_graph) <- c("Année", "Ville de Laval", "Ensemble du Québec")
 

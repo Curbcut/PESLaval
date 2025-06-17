@@ -1357,7 +1357,6 @@ gtsave(housing_cost_med_table, "output/axe1/housing/housing_cost_med_table.png",
 
 housing_cost_med_table_var <-
   gt(owner_tenant_sf_var_table[c(1, 3)]) |> 
-  # Appliquer une mise en couleur sur les colonnes médianes
   data_color(
     columns = 2,
     colors = scales::col_numeric(
@@ -1423,7 +1422,7 @@ housing_cost_med_table_var <-
 
 gtsave(housing_cost_med_table_var, "output/axe1/housing/housing_cost_med_table_var.png", zoom = 3)
 
-losd <- "Laval-Ouest, Sainte-Dorothée, Laval-sur-le-Lac"
+losd <- "Secteur 4 : Sainte-Dorothée, Laval-Ouest, Les Îles-Laval, Fabreville-Ouest et Laval-sur-le-Lac"
 housing_cost_losd <- owner_tenant_sf_var$med_owner[owner_tenant_sf_var == losd]
 housing_cost_losd <- convert_number_tens(housing_cost_losd)
 housing_cost_losd_2016 <- owner_tenant_sf_var$med_owner_2016[owner_tenant_sf_var == losd]
@@ -1432,7 +1431,7 @@ housing_cost_var_losd <- owner_tenant_sf_var_table$`Augmentation des frais de lo
   owner_tenant_sf_var_table$` ` == losd
 ] |> convert_pct()
 
-lrpv <- "Laval-des-Rapides, Pont-Viau"
+lrpv <- "Secteur 2 : Pont-Viau, Renaud-Coursol et Laval-des-Rapides"
 housing_cost_lrpv <- owner_tenant_sf_var$med_owner[owner_tenant_sf_var == lrpv]
 housing_cost_lrpv <- convert_number_tens(housing_cost_lrpv)
 housing_cost_lrpv_2016 <- owner_tenant_sf_var$med_owner_2016[owner_tenant_sf_var == lrpv]
@@ -1441,7 +1440,7 @@ housing_cost_var_lrpv <- owner_tenant_sf_var_table$`Augmentation des frais de lo
   owner_tenant_sf_var_table$` ` == lrpv
 ] |> convert_pct()
 
-srfb <- "Vimont, Auteuil"
+srfb <- "Secteur 6 : Vimont et Auteuil"
 housing_cost_srfb <- owner_tenant_sf_var$med_owner[owner_tenant_sf_var == srfb]
 housing_cost_srfb <- convert_number_tens(housing_cost_srfb)
 housing_cost_srfb_2016 <- owner_tenant_sf_var$med_owner_2016[owner_tenant_sf_var == srfb]
