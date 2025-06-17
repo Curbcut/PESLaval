@@ -673,6 +673,7 @@ t <- add_bins(df = owner_tenant_sf,
               breaks = c(-Inf, 600, 900, 1200, Inf),
               labels = labels
 )
+
 # t <- Reduce(rbind,
 #             split(t, t$binned_variable, drop = FALSE) |>
 #               lapply(\(x) {
@@ -716,8 +717,8 @@ owner_tenant_sf_2021$secteur <- sapply(z, \(x) {
 owner_tenant_sf_2021 <-
   owner_tenant_sf_2021 |>
   group_by(secteur) |>
-  summarize(med_tenant = weighted_mean(med_tenant, tenant_hou, na.rm = TRUE),
-            med_owner = weighted_mean(med_owner, owner_hou, na.rm = TRUE))
+  summarize(med_tenant = weighted.mean(med_tenant, tenant_hou, na.rm = TRUE),
+            med_owner = weighted.mean(med_owner, owner_hou, na.rm = TRUE))
 owner_tenant_sf_2021 <- owner_tenant_sf_2021[1:6, ]
 owner_tenant <- sf::st_drop_geometry(owner_tenant_sf_2021)
 names(owner_tenant) <- c("Secteur", "Loyer médian mensuel", "Frais de logement mensuels médians (propriétaires)")
@@ -755,8 +756,8 @@ med_rent_2016 <- sf::st_drop_geometry(med_rent_2016)
 med_rent_2016 <-
   med_rent_2016 |>
   group_by(secteur) |>
-  summarize(med_tenant_2016 = weighted_mean(med_tenant, tenant_hou, na.rm = TRUE),
-            med_owner_2016 = weighted_mean(med_owner, owner_hou, na.rm = TRUE))
+  summarize(med_tenant_2016 = weighted.mean(med_tenant, tenant_hou, na.rm = TRUE),
+            med_owner_2016 = weighted.mean(med_owner, owner_hou, na.rm = TRUE))
 med_rent_2016 <- med_rent_2016[1:6,] |> 
   rename("Secteur" = "secteur")
 
@@ -842,23 +843,23 @@ median_owner <- data_25 |>
   select(1, which(str_detect(names(data_25), "4367"))) |>
   mutate(across(1:2, as.character)) |> 
   mutate(
-    across(1, ~replace(., 1, "Secteur")),
+    across(1, ~replace(., 1, "secteur")),
     across(2, ~replace(., 1, "Frais de logement mensuels médians (2021)"))
   ) |> 
   (\(df) {
     colnames(df) <- df[1, ]
     df |> slice(-1)
   })() |> 
-  mutate(`Secteur` = replace(`Secteur`, 1, "Secteur 3 : Chomedey"),
-         `Secteur` = replace(`Secteur`, 2, "Secteur 1 : Duvernay, Saint-François et Saint-Vincent-de-Paul"),
-         `Secteur` = replace(`Secteur`, 3, "Secteur 2 : Pont-Viau, Renaud-Coursol et Laval-des-Rapides"),
-         `Secteur` = replace(`Secteur`, 4, "Secteur 4 : Sainte-Dorothée, Laval-Ouest, Les Îles-Laval, Fabreville-Ouest et Laval-sur-le-Lac"),
-         `Secteur` = replace(`Secteur`, 5, "Secteur 5 : Fabreville-Est et Sainte-Rose"),
-         `Secteur` = replace(`Secteur`, 6, "Secteur 6 : Vimont et Auteuil")) |> 
-  arrange(`Secteur`) |> 
+  mutate(`secteur` = replace(`secteur`, 1, "Secteur 3 : Chomedey"),
+         `secteur` = replace(`secteur`, 2, "Secteur 1 : Duvernay, Saint-François et Saint-Vincent-de-Paul"),
+         `secteur` = replace(`secteur`, 3, "Secteur 2 : Pont-Viau, Renaud-Coursol et Laval-des-Rapides"),
+         `secteur` = replace(`secteur`, 4, "Secteur 4 : Sainte-Dorothée, Laval-Ouest, Les Îles-Laval, Fabreville-Ouest et Laval-sur-le-Lac"),
+         `secteur` = replace(`secteur`, 5, "Secteur 5 : Fabreville-Est et Sainte-Rose"),
+         `secteur` = replace(`secteur`, 6, "Secteur 6 : Vimont et Auteuil")) |> 
+  arrange(`secteur`) |> 
   mutate(across(2, as.numeric)) |> 
-  left_join(med_rent_2016, by = "Secteur") |> 
-  rename("Name" = `Secteur`,
+  left_join(med_rent_2016, by = c("secteur" = "Secteur")) |> 
+  rename("Name" = `secteur`,
          "Frais de logement mensuels médians (2016)" = med_owner_2016) |> 
   select(-med_tenant_2016)
 
@@ -1073,8 +1074,8 @@ owner_tenant_sf_2016 <- sf::st_drop_geometry(owner_tenant_sf_2016)
 owner_tenant_sf_2016 <-
   owner_tenant_sf_2016 |>
   group_by(secteur) |>
-  summarize(med_tenant_2016 = weighted_mean(med_tenant, tenant_hou, na.rm = TRUE),
-            med_owner_2016 = weighted_mean(med_owner, owner_hou, na.rm = TRUE))
+  summarize(med_tenant_2016 = weighted.mean(med_tenant, tenant_hou, na.rm = TRUE),
+            med_owner_2016 = weighted.mean(med_owner, owner_hou, na.rm = TRUE))
 owner_tenant_sf_2016 <- owner_tenant_sf_2016[1:6,]
 
 # Bind both years and calculate variations

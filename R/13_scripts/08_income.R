@@ -201,7 +201,7 @@ median_income_sf_2021$secteur <- sapply(z, \(x) {
 median_income_sf_2021 <-
   median_income_sf_2021 |>
   group_by(secteur) |>
-  summarize(median_income = weighted_mean(median_income, priv_hh, na.rm = TRUE))
+  summarize(median_income = weighted.mean(median_income, priv_hh, na.rm = TRUE))
 median_income_sf_2021 <- median_income_sf_2021[1:6, ]
 median_income_sf_2021 <- sf::st_drop_geometry(median_income_sf_2021)
 names(median_income_sf_2021) <- c("Secteur", "Revenu médian des ménages")
