@@ -191,7 +191,7 @@ district_names <-
   guides(fill = "none")
 
 # Save the plot
-ggsave(plot = district_names, filename = "output/secteurs.pdf", width = 8, height = 5.5)
+#ggsave(plot = district_names, filename = "output/secteurs.pdf", width = 8, height = 5.5)
 
 
 

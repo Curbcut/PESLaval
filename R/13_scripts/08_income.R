@@ -1573,8 +1573,8 @@ frev_wide_table <-
 frev_wide |> 
   gt(rowname_col = "variable") |> 
   cols_label(
-    `valeur.x_Ville de Laval` = "Ville de Laval (n)",
-    `valeur.y_Ville de Laval` = "Ville de Laval (%)",
+    `valeur.x_Ville de Laval` = "Laval (n)",
+    `valeur.y_Ville de Laval` = "Laval (%)",
     `valeur.x_Ensemble du Québec` = "Ensemble du Québec (n)",
     `valeur.y_Ensemble du Québec` = "Ensemble du Québec (%)"
   ) |> 
@@ -1606,7 +1606,6 @@ frev_wide |>
     row_group.font.size = 12,
     table.width = px(6 * 96)
   )
-
 
 gtsave(frev_wide_table, "output/axe1/income/frev_wide_table.png", zoom = 3)
 
