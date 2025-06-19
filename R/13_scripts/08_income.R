@@ -1589,16 +1589,16 @@ frev_wide |>
   ) |> 
   # Appliquer le style de la police à toute la table
   tab_style(
-    style = cell_text(
-      font = "KMR-Regular-Apparat"
-    ),
+    style = cell_text(font = "KMR-Apparat-Regular"),
     locations = cells_body()
   ) |> 
   tab_style(
-    style = cell_text(
-      font = "KMR-Regular-Apparat"
-    ),
+    style = cell_text(font = "KMR-Apparat-Regular"),
     locations = cells_column_labels()
+  ) |> 
+  tab_style(
+    style = cell_text(font = "KMR-Apparat-Regular"),
+    locations = cells_stub()
   ) |> 
   # Options générales pour la table
   tab_options(
@@ -1716,13 +1716,13 @@ frev_sector_table <-
   ) |> 
   tab_style(
     style = cell_text(
-      font = "KMR Apparat Regular"
+      font = "KMR-Apparat-Regular"
     ),
     locations = cells_body()
   ) |> 
   tab_style(
     style = cell_text(
-      font = "KMR Apparat Regular"
+      font = "KMR-Apparat-Regular"
     ),
     locations = cells_column_labels()
   ) |> 
