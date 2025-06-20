@@ -258,18 +258,21 @@ sante_pop_summary <-
   sante_pop |>
   group_by(binned_variable) |> 
   summarize(`Population (n)` = sum(Population), .groups = "drop") |>
-  mutate(`Population (%)` = `Population (n)` / sum(`Population (n)`))
-
-# 3. Format the walking time labels
-sante_pop_summary <- sante_pop_summary |>
-  mutate(`Temps de marche` = paste0(gsub("-", " à ", binned_variable), " minutes")) |>
+  mutate(`Population (%)` = `Population (n)` / sum(`Population (n)`)) |> 
+  st_drop_geometry() |> 
+  mutate(`Temps de marche` = paste0(gsub("-", " à ", binned_variable), " minutes")) |> 
   select(`Temps de marche`, `Population (n)`, `Population (%)`)
 
+# 3. Format the walking time labels
+#sante_pop_summary <- sante_pop_summary |>
+  #mutate(`Temps de marche` = paste0(gsub("-", " à ", binned_variable), " minutes")) |>
+  #select(`Temps de marche`, `Population (n)`, `Population (%)`)
+
 # 4. Format numbers
-sante_pop_summary$`Population (n)` <- curbcut::convert_unit(sante_pop_summary$`Population (n)`)
-sante_pop_summary$`Population (%)` <- curbcut:::convert_unit.pct(sante_pop_summary$`Population (%)`, decimal = 0)
-sante_pop_summary$`Population (%)` <- gsub("%", "", sante_pop_summary$`Population (%)`) |> as.numeric()
-sante_pop_summary$`Population (n)` <- gsub(",", " ", sante_pop_summary$`Population (n)`)
+#sante_pop_summary$`Population (n)` <- curbcut::convert_number(sante_pop_summary$`Population (n)`)
+#sante_pop_summary$`Population (%)` <- curbcut:::convert_pct(sante_pop_summary$`Population (%)`)
+#sante_pop_summary$`Population (%)` <- gsub("%", "", sante_pop_summary$`Population (%)`) |> as.numeric()
+#sante_pop_summary$`Population (n)` <- gsub(",", " ", sante_pop_summary$`Population (n)`)
 
 # 5. Create the table
 healthcare_table <- sante_pop_summary |> 
@@ -281,13 +284,15 @@ healthcare_table <- sante_pop_summary |>
       domain = NULL
     )
   ) |> 
-  fmt(
-    columns = `Population (%)`,
-    fns = function(x) {
-      formatted <- sprintf("%.1f %%", x)
-      gsub("\\.", ",", formatted)
-    }
-  ) |> 
+  fmt(columns = 3, fns = convert_pct) |> 
+  fmt(columns = 2, fns = convert_number) |> 
+  # fmt(
+  #   columns = `Population (%)`,
+  #   fns = function(x) {
+  #     formatted <- sprintf("%.1f %%", x)
+  #     gsub("\\.", ",", formatted)
+  #   }
+  # ) |> 
   tab_style(
     style = cell_text(font = "KMR Apparat Regular"),
     locations = cells_body()
