@@ -68,10 +68,14 @@ Les cartes du graphique \@ref(fig:educationGeo) montrent la répartition géogra
 education_uni_aucun_plot
 ```
 
-Le tableau \@ref(tab:educationSectorTable) indique les niveaux de scolarité des individus âgés de 25 à 64 ans à Laval, répartis par secteur. Le secteur de Chomedey affiche le taux le plus élevé de personnes sans diplôme (15,5 %), tandis que Sainte-Rose, Fabreville a le taux le plus bas (7,8 %). En termes de scolarisation postsecondaire, Sainte-Rose, Fabreville se démarque également, avec 75,7 % des résidents détenant un tel diplôme, contre seulement 65,0 % à Chomedey. Enfin, le secteur Laval-Ouest, Sainte-Dorothée et Laval-sur-le-Lac se distingue avec la plus forte proportion de diplômés universitaires (34,2 %), tandis que Duvernay, Saint-Vincent-de-Paul, Saint-François, Vimont, Auteuil et Chomedey présentent des pourcentages légèrement inférieurs à la moyenne lavalloise.
+Le tableau \@ref(tab:educationSectorTableOne) indique les niveaux de scolarité des individus âgés de 25 à 64 ans à Laval, répartis par secteur. Le secteur de Chomedey affiche le taux le plus élevé de personnes sans diplôme (15,5 %), tandis que Sainte-Rose, Fabreville a le taux le plus bas (7,8 %). En termes de scolarisation postsecondaire, Sainte-Rose, Fabreville se démarque également, avec 75,7 % des résidents détenant un tel diplôme, contre seulement 65,0 % à Chomedey. Enfin, le secteur Laval-Ouest, Sainte-Dorothée et Laval-sur-le-Lac se distingue avec la plus forte proportion de diplômés universitaires (34,2 %), tandis que Duvernay, Saint-Vincent-de-Paul, Saint-François, Vimont, Auteuil et Chomedey présentent des pourcentages légèrement inférieurs à la moyenne lavalloise.
 
-```{r educationSectorTable, include=TRUE, tab.cap="Répartition des niveaux de scolarité par secteur à Laval (Population âgée de 25 à 64 ans) (2021)"}
-edu_table
+```{r educationSectorTableOne, include=TRUE, tab.cap="Répartition des niveaux de scolarité par secteur à Laval (Population âgée de 25 à 64 ans) (2021)"}
+edu_table_one
+```
+
+```{r educationSectorTableTwo, include=TRUE, tab.cap=""}
+edu_table_two
 ```
 
 ### Sorties sans diplôme ni qualification

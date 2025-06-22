@@ -259,7 +259,8 @@ supermarkets_demo$`Population (%)` <- gsub("%", "", supermarkets_demo$`Populatio
 modified_columns <- c("Faible revenu (n)", "65 ans et plus (n)", "Population (n)")
 supermarkets_demo <- supermarkets_demo |> mutate(across(all_of(modified_columns), ~ gsub(",", " ", .)))
 
-supermarkets_demo <- supermarkets_demo[c(1,6:7,2:5)]
+supermarkets_demo <- supermarkets_demo[c(1,6:7,2:5)] |> 
+  select(1:3)
 
 grocery_table <- supermarkets_demo |> 
   gt() |> 

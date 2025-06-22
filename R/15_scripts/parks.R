@@ -176,48 +176,88 @@ park_table_data_with_dup_first_col <- park_table_data |>
   mutate(` Parcs accessibles (n)` = park_table_data[[1]])
 park_table_data_with_dup_first_col <- park_table_data_with_dup_first_col[c(1,2,3,4,5,8,6,7)]
 
+#Updated park table data
+update_park_table <- park_table_data |> 
+  select(1:3)
+
 # Then apply your gt logic with the split
-park_table <- 
-  park_table_data_with_dup_first_col |> 
+# park_table <- 
+#   park_table_data_with_dup_first_col |> 
+#   gt() |> 
+#   fmt(columns = c(2,4,7), fns = convert_number_tens) |> 
+#   fmt(columns = c(3,5,8), fns = convert_pct) |> 
+#   data_color(
+#     columns = c(3,5,8),
+#     colors = scales::col_numeric(
+#       palette = c("white", color_theme("purpletransport")),
+#       domain = NULL
+#     )
+#   ) |> 
+#   # Appliquer le style de la police à toute la table
+#   tab_style(
+#     style = cell_text(
+#       font = "KMR Apparat Regular"
+#     ),
+#     locations = cells_body()
+#   ) |> 
+#   tab_style(
+#     style = cell_text(
+#       font = "KMR Apparat Regular"
+#     ),
+#     locations = cells_column_labels()
+#   ) |> 
+#   # Options générales pour la table
+#   tab_options(
+#     table.font.size = 12,
+#     row_group.font.size = 12,
+#     table.width = px(6 * 96)
+#   ) |> 
+#   cols_width(
+#     1 ~ px(1 * 96),
+#     5 ~ px(1 * 96)
+#   ) |> 
+#   # Split the table at the specified point, including the duplicated first column
+#   gt_split(col_slice_at = 5)
+
+park_table <- update_park_table |> 
   gt() |> 
-  fmt(columns = c(2,4,7), fns = convert_number_tens) |> 
-  fmt(columns = c(3,5,8), fns = convert_pct) |> 
+  fmt(columns = c(2), fns = convert_number_tens) |>
+  fmt(columns = c(3), fns = convert_pct) |>
   data_color(
-    columns = c(3,5,8),
+    columns = c(3),
     colors = scales::col_numeric(
       palette = c("white", color_theme("purpletransport")),
       domain = NULL
+      )
+    ) |>
+    # Appliquer le style de la police à toute la table
+    tab_style(
+      style = cell_text(
+        font = "KMR Apparat Regular"
+      ),
+      locations = cells_body()
+    ) |>
+    tab_style(
+      style = cell_text(
+        font = "KMR Apparat Regular"
+      ),
+      locations = cells_column_labels()
+    ) |>
+    # Options générales pour la table
+    tab_options(
+      table.font.size = 12,
+      row_group.font.size = 12,
+      table.width = px(6 * 72)
+    ) |>
+    cols_width(
+      1 ~ px(1 * 112)
     )
-  ) |> 
-  # Appliquer le style de la police à toute la table
-  tab_style(
-    style = cell_text(
-      font = "KMR Apparat Regular"
-    ),
-    locations = cells_body()
-  ) |> 
-  tab_style(
-    style = cell_text(
-      font = "KMR Apparat Regular"
-    ),
-    locations = cells_column_labels()
-  ) |> 
-  # Options générales pour la table
-  tab_options(
-    table.font.size = 12,
-    row_group.font.size = 12,
-    table.width = px(6 * 96)
-  ) |> 
-  cols_width(
-    1 ~ px(1 * 96),
-    5 ~ px(1 * 96)
-  ) |> 
-  # Split the table at the specified point, including the duplicated first column
-  gt_split(col_slice_at = 5)
+  
 
+# gtsave(grp_pull(park_table, 1), "output/axe3/park_table1.png", zoom = 3)
+# gtsave(grp_pull(park_table, 2), "output/axe3/park_table2.png", zoom = 3)
 
-gtsave(grp_pull(park_table, 1), "output/axe3/park_table1.png", zoom = 3)
-gtsave(grp_pull(park_table, 2), "output/axe3/park_table2.png", zoom = 3)
+gt::gtsave(park_table, "output/axe3/park_table.png", zoom = 3)
 
 
 #Numbers for markdown

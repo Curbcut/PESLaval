@@ -542,8 +542,81 @@ edu_table <- gt(edu_21_data) |>
               row_group.font.size = 12,
               table.width = px(6 * 96))
 
+edu_21_data_one <- edu_21_data |> 
+  slice(1:4)
+
+edu_21_data_two <- edu_21_data |> 
+  slice(5:8)
+
+cols_pct <- c("Aucun certificat, diplôme ou grade (%)",
+              "Diplôme d'études secondaires ou attestation d'équivalence (%)",
+              "Certificat ou diplôme d’études postsecondaires inférieur au baccalauréat (%)",
+              "Baccalauréat ou grade supérieur (%)")
+
+# Calculate domains for each using the full dataset
+domain_A <- range(edu_21_data[[cols_pct[1]]], na.rm = TRUE)
+domain_B <- range(edu_21_data[[cols_pct[2]]], na.rm = TRUE)
+domain_C <- range(edu_21_data[[cols_pct[3]]], na.rm = TRUE)
+domain_D <- range(edu_21_data[[cols_pct[4]]], na.rm = TRUE)
+
+edu_table_one <- gt(edu_21_data_one) |> 
+  data_color(columns = cols_pct[1], colors = scales::col_numeric(c("white", color_theme("purpletransport")), domain = domain_A)) |>
+  data_color(columns = cols_pct[2], colors = scales::col_numeric(c("white", color_theme("purpletransport")), domain = domain_B)) |>
+  data_color(columns = cols_pct[3], colors = scales::col_numeric(c("white", color_theme("purpletransport")), domain = domain_C)) |>
+  data_color(columns = cols_pct[4], colors = scales::col_numeric(c("white", color_theme("purpletransport")), domain = domain_D)) |>
+  fmt(columns = ends_with("%)"),
+      fns = convert_pct) |>
+  tab_row_group(label = "Secteur", # Adding the row group for "Secteur"
+                rows = 3:4) |>
+  tab_row_group(label = "Région", # Adding the row group for "Région"
+                rows = 1:2) |>
+  tab_style(style = list(cell_text(weight = "bold")),
+            locations = cells_body(rows = 2)) |>
+  tab_style(style = cell_borders(sides = c("top"),
+                                 color = "white",
+                                 weight = px(10)),
+            locations = cells_row_groups()) |>
+  tab_style(style = cell_text(font = "KMR-Apparat-Regular"), # Apply font style to the whole table
+            locations = cells_body()) |>
+  tab_style(style = cell_text(font = "KMR-Apparat-Regular"),
+            locations = cells_column_labels()) |>
+  tab_style(style = cell_text(font = "KMR-Apparat-Regular"),
+            locations = cells_row_groups()) |>
+  tab_style(style = cell_fill(color = "#F0F0F0"),
+            locations = cells_row_groups()) |> 
+  tab_options(table.font.size = 12,
+              row_group.font.size = 12,
+              table.width = px(6 * 96))
+
+edu_table_two <- gt(edu_21_data_two) |> 
+  data_color(columns = cols_pct[1], colors = scales::col_numeric(c("white", color_theme("purpletransport")), domain = domain_A)) |>
+  data_color(columns = cols_pct[2], colors = scales::col_numeric(c("white", color_theme("purpletransport")), domain = domain_B)) |>
+  data_color(columns = cols_pct[3], colors = scales::col_numeric(c("white", color_theme("purpletransport")), domain = domain_C)) |>
+  data_color(columns = cols_pct[4], colors = scales::col_numeric(c("white", color_theme("purpletransport")), domain = domain_D)) |>
+  fmt(columns = ends_with("%)"),
+      fns = convert_pct) |>
+  tab_row_group(label = "Secteur", # Adding the row group for "Secteur"
+                rows = 1:4) |>
+  tab_style(style = cell_borders(sides = c("top"),
+                                 color = "white",
+                                 weight = px(10)),
+            locations = cells_row_groups()) |>
+  tab_style(style = cell_text(font = "KMR-Apparat-Regular"), # Apply font style to the whole table
+            locations = cells_body()) |>
+  tab_style(style = cell_text(font = "KMR-Apparat-Regular"),
+            locations = cells_column_labels()) |>
+  tab_style(style = cell_text(font = "KMR-Apparat-Regular"),
+            locations = cells_row_groups()) |>
+  tab_style(style = cell_fill(color = "#F0F0F0"),
+            locations = cells_row_groups()) |> 
+  tab_options(table.font.size = 12,
+              row_group.font.size = 12,
+              table.width = px(6 * 96))
+
 gtsave(educ_sectors_table, "output/axe1/education/educ_sectors_table.png", zoom = 3)
 gtsave(edu_table, "output/axe1/education/edu_table.png", zoom = 3)
+gtsave(edu_table_one, "output/axe1/education/edu_table_one.png", zoom = 3)
+gtsave(edu_table_two, "output/axe1/education/edu_table_two.png", zoom = 3)
 
 
 # Composition 2006-2021 ---------------------------------------------------
@@ -711,5 +784,5 @@ qs::qsavem(education_indice_plot, education_eleves_var, education_eleves_var_qc,
            no_diploma_pct_2021_qc, bachelor_higher_pct_2006_qc,
            bachelor_higher_pct_2021_qc, education_uni_aucun_plot,
            educ_sectors_table, edu_comp_graph, edu_gender_graph, dropout_plot,
-           edu_table,
+           edu_table, edu_table_one, edu_table_two,
            file = "data/axe1/education.qsm")

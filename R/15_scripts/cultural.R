@@ -231,7 +231,8 @@ cultural_demo$`Population (%)` <- gsub("%", "", cultural_demo$`Population (%)`) 
 modified_columns <- c("Faible revenu (n)", "Immigrants (n)", "Population (n)")
 cultural_demo <- cultural_demo |> mutate(across(all_of(modified_columns), ~ gsub(",", " ", .)))
 
-cultural_demo <- cultural_demo[c(1,6:7,2:5)]
+cultural_demo <- cultural_demo[c(1,6:7,2:5)] |> 
+  select(1:3)
 
 cultural_table <- cultural_demo |> 
   gt() |> 
