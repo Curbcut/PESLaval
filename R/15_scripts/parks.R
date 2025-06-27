@@ -233,13 +233,13 @@ park_table <- update_park_table |>
     # Appliquer le style de la police à toute la table
     tab_style(
       style = cell_text(
-        font = "KMR Apparat Regular"
+        font = "KMR-Apparat-Regular"
       ),
       locations = cells_body()
     ) |>
     tab_style(
       style = cell_text(
-        font = "KMR Apparat Regular"
+        font = "KMR-Apparat-Regular"
       ),
       locations = cells_column_labels()
     ) |>
