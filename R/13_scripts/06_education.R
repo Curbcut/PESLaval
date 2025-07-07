@@ -586,7 +586,7 @@ edu_table_one <- gt(edu_21_data_one) |>
             locations = cells_row_groups()) |> 
   tab_options(table.font.size = 12,
               row_group.font.size = 12,
-              table.width = px(6 * 96))
+              table.width = px(6 * 180))
 
 edu_table_two <- gt(edu_21_data_two) |> 
   data_color(columns = cols_pct[1], colors = scales::col_numeric(c("white", color_theme("purpletransport")), domain = domain_A)) |>
@@ -611,7 +611,7 @@ edu_table_two <- gt(edu_21_data_two) |>
             locations = cells_row_groups()) |> 
   tab_options(table.font.size = 12,
               row_group.font.size = 12,
-              table.width = px(6 * 96))
+              table.width = px(6 * 180))
 
 gtsave(educ_sectors_table, "output/axe1/education/educ_sectors_table.png", zoom = 3)
 gtsave(edu_table, "output/axe1/education/edu_table.png", zoom = 3)
