@@ -576,11 +576,11 @@ edu_table_one <- gt(edu_21_data_one) |>
                                  color = "white",
                                  weight = px(10)),
             locations = cells_row_groups()) |>
-  tab_style(style = cell_text(font = "KMR-Apparat-Regular"), # Apply font style to the whole table
+  tab_style(style = cell_text(font = "KMR Apparat"), # Apply font style to the whole table
             locations = cells_body()) |>
-  tab_style(style = cell_text(font = "KMR-Apparat-Regular"),
+  tab_style(style = cell_text(font = "KMR Apparat"),
             locations = cells_column_labels()) |>
-  tab_style(style = cell_text(font = "KMR-Apparat-Regular"),
+  tab_style(style = cell_text(font = "KMR Apparat"),
             locations = cells_row_groups()) |>
   tab_style(style = cell_fill(color = "#F0F0F0"),
             locations = cells_row_groups()) |> 
@@ -601,11 +601,11 @@ edu_table_two <- gt(edu_21_data_two) |>
                                  color = "white",
                                  weight = px(10)),
             locations = cells_row_groups()) |>
-  tab_style(style = cell_text(font = "KMR-Apparat-Regular"), # Apply font style to the whole table
+  tab_style(style = cell_text(font = "KMR Apparat"), # Apply font style to the whole table
             locations = cells_body()) |>
-  tab_style(style = cell_text(font = "KMR-Apparat-Regular"),
+  tab_style(style = cell_text(font = "KMR Apparat"),
             locations = cells_column_labels()) |>
-  tab_style(style = cell_text(font = "KMR-Apparat-Regular"),
+  tab_style(style = cell_text(font = "KMR Apparat"),
             locations = cells_row_groups()) |>
   tab_style(style = cell_fill(color = "#F0F0F0"),
             locations = cells_row_groups()) |> 

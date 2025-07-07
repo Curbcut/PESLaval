@@ -280,13 +280,13 @@ grocery_table <- supermarkets_demo |>
   ) |>
   tab_style(
     style = cell_text(
-      font = "KMR-Apparat-Regular"
+      font = "KMR Apparat"
     ),
     locations = cells_body()
   ) |> 
   tab_style(
     style = cell_text(
-      font = "KMR-Apparat-Regular"
+      font = "KMR Apparat"
     ),
     locations = cells_column_labels()
   ) |> 

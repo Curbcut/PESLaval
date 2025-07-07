@@ -271,6 +271,118 @@ cultural_table <- cultural_demo |>
 
 gtsave(cultural_table, "output/axe3/cultural_table.png", zoom = 3)
 
+# Access by Time ----------------------------------------------------------
+tt_60 <- qs::qread("data/ttm_foot_60.qs")
+
+#Changing cultural to simply seeing if a db has it or not
+cultural_db <- cultural |>
+  st_drop_geometry() |> 
+  select(GeoUID) |>
+  distinct() |> 
+  mutate(access = 1) |> 
+  rename(to = GeoUID)
+
+#Setting the travel bands and binding the cultural db
+tt_15min <- tt_60 |> filter(travel_seconds <= 900) |> 
+  left_join(cultural_db, by = "to") |> 
+  filter(!is.na(access)) |>
+  group_by(from) |> 
+  summarize(access_15 = sum(access, na.rm = TRUE)) |> 
+  rename(GeoUID = from)
+
+tt_15_30min <- tt_60 |> filter(travel_seconds > 900, travel_seconds <= 1800) |> 
+  left_join(cultural_db, by = "to") |> 
+  filter(!is.na(access)) |>
+  group_by(from) |> 
+  summarize(access_30 = sum(access, na.rm = TRUE)) |> 
+  rename(GeoUID = from)
+  
+tt_30_45min <- tt_60 |> filter(travel_seconds > 1800, travel_seconds <= 2700) |> 
+  left_join(cultural_db, by = "to") |> 
+  filter(!is.na(access)) |>
+  group_by(from) |> 
+  summarize(access_45 = sum(access, na.rm = TRUE)) |> 
+  rename(GeoUID = from)
+
+tt_45_60min <- tt_60 |> filter(travel_seconds > 2700, travel_seconds <= 3600) |> 
+  left_join(cultural_db, by = "to") |> 
+  filter(!is.na(access)) |>
+  group_by(from) |> 
+  summarize(access_60 = sum(access, na.rm = TRUE)) |> 
+  rename(GeoUID = from)
+
+cultural_table_data_one <- DBs |> 
+  st_drop_geometry() |> 
+  select(GeoUID, Population) |> 
+  left_join(tt_15min, by = "GeoUID") |> 
+  left_join(tt_15_30min, by = "GeoUID") |>
+  left_join(tt_30_45min, by = "GeoUID") |>
+  left_join(tt_45_60min, by = "GeoUID") |> 
+  mutate(
+    less15 = ifelse(!is.na(access_15) & access_15 > 0, 1, 0),
+    less30 = ifelse(less15 == 0 & !is.na(access_30) & access_30 > 0, 1, 0),
+    less45 = ifelse(less15 + less30 == 0 & !is.na(access_45) & access_45 > 0, 1, 0),
+    less60 = ifelse(less15 + less30 + less45 == 0 & !is.na(access_60) & access_60 > 0, 1, 0),
+    plus60 = ifelse(less15 + less30 + less45 + less60 == 0, 1, 0)
+  )
+
+cultural_table_data_two <- cultural_table_data |> 
+  summarise(
+    less15_pop = sum(Population[less15 == 1], na.rm = TRUE),
+    less30_pop = sum(Population[less30 == 1], na.rm = TRUE),
+    less45_pop = sum(Population[less45 == 1], na.rm = TRUE),
+    less60_pop = sum(Population[less60 == 1], na.rm = TRUE),
+    plus60_pop = sum(Population[plus60 == 1], na.rm = TRUE)
+  ) |> 
+  rename(`0 à 15 minutes` = less15_pop,
+         `15 à 30 minutes` = less30_pop,
+         `30 à 45 minutes` = less45_pop,
+         `45 à 60 minutes` = less60_pop,
+         `60+ minutes` = plus60_pop) |> 
+  pivot_longer(
+    cols = everything(),
+    names_to = "Temps de marche",
+    values_to = "Population (n)"
+  ) |> 
+  mutate(`Population (%)` = `Population (n)` / sum(`Population (n)`))
+
+cultural_table_time <- cultural_table_data_two |> 
+  gt() |> 
+  data_color(
+    columns = ends_with("%)"),
+    colors = scales::col_numeric(
+      palette = c("white", color_theme("purpletransport")),
+      domain = NULL
+    )
+  ) |> 
+  fmt(
+    columns = ends_with("%)"),
+    fns = convert_pct
+  ) |>
+  fmt(
+    columns = ends_with("n)"),
+    fns = convert_number
+  ) |> 
+  tab_style(
+    style = cell_text(
+      font = "KMR Apparat"
+    ),
+    locations = cells_body()
+  ) |> 
+  tab_style(
+    style = cell_text(
+      font = "KMR Apparat"
+    ),
+    locations = cells_column_labels()
+  ) |> 
+  # Options générales pour la table
+  tab_options(
+    table.font.size = 12,
+    row_group.font.size = 12,
+    table.width = px(6 * 96)
+  )
+
+gtsave(cultural_table_time, "output/axe3/cultural_table_time.png", zoom = 3)
 
 # R Markdown --------------------------------------------------------------
 cultural_no_access <- cultural_demo |> 

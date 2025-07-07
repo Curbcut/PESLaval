@@ -10,6 +10,7 @@ parks <- parks[parks$area >= 2000, ]
 
 # Travel time matrix (default, 15 minutes)
 tt <- ttm()
+tt <- ttm(under_x_minutes = 15)
 
 
 # Calculate m^2 of parks accessible ---------------------------------------
@@ -30,22 +31,21 @@ access <- function(x) {
 which_have_access <- lapply(seq_along(parks$geometry), access)
 
 which_have_access <- table(unlist(which_have_access))
-parks_access <- tibble::tibble(GeoUID = names(which_have_access),
+parks_access_1 <- tibble::tibble(GeoUID = names(which_have_access),
                                parks = as.vector(which_have_access))
 
-no_access <- DBs$GeoUID[!DBs$GeoUID %in% parks_access$GeoUID]
-parks_access <- rbind(parks_access, tibble::tibble(GeoUID = no_access, parks = 0))
-parks_access <- tibble::as_tibble(parks_access)
+no_access <- DBs$GeoUID[!DBs$GeoUID %in% parks_access_1$GeoUID]
+parks_access_1 <- rbind(parks_access_1, tibble::tibble(GeoUID = no_access, parks = 0))
+parks_access_1 <- tibble::as_tibble(parks_access_1)
 
-parks_access <- cc.buildr::merge(parks_access, DBs[c("GeoUID", "geometry")])
-
+parks_access_1 <- cc.buildr::merge(parks_access_1, DBs[c("GeoUID", "geometry")])
 
 # Map it ------------------------------------------------------------------
 
 labels <- c("0", "1", "2", "3-4", "5+")
 
 # Add our bins in the data
-parks_access <- add_bins(df = parks_access,
+parks_access <- add_bins(df = parks_access_1,
                          variable = "parks",
                          breaks = c(-Inf, 0.1, 1.1, 2.1, 4.1, Inf),
                          labels = labels
@@ -233,13 +233,13 @@ park_table <- update_park_table |>
     # Appliquer le style de la police à toute la table
     tab_style(
       style = cell_text(
-        font = "KMR-Apparat-Regular"
+        font = "KMR Apparat"
       ),
       locations = cells_body()
     ) |>
     tab_style(
       style = cell_text(
-        font = "KMR-Apparat-Regular"
+        font = "KMR Apparat"
       ),
       locations = cells_column_labels()
     ) |>
@@ -250,9 +250,8 @@ park_table <- update_park_table |>
       table.width = px(6 * 72)
     ) |>
     cols_width(
-      1 ~ px(1 * 112)
+      1 ~ px(1 * 124)
     )
-  
 
 # gtsave(grp_pull(park_table, 1), "output/axe3/park_table1.png", zoom = 3)
 # gtsave(grp_pull(park_table, 2), "output/axe3/park_table2.png", zoom = 3)
