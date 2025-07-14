@@ -546,6 +546,100 @@ ggsave(filename = here::here("output/axe1/housing/avgcost_tenant_graph.png"),
 ggsave(filename = here::here("output/axe1/housing/avgcost_bar_graph.png"),
        plot = avgcost_bar_graph, width = 6.5, height = 3.5, bg = "white")
 
+# Median and Average Cost Tables ------------------------------------------
+#Adding an identifier
+avgcost_table_data_prep <- avgcost_graph |> 
+  mutate(mean = "avg") |> 
+  filter(Year >= 2011)
+
+tenant_table_data <- medcost_graph |> 
+  mutate(mean = "med") |> 
+  bind_rows(avgcost_table_data_prep) |> 
+  filter(Type == "tenant") |>
+  select(-Type) |> 
+  mutate(Régions = case_when(Region == "Laval" & mean == "med" ~ "Laval - coût médian",
+                             Region == "Laval" & mean == "avg" ~ "Laval - coût moyen",
+                             Region == "Quebec" & mean == "med" ~ "Ensemble du Québec - coût médian",
+                             Region == "Quebec" & mean == "avg" ~ "Ensemble du Québec - coût moyen")) |> 
+  select(-Region, -mean) |> 
+  pivot_wider(names_from = Year,
+              values_from = Cost) |>
+  mutate(
+    `Variation 2011-2016` = (`2016` - `2011`) / `2011`,
+    `Variation 2016-2021` = (`2021` - `2016`) / `2016`,
+    Régions = factor(Régions, levels = c("Laval - coût médian",
+                                         "Laval - coût moyen",
+                                         "Ensemble du Québec - coût médian",
+                                         "Ensemble du Québec - coût moyen"))) |>
+  arrange(Régions) |> 
+  select(Régions, `2011`, `2016`, `2021`, `Variation 2011-2016`, `Variation 2016-2021`)
+
+owner_table_data <- medcost_graph |> 
+  mutate(mean = "med") |> 
+  bind_rows(avgcost_table_data_prep) |> 
+  filter(Type == "owner") |>
+  select(-Type) |> 
+  mutate(Régions = case_when(Region == "Laval" & mean == "med" ~ "Laval - coût médian",
+                             Region == "Laval" & mean == "avg" ~ "Laval - coût moyen",
+                             Region == "Quebec" & mean == "med" ~ "Ensemble du Québec - coût médian",
+                             Region == "Quebec" & mean == "avg" ~ "Ensemble du Québec - coût moyen")) |> 
+  select(-Region, -mean) |> 
+  pivot_wider(names_from = Year,
+              values_from = Cost) |>
+  mutate(
+    `Variation 2011-2016` = (`2016` - `2011`) / `2011`,
+    `Variation 2016-2021` = (`2021` - `2016`) / `2016`,
+    Régions = factor(Régions, levels = c("Laval - coût médian",
+                                         "Laval - coût moyen",
+                                         "Ensemble du Québec - coût médian",
+                                         "Ensemble du Québec - coût moyen"))) |>
+  arrange(Régions) |> 
+  select(Régions, `2011`, `2016`, `2021`, `Variation 2011-2016`, `Variation 2016-2021`)
+
+tenant_table <- gt(tenant_table_data) |>
+  data_color(columns = 2:6, colors = col_numeric(palette = c("white",color_theme("purpletransport")), domain = NULL)) |> 
+  fmt(columns = 2:4, fns = \(x) paste(convert_number_tens(x), "$")) |> 
+  fmt(columns = 5:6, fns = convert_pct) |>
+  tab_style(style = cell_borders(sides = c("top"),
+                                 color = "white",
+                                 weight = px(10)),
+            locations = cells_row_groups()) |>
+  tab_style(style = cell_text(font = "KMR Apparat"),
+            locations = cells_body()) |>
+  tab_style(style = cell_text(font = "KMR Apparat"),
+            locations = cells_column_labels()) |>
+  tab_style(style = cell_text(font = "KMR Apparat"),
+            locations = cells_row_groups()) |>
+  tab_style(style = cell_fill(color = "#F0F0F0"),
+            locations = cells_row_groups()) |> 
+  tab_options(table.font.size = 12,
+              row_group.font.size = 12,
+              table.width = px(6 * 114))
+
+owner_table <- gt(owner_table_data) |>
+  data_color(columns = 2:6, colors = col_numeric(palette = c("white",color_theme("purpletransport")), domain = NULL)) |> 
+  fmt(columns = 2:4, fns = \(x) paste(convert_number_tens(x), "$")) |> 
+  fmt(columns = 5:6, fns = convert_pct) |>
+  tab_style(style = cell_borders(sides = c("top"),
+                                 color = "white",
+                                 weight = px(10)),
+            locations = cells_row_groups()) |>
+  tab_style(style = cell_text(font = "KMR Apparat"),
+            locations = cells_body()) |>
+  tab_style(style = cell_text(font = "KMR Apparat"),
+            locations = cells_column_labels()) |>
+  tab_style(style = cell_text(font = "KMR Apparat"),
+            locations = cells_row_groups()) |>
+  tab_style(style = cell_fill(color = "#F0F0F0"),
+            locations = cells_row_groups()) |> 
+  tab_options(table.font.size = 12,
+              row_group.font.size = 12,
+              table.width = px(6 * 114))
+
+gtsave(tenant_table, "output/axe1/housing/tenant_table.png", zoom = 3)
+
+gtsave(owner_table, "output/axe1/housing/owner_table.png", zoom = 3)
+
 # Median Costs Map ---------------------------------------------------------
 #Grabbing census info
 osc_21v <- c("med_owner" = "v_CA21_4309", 
