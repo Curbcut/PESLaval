@@ -750,6 +750,16 @@ sector_scost_data <- medcost_graph |>
   arrange(desc(Secteurs == "Ensemble du Québec")) |> 
   bind_rows(sector_scosts)
 
+sector_ownercost_data <- sector_scost_data |> 
+  select(1,2,4) |> 
+  rename(`Coûts mensuels médians du logement` = `Coûts mensuels médians du logement – Propriétaires`,
+         `Coûts mensuels moyens du logement` = `Coûts mensuels moyens du logement – Propriétaires`)
+
+sector_tenantcost_data <- sector_scost_data |> 
+  select(1,3,5) |> 
+  rename(`Coûts mensuels médians du logement` = `Coûts mensuels médians du logement – Locataires`,
+         `Coûts mensuels moyens du logement` = `Coûts mensuels moyens du logement – Locataires`)
+
 #Creating the table
 sector_scosts_table <- gt(sector_scost_data) |> 
   cols_label(Secteurs = "") |> 
@@ -777,7 +787,61 @@ sector_scosts_table <- gt(sector_scost_data) |>
               row_group.font.size = 12,
               table.width = px(6 * 124))
 
+sector_owncosts_table <- gt(sector_ownercost_data) |> 
+  cols_label(Secteurs = "") |> 
+  data_color(columns = 2:3,
+             colors = scales::col_numeric(palette = c("white", color_theme("purpletransport")),
+                                          domain = NULL)) |> 
+  fmt(columns = 2:3, fns = \(x) paste(convert_number_tens(x), "$")) |> 
+  tab_row_group(label = "Secteur", rows = 3:8) |>
+  tab_row_group(label = "Région", rows = 1:2) |>
+  tab_style(style = list(cell_text(weight = "bold")),
+            locations = cells_body(rows = 2)) |>
+  tab_style(style = cell_borders(sides = c("top"),
+                                 color = "white",
+                                 weight = px(10)),
+            locations = cells_row_groups()) |>
+  tab_style(style = cell_text(font = "KMR Apparat"),
+            locations = cells_body()) |>
+  tab_style(style = cell_text(font = "KMR Apparat"),
+            locations = cells_column_labels()) |>
+  tab_style(style = cell_text(font = "KMR Apparat"),
+            locations = cells_row_groups()) |>
+  tab_style(style = cell_fill(color = "#F0F0F0"),
+            locations = cells_row_groups()) |> 
+  tab_options(table.font.size = 12,
+              row_group.font.size = 12,
+              table.width = px(6 * 96))
+
+sector_rentcosts_table <- gt(sector_tenantcost_data) |> 
+  cols_label(Secteurs = "") |> 
+  data_color(columns = 2:3,
+             colors = scales::col_numeric(palette = c("white", color_theme("purpletransport")),
+                                          domain = NULL)) |> 
+  fmt(columns = 2:3, fns = \(x) paste(convert_number_tens(x), "$")) |> 
+  tab_row_group(label = "Secteur", rows = 3:8) |>
+  tab_row_group(label = "Région", rows = 1:2) |>
+  tab_style(style = list(cell_text(weight = "bold")),
+            locations = cells_body(rows = 2)) |>
+  tab_style(style = cell_borders(sides = c("top"),
+                                 color = "white",
+                                 weight = px(10)),
+            locations = cells_row_groups()) |>
+  tab_style(style = cell_text(font = "KMR Apparat"),
+            locations = cells_body()) |>
+  tab_style(style = cell_text(font = "KMR Apparat"),
+            locations = cells_column_labels()) |>
+  tab_style(style = cell_text(font = "KMR Apparat"),
+            locations = cells_row_groups()) |>
+  tab_style(style = cell_fill(color = "#F0F0F0"),
+            locations = cells_row_groups()) |> 
+  tab_options(table.font.size = 12,
+              row_group.font.size = 12,
+              table.width = px(6 * 96))
+
 gtsave(sector_scosts_table, "output/axe1/housing/sector_scosts_table.png", zoom = 3)
+gtsave(sector_owncosts_table, "output/axe1/housing/sector_owncosts_table.png", zoom = 3)
+gtsave(sector_rentcosts_table, "output/axe1/housing/sector_rentcosts_table.png", zoom = 3)
 
 # Housing Starts and Completions ------------------------------------------
 
@@ -1002,23 +1066,18 @@ taux_efforts <- pivot_wider(taux_efforts, names_from = Année,
                                             `Tous les ménages`))
 taux_efforts <- taux_efforts[c(1,4,3,2)]
 
-#Creating a new data frame as reference doesn't have a csv version
-#https://www.lavalensante.com/fileadmin/internet/cisss_laval/Documentation/Sante_publique/Profils_et_portraits/Portraits/Donnees_par_secteur_d_amenagement_2021_VF.pdf
-taux_efforts_new <- data.frame(
-  Name = c("Ensemble du Québec", "Laval", "Secteur 1 : Duvernay, Saint-François et Saint-Vincent-de-Paul", 
-           "Secteur 2 : Pont-Viau, Renaud-Coursol et Laval-des-Rapides", "Secteur 3 : Chomedey",
-           "Secteur 4 : Sainte-Dorothée, Laval-Ouest, Les Îles-Laval, Fabreville-Ouest et Laval-sur-le-Lac",
-           "Secteur 5 : Fabreville-Est et Sainte-Rose", "Secteur 6 : Vimont et Auteuil"),
-  "Ménages locataires" = c(0.252, 0.282, 0.251, 0.254, 0.317, 0.341, 0.297, 0.225),
-  "Ménages propriétaires" = c(0.100, 0.119, 0.101, 0.141, 0.173, 0.120, 0.087, 0.093),
-  "Tous les ménages" = c(0.161, 0.173,
-                         (0.251*4965+0.101*17550)/(4965+17550),
-                         (0.254*19055+0.141*15600)/(19055+15600),
-                         (0.317*17645+0.173*20460)/(17645+20460),
-                         (0.341*4615+0.120*19935)/(4615+19935),
-                         (0.297*5745+0.087*21800)/(21800+5745),
-                         (0.225*4760+0.093*17660)/(4760+17660)),
-  check.names = FALSE)
+#Grabbing data from beyond 2020 spreadsheet
+unafford_2020 <- data_25 |> 
+  rename(Secteurs = `...1`) |> 
+  select(Secteurs, matches("4304|4310|4361|4385")) |> 
+  rename("Total" = `Total - Owner and tenant households with household total income greater than zero, in non-farm, non-reserve private dwellings by shelter-cost-to-income ratio - 25% sample data...4304`,
+         "Unafford" = `Spending 30% or more of income on shelter costs...4310`,
+         "Owner" = `% of owner households spending 30% or more of its income on shelter costs...4361`,
+         "Tenant" = `% of tenant households spending 30% or more of its income on shelter costs...4385`) |> 
+  slice(-1) |> 
+  mutate(Total = as.numeric(Total),
+         Unafford = as.numeric(Unafford)) |> 
+  mutate(prop = `Unafford` / `Total`)
 
 new_taux_efforts_table <- 
   gt(taux_efforts_new) |> 
@@ -1075,93 +1134,8 @@ new_taux_efforts_table <-
     table.width = px(6 * 96)
   )
 
-taux_efforts_table <- 
-  gt(taux_efforts) |> 
-  # Appliquer une mise en couleur sur les colonnes médianes
-  data_color(
-    columns = 2:ncol(taux_efforts),
-    colors = scales::col_numeric(
-      palette = c("white", color_theme("purpletransport")),
-      domain = NULL
-    ), 
-  ) |> 
-  fmt(columns = 2:ncol(taux_efforts), fns = convert_pct) |> 
-  # tab_spanner(
-  #   label = "2021",
-  #   columns = c(`Ménages propriétaires_2021`, `Ménages locataires_2021`, 
-  #                  `Tous les ménages_2021`)
-  # ) |> 
-  # tab_spanner(
-  #   label = "Changement 2016-2021",
-  #   columns = c(`Ménages propriétaires_Changement 2016-2021`, 
-  #               `Ménages locataires_Changement 2016-2021`, 
-  #                  `Tous les ménages_Changement 2016-2021`)
-  # ) |> 
-  cols_label(
-    `Ménages propriétaires_2021` = "Ménages propriétaires",
-    `Ménages locataires_2021` = "Ménages locataires",
-    `Tous les ménages_2021` = "Tous les ménages"#,
-    # `Ménages propriétaires_Changement 2016-2021` = "Ménages propriétaires",
-    # `Ménages locataires_Changement 2016-2021` = "Ménages locataires",
-    # `Tous les ménages_Changement 2016-2021` = "Tous les ménages"
-  ) |>
-  
-  # Adding the row group for "Secteur"
-  tab_row_group(
-    label = "Secteur",
-    rows = 3:nrow(taux_efforts)
-  ) |>
-  # Adding the row group for "Région"
-  tab_row_group(
-    label = "Région",
-    rows = 1:2
-  ) |>
-  tab_style(
-    style = list(
-      cell_text(weight = "bold")
-    ),
-    locations = cells_body(
-      rows = 2
-    )
-  ) |>
-  tab_style(
-    style = cell_borders(
-      sides = c("top"),
-      color = "white",
-      weight = px(10)
-    ),
-    locations = cells_row_groups()
-  ) |>
-  # Apply font style to the whole table
-  tab_style(
-    style = cell_text(
-      font = "KMR Apparat"
-    ),
-    locations = cells_body()
-  ) |>
-  tab_style(
-    style = cell_text(
-      font = "KMR Apparat"
-    ),
-    locations = cells_column_labels()
-  ) |>
-  tab_style(
-    style = cell_text(
-      font = "KMR Apparat"
-    ),
-    locations = cells_row_groups()
-  ) |>
-  tab_style(
-    style = cell_fill(color = "#F0F0F0"),
-    locations = cells_row_groups()
-  ) |> 
-  tab_options(
-    table.font.size = 12,
-    row_group.font.size = 12,
-    table.width = px(6 * 96)
-  )
-
 gtsave(taux_efforts_table, "output/axe1/housing/taux_efforts_table.png", zoom = 3)
+
 
 # Logement de taille inadéquat --------------------------------------------
 
