@@ -710,6 +710,75 @@ ggplot2::ggsave(filename = here::here("output/axe1/housing/housing_median_rent_p
 ggplot2::ggsave(filename = here::here("output/axe1/housing/housing_median_own_plot.pdf"),
                 plot = housing_median_own_plot, width = 6.5, height = 4)
 
+# Per-Sector Costs --------------------------------------------------------
+#Importing Beyond2020 Data
+data_25 <- readr::read_csv("data/new/2270_25_en.csv", locale = locale(encoding = "Latin1"))
+
+#Filtering for shelter costs
+sector_scosts <- data_25 |> 
+  rename(Secteurs = `...1`) |> 
+  select(Secteurs, matches("4367|4370|4391|4394")) |> 
+  slice(-1) |> 
+  mutate(`Secteurs` = replace(`Secteurs`, 1, "Secteur 3 : Chomedey"),
+         `Secteurs` = replace(`Secteurs`, 2, "Secteur 1 : Duvernay, Saint-François et Saint-Vincent-de-Paul"),
+         `Secteurs` = replace(`Secteurs`, 3, "Secteur 2 : Pont-Viau, Renaud-Coursol et Laval-des-Rapides"),
+         `Secteurs` = replace(`Secteurs`, 4, "Secteur 4 : Sainte-Dorothée, Laval-Ouest, Les Îles-Laval, Fabreville-Ouest et Laval-sur-le-Lac"),
+         `Secteurs` = replace(`Secteurs`, 5, "Secteur 5 : Fabreville-Est et Sainte-Rose"),
+         `Secteurs` = replace(`Secteurs`, 6, "Secteur 6 : Vimont et Auteuil")) |> 
+  mutate(across(2:5, ~ as.double(.))) |> 
+  arrange(`Secteurs`) |> 
+  rename(`Coûts mensuels médians du logement – Propriétaires`= `Median monthly shelter costs for owned dwellings ($)...4367`,
+         `Coûts mensuels médians du logement – Locataires`= `Median monthly shelter costs for rented dwellings ($)...4391`,
+         `Coûts mensuels moyens du logement – Propriétaires`= `Average monthly shelter costs for owned dwellings ($)...4370`,
+         `Coûts mensuels moyens du logement – Locataires`= `Average monthly shelter costs for rented dwellings ($)...4394`)
+
+#Adding in Laval and Quebec and making the data usable
+sector_scost_data <- medcost_graph |> 
+  mutate(mean = "med") |> 
+  bind_rows(avgcost_table_data_prep) |> 
+  filter(Year == 2021) |> 
+  mutate(x1 = case_when(
+    Type == "owner" & mean == "med" ~ "Coûts mensuels médians du logement – Propriétaires",
+    Type == "tenant" & mean == "med" ~ "Coûts mensuels médians du logement – Locataires",
+    Type == "owner" & mean == "avg" ~ "Coûts mensuels moyens du logement – Propriétaires",
+    Type == "tenant" & mean == "avg" ~ "Coûts mensuels moyens du logement – Locataires"
+  )) |> 
+  select(Region, Cost, x1) |> 
+  rename("Secteurs" = Region) |> 
+  pivot_wider(names_from = x1, values_from = Cost) |> 
+  mutate(Secteurs = ifelse(Secteurs == "Quebec", "Ensemble du Québec", Secteurs)) |> 
+  arrange(desc(Secteurs == "Ensemble du Québec")) |> 
+  bind_rows(sector_scosts)
+
+#Creating the table
+sector_scosts_table <- gt(sector_scost_data) |> 
+  cols_label(Secteurs = "") |> 
+  data_color(columns = 2:5,
+             colors = scales::col_numeric(palette = c("white", color_theme("purpletransport")),
+                                          domain = NULL)) |> 
+  fmt(columns = 2:5, fns = \(x) paste(convert_number_tens(x), "$")) |> 
+  tab_row_group(label = "Secteur", rows = 3:8) |>
+  tab_row_group(label = "Région", rows = 1:2) |>
+  tab_style(style = list(cell_text(weight = "bold")),
+            locations = cells_body(rows = 2)) |>
+  tab_style(style = cell_borders(sides = c("top"),
+                                 color = "white",
+                                 weight = px(10)),
+            locations = cells_row_groups()) |>
+  tab_style(style = cell_text(font = "KMR Apparat"),
+            locations = cells_body()) |>
+  tab_style(style = cell_text(font = "KMR Apparat"),
+            locations = cells_column_labels()) |>
+  tab_style(style = cell_text(font = "KMR Apparat"),
+            locations = cells_row_groups()) |>
+  tab_style(style = cell_fill(color = "#F0F0F0"),
+            locations = cells_row_groups()) |> 
+  tab_options(table.font.size = 12,
+              row_group.font.size = 12,
+              table.width = px(6 * 124))
+
+gtsave(sector_scosts_table, "output/axe1/housing/sector_scosts_table.png", zoom = 3)
+
 # Housing Starts and Completions ------------------------------------------
 
 # Starts
