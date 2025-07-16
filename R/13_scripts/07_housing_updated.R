@@ -970,6 +970,7 @@ aff_21 <- aff_census_1121("CA21", aff_21v, "2021")
 aff_16 <- aff_census_1121("CA16", aff_16v, "2016")
 aff_11 <- aff_census_1121("CA11", aff_11v, "2011")
 
+
 housing_te <- convert_pct(aff_21$total_30)
 housing_te_tenant <- convert_pct(aff_21$tenant_30)
 housing_te_owner <- convert_pct(aff_21$owner_30)
@@ -1066,76 +1067,169 @@ taux_efforts <- pivot_wider(taux_efforts, names_from = Année,
                                             `Tous les ménages`))
 taux_efforts <- taux_efforts[c(1,4,3,2)]
 
+# new_taux_efforts_table <- 
+#   gt(taux_efforts_new) |> 
+#   data_color(columns = 2:ncol(taux_efforts_new),
+#              colors = scales::col_numeric(palette = c("white",
+#                                                       color_theme("purpletransport")),
+#                                           domain = NULL)) |> 
+#   fmt(columns = 2:ncol(taux_efforts_new), fns = convert_pct) |> 
+#   tab_row_group(label = "Secteur",
+#                 rows = 3:nrow(taux_efforts)) |>
+#   tab_row_group(label = "Région", rows = 1:2) |>
+#   tab_style(
+#     style = list(
+#       cell_text(weight = "bold")
+#     ),
+#     locations = cells_body(
+#       rows = 2
+#     )
+#   ) |>
+#   tab_style(
+#     style = cell_borders(
+#       sides = c("top"),
+#       color = "white",
+#       weight = px(10)
+#     ),
+#     locations = cells_row_groups()
+#   ) |>
+#   # Apply font style to the whole table
+#   tab_style(
+#     style = cell_text(
+#       font = "KMR Apparat"
+#     ),
+#     locations = cells_body()
+#   ) |>
+#   tab_style(
+#     style = cell_text(
+#       font = "KMR Apparat"
+#     ),
+#     locations = cells_column_labels()
+#   ) |>
+#   tab_style(
+#     style = cell_text(
+#       font = "KMR Apparat"
+#     ),
+#     locations = cells_row_groups()
+#   ) |>
+#   tab_style(
+#     style = cell_fill(color = "#F0F0F0"),
+#     locations = cells_row_groups()
+#   ) |> 
+#   tab_options(
+#     table.font.size = 12,
+#     row_group.font.size = 12,
+#     table.width = px(6 * 96)
+#   )
+
+gtsave(taux_efforts_table, "output/axe1/housing/taux_efforts_table.png", zoom = 3)
+
+
+# Affordability 30% Updated -----------------------------------------------
+
+#Grabbing quebec 2021
+afford_21v <- c("total" = "v_CA21_4288", "total_unaff" = "v_CA21_4290",
+                "owner" = "v_CA21_4307", "tenant" = "v_CA21_4315")
+  
+affqc_21 <- get_census("CA21", regions = list(PR = "24"), vectors = afford_21v, level = "PR") |> 
+  mutate(across(c(total, total_unaff, tenant, owner), as.numeric),
+         prop = total_unaff / total,
+         Secteurs = "Quebec") |> 
+  select(Secteurs, prop, tenant, owner) |> 
+  mutate(across(c(tenant, owner), \(x) as.numeric(x)))
+
+afflvl_21 <- get_census("CA21", regions = list(CSD = "2465005"), vectors = afford_21v, level = "CSD") |> 
+  mutate(across(c(total, total_unaff, tenant, owner), as.numeric),
+         prop = total_unaff / total,
+         Secteurs = "Laval") |> 
+  select(Secteurs, prop, tenant, owner) |> 
+  mutate(across(c(tenant, owner), \(x) as.numeric(x)))
+
 #Grabbing data from beyond 2020 spreadsheet
 unafford_2020 <- data_25 |> 
   rename(Secteurs = `...1`) |> 
   select(Secteurs, matches("4304|4310|4361|4385")) |> 
   rename("Total" = `Total - Owner and tenant households with household total income greater than zero, in non-farm, non-reserve private dwellings by shelter-cost-to-income ratio - 25% sample data...4304`,
          "Unafford" = `Spending 30% or more of income on shelter costs...4310`,
-         "Owner" = `% of owner households spending 30% or more of its income on shelter costs...4361`,
-         "Tenant" = `% of tenant households spending 30% or more of its income on shelter costs...4385`) |> 
+         "owner" = `% of owner households spending 30% or more of its income on shelter costs...4361`,
+         "tenant" = `% of tenant households spending 30% or more of its income on shelter costs...4385`) |> 
   slice(-1) |> 
   mutate(Total = as.numeric(Total),
          Unafford = as.numeric(Unafford)) |> 
-  mutate(prop = `Unafford` / `Total`)
+  mutate(prop = `Unafford` / `Total`) |> 
+  mutate(`Secteurs` = replace(`Secteurs`, 1, "Secteur 3 : Chomedey"),
+         `Secteurs` = replace(`Secteurs`, 2, "Secteur 1 : Duvernay, Saint-François et Saint-Vincent-de-Paul"),
+         `Secteurs` = replace(`Secteurs`, 3, "Secteur 2 : Pont-Viau, Renaud-Coursol et Laval-des-Rapides"),
+         `Secteurs` = replace(`Secteurs`, 4, "Secteur 4 : Sainte-Dorothée, Laval-Ouest, Les Îles-Laval, Fabreville-Ouest et Laval-sur-le-Lac"),
+         `Secteurs` = replace(`Secteurs`, 5, "Secteur 5 : Fabreville-Est et Sainte-Rose"),
+         `Secteurs` = replace(`Secteurs`, 6, "Secteur 6 : Vimont et Auteuil")) |> 
+  arrange(`Secteurs`) |> 
+  mutate(across(c(tenant, owner), \(x) as.numeric(x))) |> 
+  select(Secteurs, prop, tenant, owner)
 
-new_taux_efforts_table <- 
-  gt(taux_efforts_new) |> 
-  data_color(columns = 2:ncol(taux_efforts_new),
-             colors = scales::col_numeric(palette = c("white",
-                                                      color_theme("purpletransport")),
-                                          domain = NULL)) |> 
-  fmt(columns = 2:ncol(taux_efforts_new), fns = convert_pct) |> 
-  tab_row_group(label = "Secteur",
-                rows = 3:nrow(taux_efforts)) |>
-  tab_row_group(label = "Région", rows = 1:2) |>
-  tab_style(
-    style = list(
-      cell_text(weight = "bold")
-    ),
-    locations = cells_body(
-      rows = 2
+aff_table_data <- affqc_21 |> 
+  bind_rows(afflvl_21) |> 
+  bind_rows(unafford_2020) |> 
+  mutate(tenant = tenant / 100,
+         owner = owner / 100) |> 
+  rename("Ménages locataires" = tenant,
+         "Ménages propriétaires" = owner,
+         "Tous les ménages" = prop)
+
+aff_table <- gt(aff_table_data) |>
+  cols_label(Secteurs = "") |>
+  data_color(columns = 2:4,
+             colors = scales::col_numeric(palette = c("white", color_theme("purpletransport")),
+                                          domain = NULL)) |>
+    fmt(columns = 2:4, fns = convert_pct) |>
+    tab_row_group(label = "Secteur",
+                  rows = 3:8) |>
+    tab_row_group(label = "Région", rows = 1:2) |>
+    tab_style(
+      style = list(
+        cell_text(weight = "bold")
+      ),
+      locations = cells_body(
+        rows = 2
+      )
+    ) |>
+    tab_style(
+      style = cell_borders(
+        sides = c("top"),
+        color = "white",
+        weight = px(10)
+      ),
+      locations = cells_row_groups()
+    ) |>
+    tab_style(
+      style = cell_text(
+        font = "KMR Apparat"
+      ),
+      locations = cells_body()
+    ) |>
+    tab_style(
+      style = cell_text(
+        font = "KMR Apparat"
+      ),
+      locations = cells_column_labels()
+    ) |>
+    tab_style(
+      style = cell_text(
+        font = "KMR Apparat"
+      ),
+      locations = cells_row_groups()
+    ) |>
+    tab_style(
+      style = cell_fill(color = "#F0F0F0"),
+      locations = cells_row_groups()
+    ) |>
+    tab_options(
+      table.font.size = 12,
+      row_group.font.size = 12,
+      table.width = px(6 * 96)
     )
-  ) |>
-  tab_style(
-    style = cell_borders(
-      sides = c("top"),
-      color = "white",
-      weight = px(10)
-    ),
-    locations = cells_row_groups()
-  ) |>
-  # Apply font style to the whole table
-  tab_style(
-    style = cell_text(
-      font = "KMR Apparat"
-    ),
-    locations = cells_body()
-  ) |>
-  tab_style(
-    style = cell_text(
-      font = "KMR Apparat"
-    ),
-    locations = cells_column_labels()
-  ) |>
-  tab_style(
-    style = cell_text(
-      font = "KMR Apparat"
-    ),
-    locations = cells_row_groups()
-  ) |>
-  tab_style(
-    style = cell_fill(color = "#F0F0F0"),
-    locations = cells_row_groups()
-  ) |> 
-  tab_options(
-    table.font.size = 12,
-    row_group.font.size = 12,
-    table.width = px(6 * 96)
-  )
 
-gtsave(taux_efforts_table, "output/axe1/housing/taux_efforts_table.png", zoom = 3)
-
+gtsave(aff_table, "output/axe1/housing/aff_table.png", zoom = 3)
 
 # Logement de taille inadéquat --------------------------------------------
 
