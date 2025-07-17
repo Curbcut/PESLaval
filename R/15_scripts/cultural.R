@@ -50,6 +50,8 @@ CMA <- cancensus::get_census("CA21", regions = list(CMA = 24462), level = "CMA",
                              geo_format = "sf")
 CMA_DBs <- cancensus::get_census("CA21", regions = list(CMA = 24462), level = "DB",
                                  geo_format = "sf")
+                                 DBs <- cancensus::get_census("CA21", regions = list(CSD = 2465005), level = "DB",
+                                 geo_format = "sf")
 
 # Keep only the ones in the CMA
 cultural <- sf::st_transform(cultural, crs = sf::st_crs(CMA_DBs))
