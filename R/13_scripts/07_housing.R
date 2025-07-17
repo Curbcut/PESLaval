@@ -256,7 +256,7 @@ housing_prop_tenant_2001_QC <- housing_statut_prop_fun_QC(2001, "tenant")
 # Loyer médian ------------------------------------------------------------
 
 # Setting the years to pull data from
-years <- 2010:2023
+years <- 2010:2024
 
 # CPI for october of all the years
 CPI <- tibble::as_tibble(read.csv("data/CPI.csv")) |> 
@@ -331,8 +331,8 @@ housing_loyermed_plot <-
   scale_color_manual(values = c("Laval" = color_theme("greenecology"), "Québec" = color_theme("blueexplorer"))) +
   scale_y_continuous(labels = convert_number) +
   scale_x_continuous(
-    breaks = seq(2010, 2023, by = 1),
-    limits = c(2010, 2023)
+    breaks = seq(2010, 2024, by = 1),
+    limits = c(2010, 2024)
   ) +
   gg_cc_theme_no_sf +
   theme(legend.title = element_blank())# +
@@ -341,29 +341,29 @@ housing_loyermed_plot <-
 ggplot2::ggsave(filename = here::here("output/axe1/housing/housing_loyermed_plot.pdf"),
                 plot = housing_loyermed_plot, width = 6.5, height = 4)
 
-housing_loyer_2023 <- avg_rent_annual$Value[
-  avg_rent_annual$Year == 2023 & avg_rent_annual$Geography == "Laval"]
+housing_loyer_2024 <- avg_rent_annual$Value[
+  avg_rent_annual$Year == 2024 & avg_rent_annual$Geography == "Laval"]
 housing_loyer_2010 <- avg_rent_annual$Value[
   avg_rent_annual$Year == 2010 & avg_rent_annual$Geography == "Laval"]
-housing_loyer_var <- convert_pct((housing_loyer_2023 - housing_loyer_2010) / housing_loyer_2010)
+housing_loyer_var <- convert_pct((housing_loyer_2024 - housing_loyer_2010) / housing_loyer_2010)
 
 housing_loyer_2010_noinf <- avg_rent_annual$Value[
   avg_rent_annual$Year == 2010 & avg_rent_annual$Geography == "Laval"]
-housing_loyer_var_noinf <- convert_pct((housing_loyer_2023 - housing_loyer_2010_noinf) / housing_loyer_2010_noinf)
+housing_loyer_var_noinf <- convert_pct((housing_loyer_2024 - housing_loyer_2010_noinf) / housing_loyer_2010_noinf)
 
 
-housing_loyer_2023 <- convert_number(housing_loyer_2023)
+housing_loyer_2024 <- convert_number(housing_loyer_2024)
 housing_loyer_2010 <- convert_number(housing_loyer_2010)
 housing_loyer_2010_noinf <- convert_number(housing_loyer_2010_noinf)
 
-housing_loyer_2023_QC <- avg_rent_annual$Value[
-  avg_rent_annual$Year == 2023 & avg_rent_annual$Geography == "Québec"]
+housing_loyer_2024_QC <- avg_rent_annual$Value[
+  avg_rent_annual$Year == 2024 & avg_rent_annual$Geography == "Québec"]
 housing_loyer_2010_QC <- avg_rent_annual$Value[
   avg_rent_annual$Year == 2010 & avg_rent_annual$Geography == "Québec"]
 
-housing_loyer_var_QC <- convert_pct((housing_loyer_2023_QC - housing_loyer_2010_QC) / housing_loyer_2010_QC)
+housing_loyer_var_QC <- convert_pct((housing_loyer_2024_QC - housing_loyer_2010_QC) / housing_loyer_2010_QC)
 
-housing_loyer_2023_QC <- convert_number_noround(housing_loyer_2023_QC)
+housing_loyer_2024_QC <- convert_number_noround(housing_loyer_2024_QC)
 
 hous2010_lvl_2bd <- avg_rent_lvl |> 
   filter(Year == 2010) |> 
@@ -1470,13 +1470,12 @@ housing_tenant_CSD_rent <- convert_number(housing_tenant_CSD_rent)
 # Starts
 starts_lvl <- get_cmhc(survey = "Scss", series = "Starts", dimension = "Intended Market",
                        breakdown = "Historical Time Periods", geo_uid = 2465005, year = 2009) |> 
-  mutate(Date = dmy(paste0("01 ", DateString)), Year = as.factor(year(Date)),
+  mutate(Date = dmy(paste0("01 ", DateString)), Year = as.factor(DateString),
          `Marché visé` = `Intended Market`) |> 
   select(Year, `Marché visé`, Value) |> 
   group_by(Year, `Marché visé`) |> 
   summarize(Units = sum(Value), .groups = "drop") |> 
-  filter(`Marché visé` != "Unknown", `Marché visé` != "Co-Op",
-         Year != "2024", Year != "2009") |> 
+  filter(`Marché visé` != "Unknown", `Marché visé` != "Co-Op") |> 
   mutate(`Marché visé` = case_when(`Marché visé` == "All" ~ "Total",
                                    `Marché visé` == "Homeowner" ~ "Propriétaire-occupant",
                                    `Marché visé` == "Rental" ~ "Locatif",
@@ -1510,13 +1509,12 @@ ggplot2::ggsave(filename = here::here("output/axe1/housing/housing_starts.pdf"),
 completions_lvl <- get_cmhc(survey = "Scss", series = "Completions", dimension = "Intended Market",
                             breakdown = "Historical Time Periods", geo_uid = 2465005, year = 2009,
                             frequency = "Annual") |> 
-  mutate(Date = dmy(paste0("01 ", DateString)), Year = as.factor(year(Date)),
+  mutate(Date = dmy(paste0("01 ", DateString)), Year = as.factor(DateString),
          `Marché visé` = `Intended Market`) |> 
   select(Year, `Marché visé`, Value) |> 
   group_by(Year, `Marché visé`) |> 
   summarize(Units = sum(Value), .groups = "drop") |> 
-  filter(`Marché visé` != "Unknown", `Marché visé` != "Co-Op",
-         Year != "2024", Year != "2009") |> 
+  filter(`Marché visé` != "Unknown", `Marché visé` != "Co-Op") |> 
   mutate(`Marché visé` = case_when(`Marché visé` == "All" ~ "Total",
                                    `Marché visé` == "Homeowner" ~ "Propriétaire-occupant",
                                    `Marché visé` == "Rental" ~ "Locatif",
