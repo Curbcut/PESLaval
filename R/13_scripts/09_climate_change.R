@@ -239,6 +239,69 @@ ggplot2::ggsave(filename = here::here("output/infographic/ndvi_plot.pdf"),
                 plot = ndvi_plot_infographics, width = 4.5, height = 4)
 
 
+# Indice Canopée ----------------------------------------------------------
+indice_can <- rast("data/axe1/650_IndiceCanopee_2023.tif")
+indice_can_smaller <- terra::aggregate(indice_can, fact = 10, fun = "modal")
+
+indice_can_df <- as.data.frame(indice_can_smaller, xy = TRUE, na.rm = TRUE)
+
+lvlsec_utm <- sf::st_transform(laval_sectors, crs = terra::crs(indice_can_smaller))
+indice_tiles <- raster::projectRaster(tiles, crs = raster::crs(indice_can_smaller))
+
+indice_can_map <-
+  ggplot() +
+  ggspatial::layer_spatial(indice_tiles, alpha = 0.7) +
+  geom_tile(data = indice_can_df, aes(x = x, y = y, fill = factor(`650_IndiceCanopee_2023`))) +  
+  scale_fill_manual(
+    values = c("1" = "#fff7bc", "2" = "#feb24c", "3" = "#e5f5f9", "4" = "#99d8c9", "5" = "#575757"),
+    labels = c("1" = "Minéral bas", "2" = "Minéral haut", "3" = "Végétal bas", "4" = "Végétal haut", "5" = "Aquatique"),
+    na.value = curbcut_colors$left_5$fill[1]
+  ) +
+  labs(title = NULL) +
+  geom_sf(data = lvlsec_utm, fill = "transparent", color = "black", size = 0.5) +
+  c(list(
+    coord_sf(xlim = c(sf::st_bbox(lvlsec_utm)["xmin"], sf::st_bbox(lvlsec_utm)["xmax"]), 
+             ylim = c(sf::st_bbox(lvlsec_utm)["ymin"], sf::st_bbox(lvlsec_utm)["ymax"]))),
+    gg_cc_theme_no_sf,
+    list(theme_void()),
+    list(default_theme),
+    list(theme(legend.box.margin = margin(t = 0)))
+  ) +
+  theme(legend.title = element_blank())
+
+indice_can_png <-
+  ggplot() +
+  ggspatial::layer_spatial(indice_tiles, alpha = 0.7) +
+  geom_tile(data = indice_can_df, aes(x = x, y = y, fill = factor(`650_IndiceCanopee_2023`))) +  
+  scale_fill_manual(
+    values = c("1" = "#fff7bc", "2" = "#feb24c", "3" = "#e5f5f9", "4" = "#99d8c9", "5" = "#575757"),
+    labels = c("1" = "Minéral bas", "2" = "Minéral haut", "3" = "Végétal bas", "4" = "Végétal haut", "5" = "Aquatique"),
+    na.value = curbcut_colors$left_5$fill[1]
+  ) +
+  labs(title = NULL) +
+  geom_sf(data = lvlsec_utm, fill = "transparent", color = "black", size = 0.5) +
+  c(list(
+    coord_sf(xlim = c(sf::st_bbox(lvlsec_utm)["xmin"], sf::st_bbox(lvlsec_utm)["xmax"]), 
+             ylim = c(sf::st_bbox(lvlsec_utm)["ymin"], sf::st_bbox(lvlsec_utm)["ymax"]))),
+    gg_cc_theme_no_sf,
+    list(theme_void()),
+    list(default_theme),
+    list(theme(legend.box.margin = margin(t = 0)))
+  ) +
+  theme(
+    legend.title = element_blank(),
+    legend.text = element_text(size = 65),  # increase legend text size
+    legend.key.size = unit(1.4, "cm")       # decrease icon size
+  )
+
+
+#PDF and PNG saves
+ggsave(filename = here::here("output/axe1/climate/indice.pdf"),
+       plot = indice_can_map, width = 5.5, height = 4)
+
+ggsave(filename = here::here("output/axe1/climate/indice_can_map.png"),
+       plot = indice_can_png, width = 19.25, height = 15, bg = "white")
+
 # Flooding ----------------------------------------------------------------
 #Vectors for the flooding
 curbcut_flooding <- sf::st_read("data/axe1/climaterisk/zone_inondable_RCI_CDU_20240607_PG.shp") |> 
