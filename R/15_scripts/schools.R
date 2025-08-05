@@ -37,6 +37,25 @@ school_public <- read_sf("data/axe3/schools/PPS_Public_Ecole.shp") |>
   sf::st_filter(laval_sectors) |> 
   distinct(across(c(5, 19, 20, 21)), .keep_all = TRUE) |> 
   select(OBJECTID, PRIM, SEC, TYPE_CS)
+
+#Using new data sent by Laval
+school_public <- readxl::read_excel("data/new/schools.xlsx", sheet = 1) |> 
+  select(`NOM_OFFICIEL`,`CD_ORGANISME SCOLAIRE`,IND_PRIMAIRE, IND_SECONDAIRE, `Primaire/secondaire`, LONGITUDE, LATITUDE) |> 
+  filter(!is.na(`Primaire/secondaire`)) |> 
+  filter(!`Primaire/secondaire` %in% c("ANG", "Régional")) |> 
+  filter(!NOM_OFFICIEL %in% c("École De l'Arc-en-ciel", "École Le Baluchon")) |> 
+  distinct(`CD_ORGANISME SCOLAIRE`, .keep_all = TRUE) |> 
+  mutate(`Primaire/secondaire` = if_else(str_detect(`Primaire/secondaire`, "ANG"), "Anglo", "Franco")) |> 
+  mutate(
+    IND_PRIMAIRE = if_else(is.na(IND_PRIMAIRE), 0L, 1L),
+    IND_SECONDAIRE = if_else(is.na(IND_SECONDAIRE), 0L, 1L)
+  ) |> 
+  st_as_sf(coords = c("LONGITUDE", "LATITUDE"), crs = 4326) |> 
+  rename(OBJECTID = `CD_ORGANISME SCOLAIRE`,
+         PRIM = IND_PRIMAIRE,
+         SEC = IND_SECONDAIRE,
+         TYPE_CS = `Primaire/secondaire`)
+
 # school_private <- read_sf("data/axe3/schools/PPS_Prive_Installation.shp") |>
 #   filter(ADULTE != 1, FORM_PRO != 1, ORDRE_ENS != "Préscolaire") |>
 #   sf::st_filter(laval_sectors) |>
@@ -88,14 +107,19 @@ primaire_plot <-
                                 "Franco" = "École francophone")) +
   gg_cc_theme +
   theme(legend.title = element_blank(),
-        legend.spacing = unit(0.75, "cm"),
-        legend.box.spacing = unit(0.75, "cm"))+
+        text = element_text(size = 20),
+        legend.text = element_text(size = 26, lineheight = 0.2),
+        legend.key.height = unit(1.5, "lines"),
+        legend.key.width = unit(1.5, "lines")) +
   guides(fill = guide_legend(ncol = 2),
-         color = guide_legend(ncol = 1, override.aes = list(size = 3)))
+         color = guide_legend(ncol = 1, override.aes = list(size = 4)))
 
 
 ggplot2::ggsave(filename = here::here("output/axe3/primaire_plot.pdf"), 
                 plot = primaire_plot, width = 7, height = 5, bg = "transparent")
+
+ggsave(filename = here::here("output/axe3/primaire_plot.png"),
+       plot = primaire_plot, width = 9, height = 7.5, bg = "white")
 
 # Combien d'enfants plutôt que combien de Toutes les familles
 DA_children <- cancensus::get_census(dataset = "CA21", 
@@ -178,14 +202,20 @@ secondaire_plot <-
                                 "Franco" = "École francophone")) +
   gg_cc_theme +
   theme(legend.title = element_blank(),
-        legend.spacing = unit(0.75, "cm"),
-        legend.box.spacing = unit(0.75, "cm"))+
+        text = element_text(size = 20),
+        legend.text = element_text(size = 26, lineheight = 0.2),
+        legend.key.height = unit(1.5, "lines"),
+        legend.key.width = unit(1.5, "lines")) +
   guides(fill = guide_legend(ncol = 2),
-         color = guide_legend(ncol = 1, override.aes = list(size = 3)))
+         color = guide_legend(ncol = 1, override.aes = list(size = 4)))
 
 
 ggplot2::ggsave(filename = here::here("output/axe3/secondaire_plot.pdf"), 
                 plot = secondaire_plot, width = 7, height = 5, bg = "transparent")
+
+ggsave(filename = here::here("output/axe3/secondaire_plot.png"),
+       plot = secondaire_plot, width = 9, height = 7.5, bg = "white")
+
 
 # Combien d'enfants plutôt que combien de Toutes les familles
 DA_children <- cancensus::get_census(dataset = "CA21", 
@@ -424,6 +454,90 @@ school_table <-
 gtsave(school_table, "output/axe3/school_table.png", zoom = 3)
 
 
+# Total Access ------------------------------------------------------------
+
+prim_or_sec_sf <- school[school$PRIM == 1 | school$SEC == 1, ]
+
+# Spatial join to get GeoUID
+prim_or_sec <- sf::st_join(prim_or_sec_sf, DB["GeoUID"])
+prim_or_sec <- sf::st_drop_geometry(prim_or_sec[c("OBJECTID", "GeoUID", "TYPE_CS")])
+
+# Join with travel time data
+prim_or_sec <- left_join(prim_or_sec, ttm_walk_15, by = c("GeoUID" = "from"),
+                         relationship = "many-to-many")
+
+# Group and classify by language access
+prim_or_sec <- 
+  prim_or_sec |> 
+  group_by(to, TYPE_CS) |> 
+  count() |> 
+  ungroup() |> 
+  transmute(GeoUID = to, lang = TYPE_CS)
+
+# Identify bilingual access
+bilingual <- table(prim_or_sec$GeoUID)
+bilingual <- names(bilingual)[bilingual == 2]
+
+# Classify accessibility by language
+school_access <- sapply(DB$GeoUID, \(ID) {
+  if (!ID %in% prim_or_sec$GeoUID) return("Aucun accès")
+  if (ID %in% bilingual) return("Accès à au moins une\n école des deux langues")
+  lang <- prim_or_sec$lang[prim_or_sec$GeoUID == ID]
+  if (lang == "Franco") return("Accès à au moins une\n école francophone")
+  if (lang == "Anglo") return("Accès à au moins une\n école anglophone")
+})
+
+# Create final sf object
+access_sf <- tibble::tibble(GeoUID = names(school_access),
+                            access = unname(school_access)) |> 
+  left_join(DB["GeoUID"]) |> 
+  sf::st_as_sf()
+
+# Plot
+access_plot <- 
+  ggplot(access_sf) +
+  gg_cc_tiles +
+  geom_sf(aes(fill = access), color = "transparent") +
+  scale_fill_manual(values = c("Aucun accès" = "#E8E8E8", 
+                               "Accès à au moins une\n école francophone" = "#6C83B5",
+                               "Accès à au moins une\n école anglophone" = "#73AE80",
+                               "Accès à au moins une\n école des deux langues" = "#2A5A5B")) +
+  geom_sf(data = prim_or_sec_sf, aes(color = TYPE_CS), size = 0.75) +
+  scale_color_manual(values = c("Anglo" = "#F5D574", 
+                                "Franco" = "#CD718C"),
+                     labels = c("Anglo" = "École anglophone", 
+                                "Franco" = "École francophone")) +
+  gg_cc_theme +
+  theme(legend.title = element_blank(),
+        legend.spacing = unit(0.75, "cm"),
+        legend.box.spacing = unit(0.75, "cm")) +
+  guides(fill = guide_legend(ncol = 2),
+         color = guide_legend(ncol = 1, override.aes = list(size = 3)))
+
+access_plot <- 
+  ggplot(access_sf) +
+  gg_cc_tiles +
+  geom_sf(aes(fill = access), color = "transparent") +
+  scale_fill_manual(values = c("Aucun accès" = "#E8E8E8", 
+                               "Accès à au moins une\n école francophone" = "#6C83B5",
+                               "Accès à au moins une\n école anglophone" = "#73AE80",
+                               "Accès à au moins une\n école des deux langues" = "#2A5A5B")) +
+  geom_sf(data = prim_or_sec_sf, aes(color = TYPE_CS), size = 0.75) +
+  scale_color_manual(values = c("Anglo" = "#F5D574", 
+                                "Franco" = "#CD718C"),
+                     labels = c("Anglo" = "École anglophone", 
+                                "Franco" = "École francophone")) +
+  gg_cc_theme +
+  theme(legend.title = element_blank(),
+        text = element_text(size = 20),
+        legend.text = element_text(size = 26, lineheight = 0.2),
+        legend.key.height = unit(1.5, "lines"),
+        legend.key.width = unit(1.5, "lines")) +
+  guides(fill = guide_legend(ncol = 2),
+         color = guide_legend(ncol = 1, override.aes = list(size = 4)))
+
+ggsave(filename = here::here("output/axe3/access_plot.png"),
+       plot = access_plot, width = 9, height = 7.5, bg = "white")
 
 qs::qsavem(primary_school_total, secondary_school_total,primary_franco, secondary_franco,
            children_with_access_pct, children_with_access_fr_pct, children_with_access_en_pct,
