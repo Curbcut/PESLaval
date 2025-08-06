@@ -290,7 +290,7 @@ indice_can_png <-
   ) +
   theme(
     legend.title = element_blank(),
-    legend.text = element_text(size = 65),  # increase legend text size
+    legend.text = element_text(size = 70),  # increase legend text size
     legend.key.size = unit(1.4, "cm")       # decrease icon size
   )
 
