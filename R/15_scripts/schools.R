@@ -32,11 +32,11 @@ ttm_walk_15 <- ttm()
 #   rbind(tibble::tibble(from = CT$GeoUID, to = CT$GeoUID)) |>
 #   unique()
 
-school_public <- read_sf("data/axe3/schools/PPS_Public_Ecole.shp") |> 
-  filter(ADULTE != 1, FORM_PRO != 1, ORDRE_ENS != "Préscolaire") |> 
-  sf::st_filter(laval_sectors) |> 
-  distinct(across(c(5, 19, 20, 21)), .keep_all = TRUE) |> 
-  select(OBJECTID, PRIM, SEC, TYPE_CS)
+# school_public <- read_sf("data/axe3/schools/PPS_Public_Ecole.shp") |> 
+#   filter(ADULTE != 1, FORM_PRO != 1, ORDRE_ENS != "Préscolaire") |> 
+#   sf::st_filter(laval_sectors) |> 
+#   distinct(across(c(5, 19, 20, 21)), .keep_all = TRUE) |> 
+#   select(OBJECTID, PRIM, SEC, TYPE_CS)
 
 #Using new data sent by Laval
 school_public <- readxl::read_excel("data/new/schools.xlsx", sheet = 1) |> 
@@ -539,7 +539,27 @@ access_plot <-
 ggsave(filename = here::here("output/axe3/access_plot.png"),
        plot = access_plot, width = 9, height = 7.5, bg = "white")
 
-qs::qsavem(primary_school_total, secondary_school_total,primary_franco, secondary_franco,
+# R Markdown --------------------------------------------------------------
+#Putting in vectors that weren't added before
+primary_school_total <- school_public |> 
+  filter(PRIM == 1) |> 
+  nrow()
+
+secondary_school_total <- school_public |> 
+  filter(SEC == 1) |> 
+  nrow()
+
+primary_franco <- school_public |> 
+  filter(PRIM == 1) |> 
+  filter(TYPE_CS == "Franco") |> 
+  nrow()
+
+secondary_franco <- school_public |> 
+  filter(SEC == 1) |> 
+  filter(TYPE_CS == "Franco") |> 
+  nrow()
+
+qs::qsavem(primary_school_total, secondary_school_total, primary_franco, secondary_franco,
            children_with_access_pct, children_with_access_fr_pct, children_with_access_en_pct,
            children_with_access_sec_pct, children_with_access_sec_fr_pct, 
            children_with_access_sec_en_pct, primaire_plot, secondaire_plot, school_table,
