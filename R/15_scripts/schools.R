@@ -517,7 +517,7 @@ access_plot <-
          color = guide_legend(ncol = 1, override.aes = list(size = 4)))
 
 ggsave(filename = here::here("output/axe3/access_plot.png"),
-       plot = access_plot, width = 9, height = 7.5, bg = "white")
+       plot = access_plot, width = 7, height = 5, bg = "white")
 
 # R Markdown --------------------------------------------------------------
 #Putting in vectors that weren't added before
