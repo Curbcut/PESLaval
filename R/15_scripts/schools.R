@@ -509,26 +509,6 @@ access_plot <-
                                 "Franco" = "École francophone")) +
   gg_cc_theme +
   theme(legend.title = element_blank(),
-        legend.spacing = unit(0.75, "cm"),
-        legend.box.spacing = unit(0.75, "cm")) +
-  guides(fill = guide_legend(ncol = 2),
-         color = guide_legend(ncol = 1, override.aes = list(size = 3)))
-
-access_plot <- 
-  ggplot(access_sf) +
-  gg_cc_tiles +
-  geom_sf(aes(fill = access), color = "transparent") +
-  scale_fill_manual(values = c("Aucun accès" = "#E8E8E8", 
-                               "Accès à au moins une\n école francophone" = "#6C83B5",
-                               "Accès à au moins une\n école anglophone" = "#73AE80",
-                               "Accès à au moins une\n école des deux langues" = "#2A5A5B")) +
-  geom_sf(data = prim_or_sec_sf, aes(color = TYPE_CS), size = 0.75) +
-  scale_color_manual(values = c("Anglo" = "#F5D574", 
-                                "Franco" = "#CD718C"),
-                     labels = c("Anglo" = "École anglophone", 
-                                "Franco" = "École francophone")) +
-  gg_cc_theme +
-  theme(legend.title = element_blank(),
         text = element_text(size = 20),
         legend.text = element_text(size = 26, lineheight = 0.2),
         legend.key.height = unit(1.5, "lines"),

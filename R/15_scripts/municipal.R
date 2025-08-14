@@ -1,5 +1,6 @@
 #Loading up libraries
 source("R/01_startup.R")
+library(qs)
 
 DBs <- cancensus::get_census("CA21", regions = list(CSD = 2465005), level = "DB",
                              geo_format = "sf")
@@ -266,6 +267,193 @@ municipal_pop_lowaccess <- equipment_demo_j |>
   mutate(pop = convert_pct(pop / municipal_population)) |> 
   pull(pop)
 
+# Table Breakdown ---------------------------------------------------------
+ttm_60 <- qread("data/ttm_foot_60.qs")
+
+access_breakdown <- left_join(sf::st_drop_geometry(municipal_csv), ttm_60, 
+                       by = c("GeoUID" = "to"),
+                       relationship = "many-to-many") |> 
+  mutate(
+    breakdown = cut(
+      travel_seconds,
+      breaks = c(-Inf, 900, 1800, 2700, 3600, Inf),
+      labels = c("0–15", "15–30", "30–45", "45–60", "60+"),
+      right = FALSE,
+      ordered_result = TRUE   # <-- ensures it’s ordered
+    )
+  ) |> 
+  group_by(from) |>
+  summarise(breakdown = min(breakdown)) |> 
+  ungroup()
+
+access_sector <- DBs |> 
+  left_join(access_breakdown, by = c("GeoUID" = "from")) |> 
+  mutate(
+    breakdown = ifelse(is.na(breakdown), "60+", as.character(breakdown)),
+    breakdown = factor(breakdown, levels = c("0–15", "15–30", "30–45", "45–60", "60+"), ordered = TRUE)
+  ) |> 
+  select(GeoUID, Population, breakdown) |> 
+  st_join(laval_sectors |> select(name), join = st_intersects)
+
+access_60 <- access_sector |> 
+  st_drop_geometry() |> 
+  group_by(name, breakdown) |> 
+  summarise(total_population = sum(Population, na.rm = TRUE), .groups = "drop") |> 
+  complete(
+    name,
+    breakdown = factor(c("0–15", "15–30", "30–45", "45–60", "60+"),
+                       levels = c("0–15", "15–30", "30–45", "45–60", "60+"),
+                       ordered = TRUE),
+    fill = list(total_population = 0)
+  ) |> 
+  group_by(name) |> 
+  mutate(percentage = (total_population / sum(total_population))) |> 
+  arrange(name, breakdown) |> 
+  ungroup() |> 
+  pivot_wider(
+    names_from = breakdown,
+    values_from = c(total_population, percentage),
+    names_glue = "{breakdown} ({.value})"
+  ) |> 
+  rename(
+    "0 à 15 minutes (n)"  = `0–15 (total_population)`,
+    "0 à 15 minutes (%)"  = `0–15 (percentage)`,
+    "15 à 30 minutes (n)" = `15–30 (total_population)`,
+    "15 à 30 minutes (%)" = `15–30 (percentage)`,
+    "30 à 45 minutes (n)" = `30–45 (total_population)`,
+    "30 à 45 minutes (%)" = `30–45 (percentage)`,
+    "45 à 60 minutes (n)" = `45–60 (total_population)`,
+    "45 à 60 minutes (%)" = `45–60 (percentage)`,
+    "60+ minutes (n)"     = `60+ (total_population)`,
+    "60+ minutes (%)"     = `60+ (percentage)`
+  ) |> 
+  select(name, `0 à 15 minutes (n)`, `0 à 15 minutes (%)`, `15 à 30 minutes (n)`, `15 à 30 minutes (%)`,
+         `30 à 45 minutes (n)`, `30 à 45 minutes (%)`, `45 à 60 minutes (n)`, `45 à 60 minutes (%)`,
+         `60+ minutes (n)`,  `60+ minutes (%)`)
+
+municipal_access_table <- access_60 |> 
+  gt() |> 
+  cols_label(name = "") |> 
+  fmt(columns = c(2,4,6,8,10), fns = convert_number_tens) |>  
+  fmt(columns = c(3, 5, 7, 9, 11), fns = convert_pct) |> 
+  data_color(
+    columns = c(3, 5, 7, 9, 11),
+    colors = scales::col_numeric(
+      palette = c("white", color_theme("purpletransport")),
+      domain = NULL
+    )
+  ) |>
+  tab_style(
+    style = cell_text(
+      font = "KMR Apparat"
+    ),
+    locations = cells_body()
+  ) |> 
+  tab_style(
+    style = cell_text(
+      font = "KMR Apparat"
+    ),
+    locations = cells_column_labels()
+  ) |> 
+  # General table settings
+  tab_options(
+    table.font.size = 12,
+    row_group.font.size = 12
+  ) |> 
+  cols_width(1 ~ px(168),
+             2:11 ~ px(80))
+
+gtsave(municipal_access_table, "output/axe3/municipal_access_table.png", zoom = 3)
+
+# 15 minute sector --------------------------------------------------------
+#Run lines 94-191 first
+access_15_sector <- equipment_demo_j |> 
+  left_join(DBs, by = "GeoUID") |> 
+  st_as_sf() |>
+  select(GeoUID, Population.x, n) |> 
+  st_join(laval_sectors |> select(name), join = st_intersects) |> 
+  mutate(
+    breakdown = cut(
+      n,
+      breaks = c(-Inf, 0.1, 2.1, 6.1, 10.1, Inf),
+      labels = c("0", "1–2", "3–6", "7–10", "> 10"),
+      right = FALSE,
+      ordered_result = TRUE   # <-- ensures it’s ordered
+    )
+  ) |> 
+  st_drop_geometry() |> 
+  group_by(name, breakdown) |> 
+  summarise(total_population = sum(Population.x, na.rm = TRUE), .groups = "drop") |> 
+  complete(
+    name,
+    breakdown = factor(c("0", "1–2", "3–6", "7–10", "> 10"),
+                       levels = c("0", "1–2", "3–6", "7–10", "> 10"),
+                       ordered = TRUE),
+    fill = list(total_population = 0)
+  ) |> 
+  group_by(name) |> 
+  mutate(percentage = (total_population / sum(total_population))) |> 
+  arrange(name, breakdown) |> 
+  ungroup() |> 
+  pivot_wider(
+    names_from = breakdown,
+    values_from = c(total_population, percentage),
+    names_glue = "{breakdown} ({.value})"
+  ) |> 
+  rename(
+    "0 (n)"  = `0 (total_population)`,
+    "0 (%)"  = `0 (percentage)`,
+    "1-2 (n)" = `1–2 (total_population)`,
+    "1-2 (%)" = `1–2 (percentage)`,
+    "3-6 (n)" = `3–6 (total_population)`,
+    "3-6 (%)" = `3–6 (percentage)`,
+    "7-10 (n)" = `7–10 (total_population)`,
+    "7-10 (%)" = `7–10 (percentage)`,
+    "> 10 (n)" = `> 10 (total_population)`,
+    "> 10 (%)" = `> 10 (percentage)`
+  ) |> 
+  select(
+    name,
+    `0 (n)`, `0 (%)`,
+    `1-2 (n)`, `1-2 (%)`,
+    `3-6 (n)`, `3-6 (%)`,
+    `7-10 (n)`,  `7-10 (%)`,
+    `> 10 (n)`, `> 10 (%)`
+  )
+
+municipal_access_15_table <- access_15_sector |> 
+  gt() |> 
+  cols_label(name = "") |> 
+  fmt(columns = c(2,4,6,8,10), fns = convert_number_tens) |>  
+  fmt(columns = c(3, 5, 7, 9, 11), fns = convert_pct) |> 
+  data_color(
+    columns = c(3, 5, 7, 9, 11),
+    colors = scales::col_numeric(
+      palette = c("white", color_theme("purpletransport")),
+      domain = NULL
+    )
+  ) |>
+  tab_style(
+    style = cell_text(
+      font = "KMR Apparat"
+    ),
+    locations = cells_body()
+  ) |> 
+  tab_style(
+    style = cell_text(
+      font = "KMR Apparat"
+    ),
+    locations = cells_column_labels()
+  ) |> 
+  # General table settings
+  tab_options(
+    table.font.size = 12,
+    row_group.font.size = 12
+  ) |> 
+  cols_width(1 ~ px(168),
+             2:11 ~ px(80))
+
+gtsave(municipal_access_15_table, "output/axe3/municipal_access_15_table.png", zoom = 3)
 # R Markdown --------------------------------------------------------------
 
 

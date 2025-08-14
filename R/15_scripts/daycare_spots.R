@@ -387,7 +387,38 @@ child_map <- ggplot(DAs) +
 ggplot2::ggsave(filename = here::here("output/axe3/child_map.pdf"), 
                 plot = child_map, width = 7, height = 5.5, bg = "transparent")
 
+# CPE ---------------------------------------------------------------------
+library(tidygeocoder)
 
+DAs <- cancensus::get_census("CA21", regions = list(CSD = 2465005), level = "DA",
+                             geo_format = "sf") |> 
+  select(GeoUID, Population)
+
+cpe_raw <- read.csv("data/new/cpe.csv") |> 
+  filter(NOM_MUN_COMPO == "Laval") |> 
+  filter(TYPE == "CPE") |> 
+  mutate(
+    ADRESSE = if_else(
+      str_count(ADRESSE, ",") >= 2,
+      str_replace(ADRESSE, "^([^,]*,[^,]*),.*$", "\\1"),
+      ADRESSE
+    ),
+    full_address = paste(ADRESSE, "Laval, Québec, Canada")
+  )
+
+cpe <- cpe_raw |> 
+  geocode(address = full_address, method = "osm", lat = latitude, long = longitude)
+
+cpe_sf <- cpe |> 
+  select(NOM, latitude, longitude) |> 
+  st_as_sf(coords = c("longitude", "latitude"), crs = 4326) |> 
+  st_join(
+    DAs |> 
+      st_transform(crs = 4326) |> 
+      select(GeoUID),
+    join = st_intersects
+  )
+  
 # R Markdown Numbers ------------------------------------------------------
 
 daycare_spots <- convert_number_noround(places_garderie)
