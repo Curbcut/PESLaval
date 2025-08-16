@@ -165,6 +165,15 @@ travel_time <- function(FROMs, TOs, routing_server = "http://localhost:5001/",
 
 
 # daycares <- daycares[daycares$TYPE == "CPE", ]
+
+#Testing the difference between the above and just the TTM
+daycares_DB <- daycares |> 
+  st_join(DBs, join = st_intersects) |> 
+  select(ADRESSE, PLACE_TOTAL, TYPE, SUBV, ID, name)
+
+daycares_to_DBs <- 
+
+
 daycares_to_DBs <- travel_time(daycares, sf::st_centroid(DBs))
 names(daycares_to_DBs) <- daycares$ID
 
