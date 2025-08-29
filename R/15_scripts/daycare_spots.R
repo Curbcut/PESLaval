@@ -54,6 +54,11 @@ if (nrow(daycares[sf::st_is_empty(daycares), ]) > 0) {
 tt <- ttm()
 DBs <- cancensus::get_census("CA21", regions = list(CSD = 2465005), level = "DB",
                              geo_format = "sf")
+
+sf::st_write(DBs, "data/DBs.shp")
+
+qsave(DBs, "data/DBs.qs")
+
 DAs <- cancensus::get_census("CA21", regions = list(CSD = 2465005), level = "DA",
                              vectors = c("v_CA21_17", "v_CA21_20", "v_CA21_23", "v_CA21_26", "v_CA21_29", "v_CA21_35"),
                              geo_format = "sf")
@@ -165,14 +170,6 @@ travel_time <- function(FROMs, TOs, routing_server = "http://localhost:5001/",
 
 
 # daycares <- daycares[daycares$TYPE == "CPE", ]
-
-#Testing the difference between the above and just the TTM
-daycares_DB <- daycares |> 
-  st_join(DBs, join = st_intersects) |> 
-  select(ADRESSE, PLACE_TOTAL, TYPE, SUBV, ID, name)
-
-daycares_to_DBs <- 
-
 
 daycares_to_DBs <- travel_time(daycares, sf::st_centroid(DBs))
 names(daycares_to_DBs) <- daycares$ID
@@ -353,7 +350,8 @@ daycare_map <- ggplot(t) +
 ggplot2::ggsave(filename = here::here("output/axe3/daycare.pdf"), 
                 plot = daycare_map, width = 7, height = 5.5, bg = "transparent")
 
-
+ggsave(filename = here::here("output/axe3/daycare_map.png"),
+       plot = daycare_map, width = 9, height = 7.5, bg = "white")
 
 
 # How many children in the first bins? ------------------------------------
@@ -396,38 +394,102 @@ child_map <- ggplot(DAs) +
 ggplot2::ggsave(filename = here::here("output/axe3/child_map.pdf"), 
                 plot = child_map, width = 7, height = 5.5, bg = "transparent")
 
+ggsave(filename = here::here("output/axe3/child_map.png"),
+       plot = child_map, width = 9, height = 7.5, bg = "white")
+
 # CPE ---------------------------------------------------------------------
-library(tidygeocoder)
+#Run lines 169-188, and 203-292
+cpe_raw <- daycares |> 
+  filter(TYPE == "CPE")
 
-DAs <- cancensus::get_census("CA21", regions = list(CSD = 2465005), level = "DA",
-                             geo_format = "sf") |> 
-  select(GeoUID, Population)
-
-cpe_raw <- read.csv("data/new/cpe.csv") |> 
-  filter(NOM_MUN_COMPO == "Laval") |> 
-  filter(TYPE == "CPE") |> 
+cpe_DB <- cpe_raw |> 
+  st_join(DBs |> select(GeoUID), join = st_intersects) |> 
   mutate(
-    ADRESSE = if_else(
-      str_count(ADRESSE, ",") >= 2,
-      str_replace(ADRESSE, "^([^,]*,[^,]*),.*$", "\\1"),
-      ADRESSE
-    ),
-    full_address = paste(ADRESSE, "Laval, Québec, Canada")
-  )
+    GeoUID = if_else(
+      ADRESSE == "6250, boulevard Arthur-Sauvé, Laval, QC",
+      "24650519011",
+      GeoUID
+    )
+  ) |> 
+  rename("DB_ID" = "GeoUID")
 
-cpe <- cpe_raw |> 
-  geocode(address = full_address, method = "osm", lat = latitude, long = longitude)
+CPE_travel <- qread("data/travel_time.qs")
 
-cpe_sf <- cpe |> 
-  select(NOM, latitude, longitude) |> 
-  st_as_sf(coords = c("longitude", "latitude"), crs = 4326) |> 
-  st_join(
-    DAs |> 
-      st_transform(crs = 4326) |> 
-      select(GeoUID),
-    join = st_intersects
-  )
+names(CPE_travel) <- CPE_travel$ID
+
+CPE_travel <- Reduce(rbind, CPE_travel)
+
+# Accessible in 15 minutes
+CPE_travel <- CPE_travel[CPE_travel$time_seconds <= 15*60, ]
+CPE_travel <- merge(CPE_travel, sf::st_drop_geometry(cpe_DB[c("DB_ID", "PLACE_TOTAL")]),
+                         by = "DB_ID")
+
+spots_per_child <- lapply(seq_along(cpe_DB$geometry), \(x) {
+  dc <- cpe_DB[x, ]
   
+  # served_pop <- tt$from[tt$to == dc$GeoUID]
+  
+  served_pop <- CPE_travel$DB_ID[CPE_travel$ID == dc$ID]
+  
+  # If there is no entry in the traveltime matrix, then it's not serving anyone
+  if (length(served_pop) == 0) return(NULL)
+  
+  nb_children_served <- sapply(served_pop, \(served_ID) {
+    # Spots accessible from that DB
+    spots <- access_spots$PLACE_TOTAL[access_spots$DB_ID == served_ID]
+    
+    # Children in that DB
+    children <- DB_children$children[DB_children$GeoUID == served_ID]
+    
+    # If the spots accessible by that DB is equal to the spots in the daycare
+    # under study, then the whole population of the DB is only deserved by that
+    # one daycare
+    if (spots == dc$PLACE_TOTAL) return(children)
+    
+    # If not, how many spots are accessible by the DB? Do a ratio between the
+    # spots available in that daycare vs all of them accessible, and assume
+    # this proportion is the same as the number of children served by every daycare
+    children * dc$PLACE_TOTAL / spots
+    
+  }) |> sum(na.rm = TRUE)
+  
+  # If there are no children deserved by the daycare, ignore the daycare
+  if (nb_children_served == 0) return(NULL)
+  
+  # Ratio of the number of children the daycare is supposed to serve, and the
+  # actual number of spots
+  dc$spots_per_child <- dc$PLACE_TOTAL / nb_children_served
+  
+  return(dc)
+})
+
+spots_per_child <- spots_per_child[!sapply(spots_per_child, is.null)]
+spots_per_child <- Reduce(rbind, spots_per_child)
+
+# spots_per_child <- sf::st_intersection(spots_per_child, DBs["GeoUID"])
+
+# Loop over all DBs. Look at all the daycares they can access. What are their
+# ratio? Can they meet demand?
+daycare_access_comp <- purrr::map_dfr(DBs$GeoUID, \(DB_ID) {
+  
+  dc_ID <- daycares_to_DBs$ID[daycares_to_DBs$DB_ID == DB_ID]
+  
+  accessible_daycares <- spots_per_child[spots_per_child$ID %in% dc_ID, ]
+  
+  # If no daycare, worst score
+  if (nrow(accessible_daycares) == 0) 
+    return(tibble::tibble(DB = DB_ID, daycare_comp_access = 0))
+  
+  spots_p_child_weighted_by_spots <- 
+    sum(accessible_daycares$spots_per_child)
+  
+  tibble::tibble(DB = DB_ID, daycare_comp_access = spots_p_child_weighted_by_spots)
+  
+})
+
+daycare_access_comp <- cc.buildr::merge(DBs, daycare_access_comp, 
+                                        by.x = "GeoUID", by.y = "DB")[
+                                          c("GeoUID", "daycare_comp_access")]
 # R Markdown Numbers ------------------------------------------------------
 
 daycare_spots <- convert_number_noround(places_garderie)
