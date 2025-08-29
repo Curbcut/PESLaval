@@ -182,12 +182,20 @@ CPEs_map <- ggplot(t) +
   theme(legend.spacing.x = unit(2, 'cm'),
         legend.spacing.y = unit(1, 'cm'))
 
+<<<<<<< HEAD
 
 ggsave(filename = here::here("output/axe3/CPE_map.png"),
        plot = CPEs_map, width = 9, height = 7.5, bg = "white")
 
 ggplot2::ggsave(filename = here::here("output/axe3/CPE_map.pdf"), 
                 plot = CPEs_map, width = 7, height = 5.5, bg = "transparent")
+=======
+ggplot2::ggsave(filename = here::here("output/axe3/daycare.pdf"), 
+                plot = daycare_map, width = 7, height = 5.5, bg = "transparent")
+
+ggsave(filename = here::here("output/axe3/daycare_map.png"),
+       plot = daycare_map, width = 9, height = 7.5, bg = "white")
+>>>>>>> 0992fe94ce9fa924322cb5e334b9811ff99f1e6c
 
 
 low <- t$GeoUID[t$binned_variable %in% c("Aucun accès")]
