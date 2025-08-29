@@ -281,9 +281,10 @@ travel_time <- function(
 }
 
 
-# daycares <- daycares[daycares$TYPE == "CPE", ]
+daycares <- daycares[daycares$TYPE == "CPE", ]
 
-daycares_to_DBs <- travel_time(daycares, sf::st_centroid(DBs))
+# daycares_to_DBs <- travel_time(daycares, sf::st_centroid(DBs))
+daycares_to_DBs <- qs::qread("data/travel_time.qs")
 names(daycares_to_DBs) <- daycares$ID
 
 
@@ -355,6 +356,9 @@ DB_children <- DB_children[c("GeoUID", "children")]
 
 # How many children can reach them? ---------------------------------------
 
+stop(
+  "this won't work now, or it does: it's only looking at cpe because we filtered them before mergint travel times"
+)
 children_cant_reach <-
   DB_children$children[!DB_children$GeoUID %in% daycares_to_DBs$DB_ID] |>
   sum(na.rm = TRUE)
@@ -454,7 +458,10 @@ t <- add_bins(
   breaks = c(
     -Inf,
     0.00000000000000000000000000001,
-    quantile(t$daycare_comp_access, probs = c(.25, .50, .75)),
+    quantile(
+      t$daycare_comp_access[t$daycare_comp_access != 0],
+      probs = c(.25, .50, .75)
+    ),
     Inf
   ),
   labels = c("Aucun accès", "Un peu", "a", "b", "Bon accès")
@@ -617,7 +624,20 @@ cpe_DB <- cpe_raw |>
   ) |>
   rename("DB_ID" = "GeoUID")
 
-CPE_travel <- qread("data/travel_time.qs")
+CPE_travel <- qs::qread("data/travel_time.qs")
+
+DB_with_cpe_accessble_less15minutes <-
+  lapply(CPE_travel, \(x) {
+    x[x$time_seconds <= 15 * 60, "DB_ID"]
+  }) |>
+  unlist() |>
+  unname()
+
+DB_children[
+  !DB_children$GeoUID %in% DB_with_cpe_accessble_less15minutes,
+]$children |>
+  sum(na.rm = TRUE)
+
 
 names(CPE_travel) <- CPE_travel$ID
 
@@ -630,6 +650,7 @@ CPE_travel <- merge(
   sf::st_drop_geometry(cpe_DB[c("DB_ID", "PLACE_TOTAL")]),
   by = "DB_ID"
 )
+
 
 spots_per_child <- lapply(seq_along(cpe_DB$geometry), \(x) {
   dc <- cpe_DB[x, ]
