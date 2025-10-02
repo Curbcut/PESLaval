@@ -626,7 +626,10 @@ household_comp_graph <-
   scale_y_continuous(labels = convert_pct) +
   scale_x_discrete(labels = c("une_personne" = "1 personne", "deux_personnes" = "2 personnes",
                               "trois_personnes" = "3 personnes", "quatre_personnes_plus" = "4+ personnes")) +
-  scale_fill_manual(values = c("Laval" = color_theme("greenecology"), "Québec" = color_theme("blueexplorer"))) +
+  scale_fill_manual(values = c("Laval" = color_theme("greenecology"), "Québec" = color_theme("blueexplorer")),
+                    labels = c("Laval" = "Laval",
+                               "Québec" = "Ensemble du Québec")
+                    ) +
   gg_cc_theme_no_sf +
   theme(plot.title = element_blank(), 
         legend.title = element_blank())
