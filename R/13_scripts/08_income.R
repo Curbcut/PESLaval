@@ -192,22 +192,70 @@ ggplot2::ggsave(filename = here::here("output/axe1/income/median_income_sf_plot.
 
 
 # Tableau des revenus médians par secteurs
-median_income_sf_2021 <- median_income_sf
-z <- sf::st_intersects(sf::st_centroid(median_income_sf_2021), laval_sectors)
-median_income_sf_2021$secteur <- sapply(z, \(x) {
-  if (length(x) == 0) return(NA)
-  laval_sectors$name[x]
-})
-median_income_sf_2021 <-
+
+
+# median_income_sf_2021 <- median_income_sf
+# z <- sf::st_intersects(sf::st_centroid(median_income_sf_2021), laval_sectors)
+# median_income_sf_2021$secteur <- sapply(z, \(x) {
+#   if (length(x) == 0) return(NA)
+#   laval_sectors$name[x]
+# })
+# median_income_sf_2021 <-
+#   median_income_sf_2021 |>
+#   group_by(secteur) |>
+#   summarize(median_income = weighted.mean(median_income, priv_hh, na.rm = TRUE))
+# median_income_sf_2021 <- median_income_sf_2021[1:6, ]
+# median_income_sf_2021 <- sf::st_drop_geometry(median_income_sf_2021)
+# names(median_income_sf_2021) <- c("Secteur", "Revenu médian des ménages")
+
+library(dplyr)
+library(tibble)
+
+sectors <- median_income_sf_2021$Secteur |> unique() |> sort(na.last = NA)
+print(sectors)
+
+library(tibble)
+
+manual_vals <- tribble(
+  ~Secteur,        ~`Revenu médian des ménages`,
+  "Chomedey",         69500,
+  "Duvernay, Saint-Vincent-de-Paul, Saint-François",           96000,
+  "Laval-des-Rapides, Pont-Viau",           68500,
+  "Laval-Ouest, Sainte-Dorothée, Laval-sur-le-Lac",          102000,
+  "Sainte-Rose, Fabreville",    100000,
+  "Vimont, Auteuil",     97000
+)
+
+library(dplyr)
+
+median_income_sf_2021_tbl <-
   median_income_sf_2021 |>
-  group_by(secteur) |>
-  summarize(median_income = weighted.mean(median_income, priv_hh, na.rm = TRUE))
-median_income_sf_2021 <- median_income_sf_2021[1:6, ]
-median_income_sf_2021 <- sf::st_drop_geometry(median_income_sf_2021)
-names(median_income_sf_2021) <- c("Secteur", "Revenu médian des ménages")
+  select(Secteur) |>
+  distinct() |>
+  left_join(manual_vals, by = "Secteur")
+
+# Map STORED names (exactly as in your data) -> DISPLAY names (with numbers) + ORDER
+secteur_lookup <- tribble(
+  ~Secteur_stored,                                               ~Secteur_display,                       ~ordre,
+  "Duvernay, Saint-Vincent-de-Paul, Saint-François",             "Secteur 1 : Duvernay, Saint-François et Saint-Vincent-de-Paul",                 1,
+  "Laval-des-Rapides, Pont-Viau",                                "Secteur 2 : Pont-Viau, Renaud-Coursol et Laval-des-Rapides",                 2,
+  "Chomedey",                                                    "Secteur 3 : Chomedey",        3,
+  "Laval-Ouest, Sainte-Dorothée, Laval-sur-le-Lac",              "Secteur 4 : Sainte-Dorothée, Laval-Ouest, Les Îles-Laval, Fabreville-Ouest et Laval-sur-le-Lac",              4,
+  "Sainte-Rose, Fabreville",                                     "Secteur 5 : Fabreville-Est et Sainte-Rose",              5,
+  "Vimont, Auteuil",                                             "Secteur 6 : Vimont et Auteuil",                   6
+)
+
+median_income_sf_2021_tbl <-
+  median_income_sf_2021_tbl |>
+  left_join(secteur_lookup, by = c("Secteur" = "Secteur_stored")) |>
+  # Use the display label when present; fall back to the stored name if any row wasn't mapped
+  mutate(Secteur = coalesce(Secteur_display, Secteur)) |>
+  arrange(ordre) |>
+  select(Secteur, `Revenu médian des ménages`)
+
 
 median_income_table <-
-  gt(median_income_sf_2021) |> 
+  gt(median_income_sf_2021_tbl) |> 
   # Appliquer une mise en couleur sur les colonnes médianes
   data_color(
     columns = 2,
@@ -245,7 +293,7 @@ median_income_table <-
     table.width = px(6 * 96)
   )
 
-gtsave(median_income_table, "output/axe1/income/median_income_table.png", zoom = 3)
+gtsave(median_income_table, "/Volumes/Extreme SSD/Curbcut/R/PESLaval/output/axe1/income/median_income_table.png", zoom = 3)
 
 
 # # Répartition des revenus des ménages -------------------------------------
