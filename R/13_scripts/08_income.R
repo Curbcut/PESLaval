@@ -635,6 +635,10 @@ mii_graph <- bind_rows(mii_lvl_graph, mii_qc_graph) |>
 # Adjust with inflation
 mii_graph <- mutate(mii_graph, income = income / CPI$value[match(year, CPI$year)])
 
+mii_graph <- mii_graph |>
+  dplyr::mutate(year = as.integer(year)) |>
+  dplyr::rename(`Revenu médian des individus` = income)
+
 rev_mid_ind <- mii_graph$income[mii_graph$year == 2020 & mii_graph$Geography == "Laval"]
 rev_mid_ind_2015 <- mii_graph$income[mii_graph$year == 2015 & mii_graph$Geography == "Laval"]
 rev_mid_ind_aug <- convert_pct((rev_mid_ind - rev_mid_ind_2015) / rev_mid_ind_2015)
@@ -647,69 +651,60 @@ rev_mid_ind_2015_QC <- mii_graph$income[mii_graph$year == 2015 & mii_graph$Geogr
 rev_mid_ind_aug_QC <- convert_pct((rev_mid_ind_QC - rev_mid_ind_2015_QC) / rev_mid_ind_2015_QC)
 
 
-names(mii_graph) <- c("Région", "Année", "Revenu médian des ménages")
-mii_graph <- mii_graph %>%
-  pivot_wider(names_from = Région, 
-              values_from = c(`Revenu médian des ménages`)) |> 
-  (\(.) { .[3, 2:3] <- list(29893, 29034); . })()
+# Build wide table for display (no hard-coding, correct value column)
+mii_tbl <- mii_graph |>
+  tidyr::pivot_wider(
+    names_from  = Geography,
+    values_from = `Revenu médian des individus`
+  ) |>
+  dplyr::arrange(year) |>
+  dplyr::rename(
+    Année = year,
+    `Ensemble du Québec` = Quebec
+  )
 
-names(mii_graph) <- c("Année", "Laval", "Ensemble du Québec")
+# Color scale domain for gt::data_color()
+dom <- range(mii_tbl$Laval, mii_tbl$`Ensemble du Québec`, na.rm = TRUE)
+
+library(gt)
 
 mii_plot <-
-  gt(mii_graph) |> 
+  gt(mii_tbl |> dplyr::arrange(desc(Année))) |>
   data_color(
     columns = 2:3,
     fn = scales::col_numeric(
       palette = c("white", color_theme("purpletransport")),
       domain = NULL
     )
-  ) |> 
-  fmt(columns = 2:3, fns = \(x) paste(convert_number(x), "$")) |> 
-  # Apply font style to the whole table
+  ) |>
+  fmt(columns = 2:3, fns = \(x) paste(convert_number(x), "$")) |>
   tab_style(
-    style = cell_text(
-      font = "KMR-Apparat-Regular"
-    ),
+    style = cell_text(font = "KMR-Apparat-Regular"),
     locations = cells_body()
   ) |>
   tab_style(
-    style = cell_text(
-      font = "KMR-Apparat-Regular"
-    ),
+    style = cell_text(font = "KMR-Apparat-Regular"),
     locations = cells_column_labels()
   ) |>
   tab_style(
-    style = cell_text(
-      font = "KMR-Apparat-Regular"
-    ),
+    style = cell_text(font = "KMR-Apparat-Regular"),
     locations = cells_row_groups()
   ) |>
   tab_style(
     style = cell_fill(color = "#F0F0F0"),
     locations = cells_row_groups()
-  ) |> 
+  ) |>
   tab_spanner(
-    label = "Revenu médian des individus",
+    label = "Revenu médian des particuliers",
     columns = c("Laval", "Ensemble du Québec")
-  ) |> 
-  tab_style(
-    style = cell_text(
-      font = "KMR-Apparat-Regular"
-    ),
-    locations = cells_body()
-  ) |> 
-  tab_style(
-    style = cell_text(
-      font = "KMR-Apparat-Regular"
-    ),
-    locations = cells_column_labels()
-  ) |> 
-  # Options générales pour la table
+  ) |>
   tab_options(
     table.font.size = 12,
     row_group.font.size = 12,
     table.width = px(6 * 96)
   )
+
+
 
 
 gtsave(mii_plot, "output/axe1/income/mii_plot.png", zoom = 3)
