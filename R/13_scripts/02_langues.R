@@ -736,16 +736,16 @@ agg_data$Language <- factor(agg_data$Language, levels = c("Français", "Anglais"
 
 
 mother_tongue_plot <-
+  mother_tongue_plot <-
   agg_data |> 
   ggplot(aes(x = Language, y = Value, fill = Language, alpha = Type)) +
   geom_bar(stat = "identity", position = "stack") +
   labs(
     title = NULL,
-    x = NULL,
+    x = "Langue maternelle",
     y = "Individus",
     alpha = "Type"
   ) +
-  # Define colors for "Language" but remove the legend
   scale_fill_manual(values = c(
     "Français" = color_theme("blueexplorer"),
     "Anglais" = color_theme("pinkhealth"),
@@ -754,34 +754,32 @@ mother_tongue_plot <-
   labels = c(
     "Français" = "Français",
     "Anglais" = "Anglais",
-    "Autre" = "Langue(s) non officielle(s)"
+    "Autre" = "Langues non officielles"
   ),
- guide = "none") +  # Remove the color legend
-  # Define alpha levels for "Type"
+  guide = "none") +
   scale_alpha_manual(
     values = c(
       "Seulement" = 1,
       "Avec autre(s) language(s)" = 0.4
     ),
     labels = c(
-      "Seulement" = "Seulement",
-      "Avec autre(s) language(s)" = "Avec autre(s) langue(s)"
+      "Seulement" = "Langue maternelle unique",
+      "Avec autre(s) language(s)" = "En combinaison avec une ou plusieurs autres langues"
     )
   ) +
-  # Add color to the "Type" legend for reference
   guides(alpha = guide_legend(override.aes = list(
-    fill = color_theme("blueexplorer")  # Use the French color as a reference
+    fill = color_theme("blueexplorer")
   ))) +
   scale_y_continuous(labels = convert_number) +
   scale_x_discrete(labels = c(
     "Français" = "Français",
     "Anglais" = "Anglais",
-    "Autre" = "Langue(s) non officielle(s)"
+    "Autre" = "Langues non officielles"
   )) +
   geom_text(aes(label = convert_number(Value)),
-            position = position_stack(vjust = 0.5), # Center text on blocks
-            size = 3,                              # Adjust text size for better visibility
-            color = "black") +                   # Make labels bold for readability
+            position = position_stack(vjust = 0.5),
+            size = 3,
+            color = "black") +
   gg_cc_theme_no_sf +
   theme(
     legend.spacing.x = unit(0.2, 'cm'),
