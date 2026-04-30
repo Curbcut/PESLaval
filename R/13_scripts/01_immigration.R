@@ -289,12 +289,15 @@ imm_table_data <- bind_rows(imm_table_lvl, imm_table_mtl, imm_table_qc) |>
 
 #Creating the table
 imm_table <- 
-  imm_table <- 
   gt(imm_table_data) |> 
   text_transform(
     locations = cells_body(columns = "Région"),
     fn = function(x) ifelse(x == "Québec", "Ensemble du Québec", x)
-  ) |> 
+  ) |>
+  text_transform(
+    locations = cells_column_labels(),
+    fn = function(x) gsub("Résident non permanents", "Résidents non permanents", x)
+  ) |>
   data_color(
     columns = c(4,6,8,10),
     fn = scales::col_numeric(
@@ -303,24 +306,21 @@ imm_table <-
     )
   ) |> 
   fmt(columns = c(2,3,5,7,9), fns = convert_number) |> 
-  fmt(columns = c(4,6,8,10), fns = convert_pct) |> 
-  # Apply font style to the whole table
+  fmt(columns = c(4,6,8,10), fns = convert_pct) |>
   tab_style(
-    style = cell_text(
-      font = "KMR-Apparat-Regular"
-    ),
+    style = cell_text(whitespace = "nowrap"),
+    locations = cells_body(columns = c(2,3,4,5,6,7,8,9,10))
+  ) |>
+  tab_style(
+    style = cell_text(font = "KMR-Apparat-Regular"),
     locations = cells_body()
   ) |>
   tab_style(
-    style = cell_text(
-      font = "KMR-Apparat-Regular"
-    ),
+    style = cell_text(font = "KMR-Apparat-Regular"),
     locations = cells_column_labels()
   ) |>
   tab_style(
-    style = cell_text(
-      font = "KMR-Apparat-Regular"
-    ),
+    style = cell_text(font = "KMR-Apparat-Regular"),
     locations = cells_row_groups()
   ) |>
   tab_style(
@@ -330,7 +330,7 @@ imm_table <-
   tab_options(
     table.font.size = 12,
     row_group.font.size = 12,
-    table.width = px(6 * 96),
+    table.width = px(6 * 96)
   )
 
 gtsave(imm_table, "output/axe1/immigration/imm_table.png", zoom = 3)
@@ -538,10 +538,10 @@ ad_cat_graph <- ggplot(data = admission_cat_combined, aes(x = Type, y = Percent,
             vjust = -0.5, color = "black", size = 3) +
   scale_y_continuous(labels = convert_pct) +
   scale_x_discrete(labels = c(
-    "Économique" = "Immigrant·e·s économique",
-    "Famille" = "Immigrant·e·s parrainés",
-    "Réfugiés" = "Réfugié·es",
-    "Autres" = "Autres immigrant·e·s"
+    "Économique" = "Immigrant(e)s économiques",
+    "Famille"    = "Immigrant(e)s parrainé(e)s",
+    "Réfugiés"   = "Réfugié(e)s",
+    "Autres"     = "Autres immigrant(e)s"
   )) +
   scale_fill_manual(
     values = c("Laval" = color_theme("greenecology"), "Québec" = color_theme("blueexplorer")),
